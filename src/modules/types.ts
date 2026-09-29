@@ -46,6 +46,10 @@ export interface ModuleDef {
    * at the top right (used for Administration).
    */
   placement?: 'sidebar' | 'userMenu';
+  /** Shrink the sidebar to icons automatically while this module is open. */
+  compactSidebar?: boolean;
+  /** Extra controls rendered in the app top bar while this module is open. */
+  topbarActions?: ComponentType;
   /** Renders the module's nested <Routes>. */
   component: ComponentType;
   widgets?: WidgetDef[];

@@ -7,8 +7,8 @@ export interface UserPrefs {
   sidebarCollapsed?: boolean;
   /** Personal dashboard layout. Absent = use the organisation default. */
   dashboard?: DashboardItem[];
-  /** Module ids whose sidebar menu is expanded. */
-  openMenus?: string[];
+  /** Personal order of sidebar modules (module ids). */
+  menuOrder?: string[];
   /** Personal notes widget. */
   notes?: string;
 }

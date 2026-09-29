@@ -493,3 +493,75 @@
   background: color-mix(in srgb, var(--m) 16%, transparent);
   color: var(--m);
 }
+
+/* ---------- Reorderable modules ---------- */
+.side-modules {
+  display: flex;
+  flex-direction: column;
+}
+.side-module {
+  position: relative;
+  border-radius: 10px;
+  background: var(--sidebar-bg);
+}
+.side-grip {
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  z-index: 2;
+  width: 16px;
+  height: 28px;
+  margin-top: -14px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  color: var(--sidebar-text-2);
+  cursor: grab;
+  opacity: 0;
+  touch-action: none;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+.side-row:hover .side-grip {
+  opacity: 1;
+}
+.side-grip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sidebar-text);
+}
+.side-grip:active {
+  cursor: grabbing;
+}
+
+/* ---------- Icon-only sidebar toggle ---------- */
+.side-collapse {
+  justify-content: flex-end;
+  padding: 0 18px;
+  gap: 0;
+}
+.shell.collapsed .side-collapse {
+  justify-content: center;
+  padding: 0;
+}
+.side-collapse svg {
+  transition: transform 0.2s;
+}
+.side-collapse:hover svg {
+  color: var(--accent);
+}
+/* The sidebar must never scroll itself (focus could scroll a hidden-overflow box); the nav scrolls instead. */
+.sidebar {
+  overflow: clip;
+}
+.sidebar-nav {
+  min-height: 0;
+}
+/* Collapsed sidebar: icons only, no visible scrollbar (still scrollable with the wheel if needed). */
+.shell.collapsed .sidebar-nav {
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.shell.collapsed .sidebar-nav::-webkit-scrollbar {
+  display: none;
+}

@@ -7,7 +7,7 @@ import { useCollection } from '@/data/db';
 import { audit } from '@/data/stores';
 import { useI18n } from '@/i18n';
 import { Butterfly } from '@/components/Butterfly';
-import { modules } from '@/modules/registry';
+import { modules, orderModules } from '@/modules/registry';
 import type { WidgetDef } from '@/modules/types';
 
 function Welcome() {
@@ -42,8 +42,8 @@ function Welcome() {
 
 function ModuleShortcuts() {
   const { t } = useI18n();
-  const { can } = useAuth();
-  const mine = modules.filter((m) => m.placement !== 'userMenu' && can(m.entryPermission));
+  const { can, user } = useAuth();
+  const mine = orderModules(modules.filter((m) => m.placement !== 'userMenu' && can(m.entryPermission)), user?.prefs?.menuOrder);
   if (!mine.length)
     return <div className="muted small">{t('Aucun module ne vous est attribué.', 'No modules assigned to you.')}</div>;
   return (

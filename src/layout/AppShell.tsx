@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { NavLink, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home as HomeIcon, ChevronsLeft, ChevronsRight, Moon, Sun, LogOut, Menu, ChevronDown } from 'lucide-react';
+import { Home as HomeIcon, PanelLeftClose, PanelLeftOpen, Moon, Sun, LogOut, Menu, ChevronDown, ArrowDownUp } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { useI18n } from '@/i18n';
-import { modules, moduleForPath, HOME_ACCENT } from '@/modules/registry';
+import { modules, moduleForPath, orderModules, HOME_ACCENT } from '@/modules/registry';
 import type { ModuleDef } from '@/modules/types';
 import { Wordmark } from '@/components/Butterfly';
 import { RequirePermission } from '@/components/ui';
 import { Avatar } from '@/modules/admin/pages/Users';
 import { Home } from '@/pages/Home';
 import { WingTransition } from './WingTransition';
+import { SideModules } from './SideModules';
 import { applyTheme, useTheme } from './theme';
 import './shell.css';
 
@@ -23,32 +24,40 @@ export function AppShell() {
   const current = moduleForPath(location.pathname);
   const moduleKey = current?.id ?? 'home';
   const accent = current?.accent ?? HOME_ACCENT;
-  const collapsed = !!user?.prefs?.sidebarCollapsed;
+  // Some modules (e.g. IT support's embedded site) want the room: the sidebar shrinks to icons there
+  // automatically. The user can still expand it for the visit without changing their saved preference.
+  const ModuleActions = current?.topbarActions;
+  const autoCompact = !!current?.compactSidebar;
+  const [expandedHere, setExpandedHere] = useState(false);
+  useEffect(() => setExpandedHere(false), [moduleKey]);
+  const collapsed = autoCompact ? !expandedHere : !!user?.prefs?.sidebarCollapsed;
+  const toggleSidebar = () => (autoCompact ? setExpandedHere(!expandedHere) : updatePrefs({ sidebarCollapsed: !collapsed }));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { theme, toggle: toggleTheme } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const sidebarModules = modules.filter((m) => m.placement !== 'userMenu' && can(m.entryPermission));
+  // Sidebar modules in the user's saved order (drag and drop in the sidebar).
+  const sidebarModules = orderModules(
+    modules.filter((m) => m.placement !== 'userMenu' && can(m.entryPermission)),
+    user?.prefs?.menuOrder,
+  );
   const userMenuModules = modules.filter((m) => m.placement === 'userMenu' && can(m.entryPermission));
 
-  /* ----- expandable module menus (remembered per user) ----- */
-  const openMenus = user?.prefs?.openMenus;
-  const isOpen = (id: string) => (openMenus ? openMenus.includes(id) : current?.id === id);
-  const setOpen = (id: string, open: boolean) => {
-    const base = (openMenus ?? (current ? [current.id] : [])).filter((x) => sidebarModules.some((m) => m.id === x));
-    const next = open ? [...new Set([...base, id])] : base.filter((x) => x !== id);
-    updatePrefs({ openMenus: next });
-  };
+  /* ----- module menus: open on entering a module, close on leaving it (accordion) ----- */
+  // `manual` holds explicit toggles made while inside the current module; it resets on every module change.
+  const [manual, setManual] = useState<Record<string, boolean>>({});
+  useEffect(() => setManual({}), [moduleKey]);
+  const isOpen = (id: string) => manual[id] ?? current?.id === id;
+  const setOpen = (id: string, open: boolean) => setManual((m) => ({ ...m, [id]: open }));
   const onModuleClick = (e: MouseEvent, m: ModuleDef) => {
     if (current?.id === m.id) {
       // Already in this module: the header only opens/closes its menu.
       e.preventDefault();
       setOpen(m.id, !isOpen(m.id));
-    } else if (!isOpen(m.id)) {
-      setOpen(m.id, true);
     }
+    // Otherwise navigation happens; the new module opens and the previous one closes automatically.
   };
 
   useEffect(() => {
@@ -87,6 +96,9 @@ export function AppShell() {
     .reverse()
     .find((n) => (n.path ? location.pathname.startsWith(subPath(current, n.path)) : location.pathname === current.path));
 
+  // During the sign-out fade the shell can re-render once without a user.
+  if (!user) return null;
+
   return (
     <div className={`shell ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`} style={{ ['--accent' as string]: accent }}>
       <aside className="sidebar">
@@ -105,61 +117,25 @@ export function AppShell() {
           </NavLink>
 
           {sidebarModules.length > 0 && <div className="side-section">{t('Modules', 'Modules')}</div>}
-          {sidebarModules.map((m) => {
-            const Icon = m.icon;
-            const active = current?.id === m.id;
-            const open = isOpen(m.id) && !collapsed;
-            return (
-              <div key={m.id} className={`side-module ${open ? 'open' : ''}`} style={{ ['--m' as string]: m.accent }}>
-                <div className="side-row">
-                  <NavLink to={m.path} className={`side-link ${active ? 'active' : ''}`} title={t(m.name)} onClick={(e) => onModuleClick(e, m)}>
-                    <span className="side-icon">
-                      <Icon size={18} />
-                    </span>
-                    <span className="side-text">{t(m.name)}</span>
-                  </NavLink>
-                  {!collapsed && (
-                    <button
-                      className="side-toggle"
-                      onClick={() => setOpen(m.id, !isOpen(m.id))}
-                      aria-expanded={open}
-                      aria-label={open ? t('Fermer le menu', 'Close menu') : t('Ouvrir le menu', 'Open menu')}
-                    >
-                      <ChevronDown size={15} />
-                    </button>
-                  )}
-                </div>
-                <AnimatePresence initial={false}>
-                  {open && (
-                    <motion.div
-                      className="side-sub"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.28, ease: [0.2, 0.7, 0.2, 1] }}
-                    >
-                      {m.nav
-                        .filter((n) => !n.permission || can(n.permission))
-                        .map((n) => {
-                          const SubIcon = n.icon;
-                          return (
-                            <NavLink key={n.path} to={subPath(m, n.path)} end={!n.path || n.path === 'new'} className="side-sublink">
-                              <SubIcon size={15} />
-                              {t(n.label)}
-                            </NavLink>
-                          );
-                        })}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
+          <SideModules
+            modules={sidebarModules}
+            currentId={current?.id}
+            collapsed={collapsed}
+            isOpen={isOpen}
+            setOpen={setOpen}
+            onModuleClick={onModuleClick}
+            can={can}
+            onReorder={(ids) => updatePrefs({ menuOrder: ids })}
+          />
         </nav>
 
-        <button className="side-collapse" onClick={() => updatePrefs({ sidebarCollapsed: !collapsed })} title={collapsed ? t('Déployer', 'Expand') : t('Réduire', 'Collapse')}>
-          {collapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
-          <span className="side-text">{t('Réduire', 'Collapse')}</span>
+        <button
+          className="side-collapse"
+          onClick={toggleSidebar}
+          title={collapsed ? t('Ouvrir le menu latéral', 'Open sidebar') : t('Réduire le menu latéral', 'Collapse sidebar')}
+          aria-label={collapsed ? t('Ouvrir le menu latéral', 'Open sidebar') : t('Réduire le menu latéral', 'Collapse sidebar')}
+        >
+          {collapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
         </button>
       </aside>
       <div className="sidebar-scrim" onClick={() => setMobileOpen(false)} />
@@ -177,6 +153,7 @@ export function AppShell() {
             {pageLabel && pageLabel.path && <span className="crumb-page">/ {t(pageLabel.label)}</span>}
           </div>
           <span className="spacer" />
+          {ModuleActions && <ModuleActions />}
           <button
             className="btn btn-ghost btn-sm lang-toggle"
             onClick={() => {
@@ -220,6 +197,15 @@ export function AppShell() {
                       </NavLink>
                     );
                   })}
+
+                  {user.prefs?.menuOrder && (
+                    <button className="user-pop-item user-pop-admin" onClick={() => updatePrefs({ menuOrder: undefined })}>
+                      <span className="user-pop-admin-icon" style={{ ['--m' as string]: 'var(--text-3)' }}>
+                        <ArrowDownUp size={16} />
+                      </span>
+                      {t('Rétablir l’ordre du menu', 'Reset menu order')}
+                    </button>
+                  )}
 
                   <hr className="divider" />
                   <button className="user-pop-item" onClick={logout}>

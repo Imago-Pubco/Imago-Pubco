@@ -21,6 +21,8 @@ export const FALLBACK_LAYOUT: DashboardItem[] = [
   { id: 'shipping.todo', size: 1 },
   { id: 'shipping.kpis', size: 2 },
   { id: 'accounting.pipeline', size: 2 },
+  { id: 'estimating.kpis', size: 2 },
+  { id: 'estimating.todo', size: 1 },
   { id: 'core.activity', size: 1 },
   { id: 'core.notes', size: 1 },
   { id: 'admin.kpis', size: 2 },

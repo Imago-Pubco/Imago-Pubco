@@ -26,6 +26,9 @@ src/
     admin/         Admin portal: users, access groups, audit log, system
     accounting/    Vendor invoices: mailbox → extraction → 3-way match with Business Central → posting
     shipping/      4×6 shipping labels for production (Code128 barcodes, printing)
+    it/            IT support: embeds the AKAB support site (address set by `it.settings`);
+                   the sidebar shrinks to icons automatically there (`compactSidebar`)
+    estimating/    Packaging estimates: specs, box photo (future AI analysis), quantity breaks, pricing
   pages/           Login, Home (customizable dashboard)
 ```
 
@@ -46,7 +49,7 @@ The dashboard (home page) is built from widgets: general widgets (welcome, my mo
 
 ## Navigation
 
-- Sidebar: each module opens and closes its own submenu (click the module or its arrow). The state is saved per user.
+- Sidebar: a module's submenu opens automatically when you enter the module and closes when you leave it; clicking the current module (or its arrow) opens or closes it. Each user can reorder modules by dragging the grip that appears on hover; *Rétablir l’ordre du menu* (user menu) restores the default order. Both are saved per user.
 - **Administration** is not in the sidebar. The menu under the user name (top right) has a single *Paramètres d’administration* entry, visible only to users with the `admin.access` permission. It opens the admin portal, which has its own tabs (Users, Groups, Audit, System).
 
 ## Permissions
@@ -68,6 +71,15 @@ A user gets the union of the permissions from all their groups.
 | 🦋 Posted | Purchase invoice created in Business Central |
 
 Tolerances are configurable (*Comptabilité → Paramètres*). Posting despite exceptions requires the `accounting.invoices.override` permission and a written justification.
+
+## Estimating (layout — rules to come)
+
+Estimates for custom packaging (folding carton, corrugated, rigid, display, co-packing). Stages: 🥚 Request → 🐛 Costing → ⏳ Sent → 🦋 Won (or Lost).
+
+- Spec sheet: ECMA/FEFCO style, dimensions (mm and inches), material, print process and colours, finishes, converting options, cutting die.
+- **Box photo**: upload area ready. Automatic analysis (type, dimensions, material, finishes) will be plugged in later.
+- Quantity breaks (up to 5) with cost breakdown, margin, selling price and unit price. Costs and margins are visible only with `estimating.pricing.view`.
+- ⚠ The cost model ([`src/modules/estimating/pricing.ts`](src/modules/estimating/pricing.ts)) is **provisional**. It will be replaced by the estimating team's rules.
 
 ## Production (planned)
 

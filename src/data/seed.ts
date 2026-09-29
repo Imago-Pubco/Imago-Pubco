@@ -15,6 +15,7 @@ import { accSettings, bcPurchaseInvoices, bcPurchaseOrders, bcVendors, DEFAULT_S
 import { seedMail, seedPurchaseOrders, seedVendors } from '@/modules/accounting/seed';
 import { addressBook, labels, shipFroms } from '@/modules/shipping/stores';
 import { seedAddresses, seedLabels, seedShipFroms } from '@/modules/shipping/seed';
+import { ensureEstimatingSeeded } from '@/modules/estimating/stores';
 
 const SEED_VERSION = '1';
 const SEED_KEY = 'imago:seed';
@@ -60,10 +61,17 @@ const seedGroups: Group[] = [
     color: '#c2185b',
   },
   {
+    id: 'g_estim',
+    name: 'Estimation',
+    description: 'Chiffrage des emballages',
+    permissions: ['estimating.access', 'estimating.edit', 'estimating.pricing.view', 'estimating.approve'],
+    color: '#2e9e5b',
+  },
+  {
     id: 'g_read',
     name: 'Lecture seule',
     description: 'Consultation sans modification',
-    permissions: ['accounting.access', 'accounting.po.view', 'shipping.access'],
+    permissions: ['accounting.access', 'accounting.po.view', 'shipping.access', 'estimating.access'],
     color: '#5b6b82',
   },
 ];
@@ -99,5 +107,6 @@ export async function ensureSeeded() {
   await addressBook.replaceAll(seedAddresses);
   await labels.replaceAll(seedLabels);
 
+  await ensureEstimatingSeeded(true);
   localStorage.setItem(SEED_KEY, SEED_VERSION);
 }
