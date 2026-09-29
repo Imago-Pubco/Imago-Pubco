@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Headset, LifeBuoy, ExternalLink, RotateCw, Settings2 } from 'lucide-react';
+import { Headset, LifeBuoy, Settings2 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { appSettings, logAudit } from '@/data/stores';
 import { useI18n } from '@/i18n';
@@ -114,25 +114,15 @@ function SupportPage() {
   );
 }
 
-/** Compact actions shown in the app top bar while the IT module is open. */
+/** Only admins (it.settings) get a control in the module bar: changing the support address. */
 function SupportActions() {
   const { t } = useI18n();
-  const url = useSupportUrl();
   return (
-    <div className="row" style={{ gap: 2 }}>
-      <button className="btn btn-ghost btn-icon btn-sm" onClick={() => window.dispatchEvent(new Event(EV_RELOAD))} title={t('Recharger', 'Reload')} aria-label={t('Recharger', 'Reload')}>
-        <RotateCw size={16} />
+    <Can permission="it.settings">
+      <button className="topnav-action" onClick={() => window.dispatchEvent(new Event(EV_SETTINGS))} title={t('Adresse du support', 'Support address')} aria-label={t('Adresse du support', 'Support address')}>
+        <Settings2 size={16} />
       </button>
-      <a className="btn btn-ghost btn-icon btn-sm" href={url} target="_blank" rel="noopener noreferrer" title={t('Ouvrir dans un nouvel onglet', 'Open in a new tab')} aria-label={t('Ouvrir dans un nouvel onglet', 'Open in a new tab')}>
-        <ExternalLink size={16} />
-      </a>
-      <Can permission="it.settings">
-        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => window.dispatchEvent(new Event(EV_SETTINGS))} title={t('Adresse du support', 'Support address')} aria-label={t('Adresse du support', 'Support address')}>
-          <Settings2 size={16} />
-        </button>
-      </Can>
-      <span className="topbar-sep" />
-    </div>
+    </Can>
   );
 }
 
@@ -152,7 +142,7 @@ export const itModule: ModuleDef = {
   icon: LifeBuoy,
   accent: '#0ea5c6',
   entryPermission: 'it.access',
-  compactSidebar: true,
+  chrome: 'topnav',
   topbarActions: SupportActions,
   permissions: [
     { key: 'it.access', label: { fr: 'Accéder au support TI', en: 'Access IT support' } },

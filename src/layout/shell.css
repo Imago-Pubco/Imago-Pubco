@@ -565,3 +565,112 @@
 .shell.collapsed .sidebar-nav::-webkit-scrollbar {
   display: none;
 }
+
+/* ---------- Full-screen modules: thin module bar on top ---------- */
+.shell.shell-topnav {
+  display: flex;
+  flex-direction: column;
+  grid-template-columns: none;
+}
+.shell-topnav .workspace {
+  flex: 1;
+}
+.shell-topnav .module-frame {
+  height: 100%;
+}
+.topnav {
+  --topnav-h: 46px;
+  height: var(--topnav-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 0 12px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  position: relative;
+  z-index: 20;
+}
+.topnav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 70%);
+}
+.topnav-brand {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+.topnav-brand:hover {
+  background: var(--sidebar-hover);
+}
+.topnav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.topnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--m);
+  background: color-mix(in srgb, var(--m) 14%, transparent);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.topnav-link:hover {
+  background: color-mix(in srgb, var(--m) 26%, transparent);
+}
+.topnav-link.active {
+  background: var(--m);
+  color: #fff;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--m) 45%, transparent);
+}
+.topnav-label {
+  padding-right: 4px;
+}
+.topnav-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.topnav-action {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sidebar-text-2);
+  cursor: pointer;
+}
+.topnav-action:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text);
+}
+.topnav .user-btn {
+  color: var(--sidebar-text);
+}
+.topnav .user-btn:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
