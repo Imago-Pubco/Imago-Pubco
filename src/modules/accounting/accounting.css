@@ -1,0 +1,270 @@
+/* ---------- Metamorphosis pipeline ---------- */
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.pipeline-step {
+  position: relative;
+  text-decoration: none;
+  padding: 18px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) calc(6% + var(--i) * 6%), var(--bg-elev));
+  border: 1px solid color-mix(in srgb, var(--accent) calc(10% + var(--i) * 10%), var(--border));
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.pipeline-step:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.pipeline-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  transform: translateY(-50%) rotate(45deg);
+  opacity: 0.6;
+}
+.pipeline-icon {
+  color: var(--accent);
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+.pipeline-count {
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.pipeline-label {
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 500;
+}
+@media (max-width: 720px) {
+  .pipeline {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pipeline-step::after {
+    display: none;
+  }
+}
+
+/* ---------- Inbox ---------- */
+.mail-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  min-height: 560px;
+  overflow: hidden;
+}
+.mail-list {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+}
+.mail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-left: 3px solid transparent;
+  background: none;
+  cursor: pointer;
+}
+.mail-item:hover {
+  background: var(--surface-hover);
+}
+.mail-item.active {
+  background: var(--accent-soft);
+  border-left-color: var(--accent);
+}
+.mail-item.unread .mail-from::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 7px;
+  vertical-align: middle;
+}
+.mail-from {
+  font-size: 14px;
+}
+.mail-subject {
+  font-size: 14px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mail-read {
+  padding: 24px 28px;
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+}
+.mail-read-head {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.mail-read-head h2 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+.mail-body {
+  font-family: var(--font);
+  white-space: pre-wrap;
+  margin: 0 0 20px;
+  color: var(--text-2);
+}
+.attachment {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.attachment-file {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--err);
+}
+.attachment-file > div {
+  color: var(--text);
+}
+.extract-preview dl {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 2px 18px;
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+.extract-preview dt {
+  color: var(--text-3);
+  grid-row: 1;
+}
+.extract-preview dd {
+  margin: 0;
+  grid-row: 2;
+  font-weight: 500;
+}
+.mail-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+@media (max-width: 900px) {
+  .mail-layout {
+    grid-template-columns: 1fr;
+  }
+  .mail-list {
+    max-height: 300px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* ---------- Invoice detail ---------- */
+.check-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.check-row svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.match-table tr.lvl-fail td:first-child {
+  box-shadow: inset 3px 0 0 var(--err);
+}
+.match-table tr.lvl-warn td:first-child {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+.match-table tr.lvl-ok td:first-child {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+.match-table tr.issue-row td {
+  padding-top: 0;
+  background: transparent;
+}
+.match-table tr:has(+ .issue-row) td {
+  border-bottom: none;
+}
+.totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+.totals > div {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  min-width: 280px;
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+}
+.totals .grand {
+  font-size: 18px;
+  font-weight: 700;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 16px 20px;
+}
+.timeline li {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  padding-bottom: 16px;
+}
+.timeline li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 14px;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--border-strong);
+}
+.tl-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 5px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.bar > div {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+}

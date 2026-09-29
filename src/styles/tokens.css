@@ -1,0 +1,80 @@
+/* Design tokens — derived from pubco.com (black / white / Pubco red, Outfit). */
+:root {
+  --font: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --red: #da291c;
+  --red-strong: #c02b0a;
+  --red-glow: #ff3c0f;
+  --navy: #112337;
+
+  /* Light theme */
+  --bg: #f4f4f3;
+  --bg-elev: #ffffff;
+  --bg-sunken: #ebebea;
+  --surface-hover: rgba(10, 10, 10, 0.04);
+  --border: rgba(10, 10, 10, 0.1);
+  --border-strong: rgba(10, 10, 10, 0.2);
+  --text: #0a0a0a;
+  --text-2: #4a4a4a;
+  --text-3: #85858a;
+  --on-accent: #ffffff;
+
+  --sidebar-bg: #0a0a0a;
+  --sidebar-text: #f1f1f1;
+  --sidebar-text-2: rgba(241, 241, 241, 0.55);
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+
+  --ok: #1f8a4c;
+  --ok-bg: rgba(31, 138, 76, 0.12);
+  --warn: #b86e00;
+  --warn-bg: rgba(214, 138, 0, 0.14);
+  --err: #c02b0a;
+  --err-bg: rgba(218, 41, 28, 0.12);
+  --info: #1e5aa8;
+  --info-bg: rgba(30, 90, 168, 0.12);
+
+  /* Current module accent — overwritten by the shell per module */
+  --accent: var(--red);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.18);
+
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 72px;
+  --topbar-h: 60px;
+
+  --ease-wing: cubic-bezier(0.7, 0, 0.2, 1);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d0d0e;
+  --bg-elev: #17171a;
+  --bg-sunken: #0a0a0b;
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text: #f1f1f1;
+  --text-2: #b4b4b8;
+  --text-3: #7c7c82;
+
+  --sidebar-bg: #050505;
+
+  --ok: #4cc27f;
+  --warn: #f0a93a;
+  --err: #ff6a4d;
+  --info: #6aa6f5;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+:root[data-density='compact'] {
+  --topbar-h: 52px;
+}

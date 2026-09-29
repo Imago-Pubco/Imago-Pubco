@@ -1,0 +1,136 @@
+.ship-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 20px;
+  align-items: start;
+}
+.ship-preview {
+  position: sticky;
+  top: 20px;
+}
+.ship-preview-stage {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 30% 20%, var(--accent-soft), transparent 60%),
+    var(--bg-sunken);
+  border: 1px solid var(--border);
+}
+.ship-preview-stage .label-4x6 {
+  transform: scale(0.95);
+  transform-origin: top center;
+  box-shadow: var(--shadow-lg);
+}
+@media (max-width: 1100px) {
+  .ship-editor {
+    grid-template-columns: 1fr;
+  }
+  .ship-preview {
+    position: static;
+  }
+}
+
+.pkg-table input {
+  min-width: 64px;
+}
+
+/* ---------- 4×6 thermal label ---------- */
+.label-4x6 {
+  width: 4in;
+  height: 6in;
+  background: #fff;
+  color: #000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 1.25;
+  border: 2px solid #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.lbl-row {
+  border-bottom: 2px solid #000;
+  padding: 6px 8px;
+}
+.lbl-from {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.lbl-cap {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.lbl-to {
+  flex: 1;
+  min-height: 0;
+}
+.addr-big {
+  font-size: 15px;
+  line-height: 1.3;
+}
+.addr-big strong {
+  font-size: 18px;
+}
+.addr .postal {
+  font-weight: 700;
+}
+.addr-big .postal {
+  font-size: 18px;
+  margin-left: 4px;
+}
+.lbl-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 0.8fr 1fr;
+  padding: 0;
+}
+.lbl-grid > div {
+  padding: 6px 8px;
+}
+.lbl-grid > div + div {
+  border-left: 2px solid #000;
+}
+.lbl-refs {
+  grid-template-columns: 1fr 1fr;
+}
+.lbl-big {
+  font-size: 22px;
+}
+.lbl-instr {
+  background: #000;
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+}
+.lbl-barcode {
+  display: flex;
+  justify-content: center;
+  border-bottom: none;
+  padding: 8px;
+}
+.lbl-barcode .barcode {
+  max-width: 100%;
+  height: auto;
+}
+.lbl-desc {
+  text-align: center;
+  font-size: 10px;
+  padding: 0 8px 6px;
+}
+
+@media print {
+  @page {
+    size: 4in 6in;
+    margin: 0;
+  }
+  .print-area .label-4x6 {
+    border: none;
+    page-break-after: always;
+    break-after: page;
+  }
+}

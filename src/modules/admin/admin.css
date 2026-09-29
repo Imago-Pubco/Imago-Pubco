@@ -1,0 +1,130 @@
+.avatar {
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.group-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.group-chip {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.group-chip input {
+  accent-color: var(--g);
+  margin-top: 3px;
+}
+.group-chip.on {
+  border-color: var(--g);
+  background: color-mix(in srgb, var(--g) 10%, transparent);
+}
+
+.groups-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.groups-list {
+  padding: 6px;
+  position: sticky;
+  top: 20px;
+}
+.group-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+.group-item:hover {
+  background: var(--surface-hover);
+}
+.group-item.active {
+  background: var(--accent-soft);
+}
+.group-swatch {
+  width: 10px;
+  height: 32px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.color-dot.on {
+  border-color: var(--bg-elev);
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+.perm-matrix {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0;
+}
+.perm-matrix.disabled {
+  opacity: 0.55;
+}
+.perm-module {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+.perm-module-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.perm-module-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+.perm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.perm-item {
+  align-items: flex-start;
+  font-size: 14px;
+}
+.perm-item input {
+  margin-top: 2px;
+}
+@media (max-width: 900px) {
+  .groups-layout {
+    grid-template-columns: 1fr;
+  }
+  .groups-list {
+    position: static;
+  }
+}
