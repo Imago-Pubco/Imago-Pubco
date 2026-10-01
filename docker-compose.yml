@@ -1,0 +1,9 @@
+services:
+  imago:
+    build: .
+    image: imago-pubco:latest
+    restart: unless-stopped
+    # Plain HTTP; HTTPS is terminated by Nginx Proxy Manager.
+    # HTTPS is required: the login uses crypto.subtle, which browsers only allow in secure contexts.
+    ports:
+      - "${IMAGO_PORT:-8080}:80"
