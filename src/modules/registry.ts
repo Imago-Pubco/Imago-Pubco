@@ -7,9 +7,10 @@ import { accountingModule } from './accounting';
 import { shippingModule } from './shipping';
 import { estimatingModule } from './estimating';
 import { itModule } from './it';
+import { complianceModule } from './compliance';
 import { adminModule } from './admin';
 
-export const modules: ModuleDef[] = [accountingModule, shippingModule, estimatingModule, itModule, adminModule];
+export const modules: ModuleDef[] = [accountingModule, shippingModule, estimatingModule, complianceModule, itModule, adminModule];
 
 export const HOME_ACCENT = '#da291c';
 

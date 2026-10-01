@@ -26,6 +26,8 @@ src/
     admin/         Admin portal: users, access groups, audit log, system
     accounting/    Vendor invoices: mailbox → extraction → 3-way match with Business Central → posting
     shipping/      4×6 shipping labels for production (Code128 barcodes, printing)
+    compliance/    Compliance: frameworks (ISO 9001/27001, Loi 25, FSC, SST…), requirements and evidence,
+                   audits and non-conformities, policy register — all editable from the UI
     it/            IT support: embeds the AKAB support site (address set by `it.settings`);
                    full-screen layout there (`chrome: 'topnav'`): no top bar, modules in a thin bar on top
     estimating/    Packaging estimates: specs, box photo (future AI analysis), quantity breaks, pricing

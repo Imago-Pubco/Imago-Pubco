@@ -1,0 +1,132 @@
+.score-ring .score-track {
+  fill: none;
+  stroke: var(--bg-sunken);
+  stroke-width: 7;
+}
+.score-ring .score-value {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s var(--ease-wing);
+}
+.score-ring .score-text {
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--text);
+  font-family: var(--font);
+}
+
+.fw-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.fw-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  text-decoration: none;
+  border-top: 3px solid var(--fw);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.fw-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.fw-code {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fw, var(--accent));
+}
+.fw-name {
+  display: block;
+  font-size: 16px;
+  margin: 2px 0;
+}
+.fw-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-sunken);
+  gap: 2px;
+}
+.fw-bar .seg-0 {
+  background: var(--border-strong);
+}
+.fw-bar .seg-1 {
+  background: var(--warn);
+}
+.fw-bar .seg-2 {
+  background: var(--info);
+}
+.fw-bar .seg-3 {
+  background: var(--ok);
+}
+.fw-hero {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 24px;
+  border-left: 4px solid var(--fw);
+}
+.fw-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+.fw-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.status-select {
+  width: 150px;
+  font-weight: 500;
+}
+.status-select.st-progress {
+  color: var(--warn);
+}
+.status-select.st-implemented {
+  color: var(--info);
+}
+.status-select.st-verified {
+  color: var(--ok);
+}
+.due-over {
+  color: var(--err);
+  font-weight: 600;
+}
+.due-soon {
+  color: var(--warn);
+  font-weight: 500;
+}
+.finding-row {
+  display: grid;
+  grid-template-columns: auto minmax(160px, 2fr) 130px minmax(120px, 1.5fr) 140px 140px auto;
+  gap: 6px;
+  align-items: center;
+}
+.finding-row.closed input:first-of-type {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+@media (max-width: 1100px) {
+  .fw-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .finding-row {
+    grid-template-columns: auto 1fr 1fr;
+  }
+}
+.score-ring {
+  flex-shrink: 0;
+}

@@ -16,6 +16,7 @@ import { seedMail, seedPurchaseOrders, seedVendors } from '@/modules/accounting/
 import { addressBook, labels, shipFroms } from '@/modules/shipping/stores';
 import { seedAddresses, seedLabels, seedShipFroms } from '@/modules/shipping/seed';
 import { ensureEstimatingSeeded } from '@/modules/estimating/stores';
+import { ensureComplianceSeeded } from '@/modules/compliance/stores';
 
 const SEED_VERSION = '1';
 const SEED_KEY = 'imago:seed';
@@ -68,10 +69,17 @@ const seedGroups: Group[] = [
     color: '#2e9e5b',
   },
   {
+    id: 'g_conformite',
+    name: 'Conformité',
+    description: 'Gestion de la conformité (ISO, Loi 25, FSC, SST)',
+    permissions: ['compliance.*'],
+    color: '#d6336c',
+  },
+  {
     id: 'g_read',
     name: 'Lecture seule',
     description: 'Consultation sans modification',
-    permissions: ['accounting.access', 'accounting.po.view', 'shipping.access', 'estimating.access'],
+    permissions: ['accounting.access', 'accounting.po.view', 'shipping.access', 'estimating.access', 'compliance.access'],
     color: '#5b6b82',
   },
 ];
@@ -108,5 +116,6 @@ export async function ensureSeeded() {
   await labels.replaceAll(seedLabels);
 
   await ensureEstimatingSeeded(true);
+  await ensureComplianceSeeded(true);
   localStorage.setItem(SEED_KEY, SEED_VERSION);
 }
