@@ -368,7 +368,7 @@ export function apiRouter() {
   r.delete('/o365/:tid/groups/:id/members/:member', o365Route('o365.groups.manage', (t, req) =>
     o365.removeMember(t, p(req, 'id'), p(req, 'member')),
   ));
-  r.get('/o365/:tid/licenses', o365Route('o365.access', (t) => o365.listLicenses(t)));
+  r.get('/o365/:tid/licenses', o365Route('o365.access', (t, req) => o365.listLicenses(t, req.query.paid === '1')));
   r.get('/o365/:tid/licenses/:sku/users', o365Route('o365.access', (t, req) => o365.licenseHolders(t, p(req, 'sku'))));
 
   /* ---------- admin export ---------- */

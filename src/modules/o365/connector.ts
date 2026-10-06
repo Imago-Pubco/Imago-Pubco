@@ -33,7 +33,8 @@ export interface O365Connector {
   listMembers(tenant: string, groupId: string): Promise<O365Member[]>;
   addMember(tenant: string, groupId: string, email: string): Promise<void>;
   removeMember(tenant: string, groupId: string, memberId: string): Promise<void>;
-  listLicenses(tenant: string): Promise<O365License[]>;
+  /** `paidOnly` hides free / trial-pool licenses (used by the Licenses page). */
+  listLicenses(tenant: string, paidOnly?: boolean): Promise<O365License[]>;
   licenseHolders(tenant: string, skuId: string): Promise<LicenseHolder[]>;
 }
 
@@ -58,7 +59,7 @@ const apiConnector: O365Connector = {
   listMembers: (tenant, groupId) => api(t(tenant, `/groups/${e(groupId)}/members`)),
   addMember: (tenant, groupId, email) => api(t(tenant, `/groups/${e(groupId)}/members`), { method: 'POST', body: { email } }),
   removeMember: (tenant, groupId, memberId) => api(t(tenant, `/groups/${e(groupId)}/members/${e(memberId)}`), { method: 'DELETE' }),
-  listLicenses: (tenant) => api(t(tenant, '/licenses')),
+  listLicenses: (tenant, paidOnly) => api(t(tenant, `/licenses${paidOnly ? '?paid=1' : ''}`)),
   licenseHolders: (tenant, skuId) => api(t(tenant, `/licenses/${e(skuId)}/users`)),
 };
 

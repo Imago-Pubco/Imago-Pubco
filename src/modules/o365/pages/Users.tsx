@@ -38,7 +38,7 @@ function UsersFor({ tenant }: { tenant: O365Tenant }) {
   const lic = useTenantData(tenant.id, o365.listLicenses);
   const ov = useTenantData(tenant.id, o365.overview);
   const [q, setQ] = useState('');
-  const [status, setStatus] = useState<'all' | 'enabled' | 'disabled' | 'unlicensed'>('all');
+  const [status, setStatus] = useState<'activeLicensed' | 'enabled' | 'all' | 'disabled' | 'unlicensed'>('activeLicensed');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [original, setOriginal] = useState<O365User | null>(null);
   const [busy, setBusy] = useState(false);
@@ -54,7 +54,11 @@ function UsersFor({ tenant }: { tenant: O365Tenant }) {
       [...(users.data ?? [])]
         .filter((u) => matches(q, u.displayName, u.userPrincipalName, u.jobTitle, u.department))
         .filter((u) =>
-          status === 'enabled' ? u.accountEnabled : status === 'disabled' ? !u.accountEnabled : status === 'unlicensed' ? !u.licenses.length : true,
+          status === 'activeLicensed'
+            ? u.accountEnabled && u.licenses.length > 0
+            : status === 'enabled'
+              ? u.accountEnabled
+              : status === 'disabled' ? !u.accountEnabled : status === 'unlicensed' ? !u.licenses.length : true,
         )
         .sort((a, b) => a.displayName.localeCompare(b.displayName)),
     [users.data, q, status],
@@ -204,8 +208,9 @@ function UsersFor({ tenant }: { tenant: O365Tenant }) {
           <input className="input" placeholder={t('Rechercher…', 'Search…')} value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
         <select className="select" style={{ width: 'auto' }} value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
+          <option value="activeLicensed">{t('Actifs avec licence', 'Active with a license')}</option>
+          <option value="enabled">{t('Utilisateurs actifs', 'Active users')}</option>
           <option value="all">{t('Tous', 'All')}</option>
-          <option value="enabled">{t('Actifs', 'Enabled')}</option>
           <option value="disabled">{t('Bloqués', 'Blocked')}</option>
           <option value="unlicensed">{t('Sans licence', 'Unlicensed')}</option>
         </select>

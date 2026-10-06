@@ -85,10 +85,18 @@ interface RawSku {
   prepaidUnits: { enabled: number; suspended: number; warning: number };
 }
 
-export async function listLicenses(tenantId: string): Promise<O365License[]> {
+/** SKUs Microsoft hands out at no cost (free, viral, exploratory, developer or resource-account licenses). */
+const FREE_SKU = /FREE|VIRAL|EXPLORATORY|DEVELOPERPACK|POWERAPPS_DEV|WINDOWS_STORE|POWER_BI_STANDARD|PHONESYSTEM_VIRTUALUSER|MICROSOFT_BUSINESS_CENTER|STREAM$|RMSBASIC|TRIAL/i;
+
+/** Graph does not flag paid SKUs, so: not a known free SKU, a real seat count (free pools are 10 000+), and active. */
+function isPaidSku(s: RawSku): boolean {
+  return s.capabilityStatus === 'Enabled' && !FREE_SKU.test(s.skuPartNumber) && s.prepaidUnits.enabled > 0 && s.prepaidUnits.enabled < 10_000;
+}
+
+export async function listLicenses(tenantId: string, paidOnly = false): Promise<O365License[]> {
   const r = await graph<{ value: RawSku[] }>(tenantId, '/subscribedSkus');
   return r.value
-    .filter((s) => s.prepaidUnits.enabled > 0 || s.consumedUnits > 0)
+    .filter((s) => (paidOnly ? isPaidSku(s) : s.prepaidUnits.enabled > 0 || s.consumedUnits > 0))
     .map((s) => ({
       skuId: s.skuId,
       skuPartNumber: s.skuPartNumber,

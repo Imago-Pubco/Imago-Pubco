@@ -14,7 +14,7 @@ export function Licenses() {
 
 function LicensesFor({ tenant }: { tenant: O365Tenant }) {
   const { t } = useI18n();
-  const lic = useTenantData(tenant.id, o365.listLicenses);
+  const lic = useTenantData(tenant.id, (id) => o365.listLicenses(id, true));
   const [open, setOpen] = useState<O365License | null>(null);
 
   const rows = [...(lic.data ?? [])].sort((a, b) => skuName(a.skuPartNumber).localeCompare(skuName(b.skuPartNumber)));
@@ -24,7 +24,7 @@ function LicensesFor({ tenant }: { tenant: O365Tenant }) {
       <PageHeader
         eyebrow={tenant.name}
         title={t('Licences', 'Licenses')}
-        subtitle={t('Cliquez sur une licence pour voir à qui elle est attribuée.', 'Click a license to see who it is assigned to.')}
+        subtitle={t('Licences payantes seulement. Cliquez sur une licence pour voir à qui elle est attribuée.', 'Paid licenses only. Click a license to see who it is assigned to.')}
         actions={<ReloadButton onClick={lic.reload} loading={lic.loading} />}
       />
       {lic.error ? (
