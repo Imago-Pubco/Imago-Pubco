@@ -1,13 +1,13 @@
 /**
  * External system connectors for Accounting.
  *
- * DEV:  mock implementations backed by browser storage (below).
- * PROD: the API server implements the same contracts:
+ * Browser dev backend: mock implementations backed by browser storage (below).
+ * API backend: the Imago server implements the same contracts (server/bc.ts, server/mailbox.ts):
  *   - MailboxConnector      → Microsoft Graph (/users/{mailbox}/messages, attachments)
  *   - InvoiceExtractor      → PDF text + AI extraction (e.g. Claude) on the server
  *   - BusinessCentral       → BC API v2.0 (purchaseOrders, purchaseReceipts, purchaseInvoices)
  */
-import { uid } from '@/data/db';
+import { API_MODE, api, uid } from '@/data/db';
 import type { BcPurchaseOrder, BcPurchaseInvoice, BcVendor, Invoice, MailMessage } from './types';
 import { bcPurchaseInvoices, bcPurchaseOrders, bcVendors, mailbox } from './stores';
 import { mailTemplates } from './seed';
@@ -30,7 +30,7 @@ export interface BusinessCentral {
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export const mailboxConnector: MailboxConnector = {
+const mockMailbox: MailboxConnector = {
   list: () => mailbox.list(),
   async sync() {
     await delay(900);
@@ -49,7 +49,7 @@ export const mailboxConnector: MailboxConnector = {
   },
 };
 
-export const businessCentral: BusinessCentral = {
+const mockBusinessCentral: BusinessCentral = {
   async findVendorByEmailOrName(email, name) {
     const all = await bcVendors.list();
     const domain = email?.split('@')[1]?.toLowerCase();
@@ -67,7 +67,7 @@ export const businessCentral: BusinessCentral = {
   listPurchaseOrders: () => bcPurchaseOrders.list(),
   async postPurchaseInvoice(inv) {
     await delay(700);
-    const po = await businessCentral.getPurchaseOrder(inv.poNo);
+    const po = await mockBusinessCentral.getPurchaseOrder(inv.poNo);
     if (!po) throw new Error(`PO ${inv.poNo} not found in Business Central`);
     const lines = po.lines.map((l) => {
       const invLine = inv.lines.find((x) => x.itemNo === l.itemNo);
@@ -87,3 +87,34 @@ export const businessCentral: BusinessCentral = {
     });
   },
 };
+
+/* ---------- API server implementations ---------- */
+
+const apiMailbox: MailboxConnector = {
+  list: () => mailbox.list(),
+  async sync() {
+    return (await api<{ added: number }>('/mailbox/sync', { method: 'POST' })).added;
+  },
+  async markRead(id, read = true) {
+    await mailbox.update(id, { read });
+  },
+  async linkInvoice(id, invoiceId) {
+    await mailbox.update(id, { invoiceId, read: true });
+  },
+};
+
+const apiBusinessCentral: BusinessCentral = {
+  async findVendorByEmailOrName(email, name) {
+    const q = new URLSearchParams({ name, ...(email ? { email } : {}) });
+    return (await api<BcVendor | null>('/bc/vendors/find?' + q)) ?? undefined;
+  },
+  async getPurchaseOrder(no) {
+    if (!no.trim()) return undefined;
+    return (await api<BcPurchaseOrder | null>('/bc/purchase-orders/' + encodeURIComponent(no.trim()))) ?? undefined;
+  },
+  listPurchaseOrders: () => bcPurchaseOrders.list(),
+  postPurchaseInvoice: (inv) => api<BcPurchaseInvoice>('/bc/purchase-invoices', { method: 'POST', body: { invoiceId: inv.id } }),
+};
+
+export const mailboxConnector: MailboxConnector = API_MODE ? apiMailbox : mockMailbox;
+export const businessCentral: BusinessCentral = API_MODE ? apiBusinessCentral : mockBusinessCentral;

@@ -35,9 +35,14 @@ export function InboxPage() {
 
   const sync = async () => {
     setSyncing(true);
-    const n = await mailboxConnector.sync();
-    setSyncing(false);
-    toast(n ? t(`${n} nouveau courriel`, `${n} new e-mail`) : t('Aucun nouveau courriel', 'No new e-mail'));
+    try {
+      const n = await mailboxConnector.sync();
+      toast(n ? t(`${n} nouveau courriel`, `${n} new e-mail`) : t('Aucun nouveau courriel', 'No new e-mail'));
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const doImport = async () => {
@@ -117,7 +122,15 @@ export function InboxPage() {
                   <div className="attachment-file">
                     <FileText size={28} />
                     <div>
-                      <div style={{ fontWeight: 500 }}>{a.name}</div>
+                      <div style={{ fontWeight: 500 }}>
+                        {a.fileId ? (
+                          <a href={`/api/files/${a.fileId}`} target="_blank" rel="noreferrer">
+                            {a.name}
+                          </a>
+                        ) : (
+                          a.name
+                        )}
+                      </div>
                       <div className="faint small">PDF · {a.sizeKb} Ko</div>
                     </div>
                   </div>
@@ -146,7 +159,7 @@ export function InboxPage() {
                   <Link to={`/accounting/invoices/${selected.invoiceId}`} className="btn btn-primary">
                     {t('Voir la facture', 'Open invoice')} <ArrowRight size={16} />
                   </Link>
-                ) : ex ? (
+                ) : ex || selected.attachments.length ? (
                   <Can
                     permission="accounting.invoices.import"
                     fallback={<span className="faint small">{t('Permission requise pour importer.', 'Import permission required.')}</span>}
@@ -155,7 +168,9 @@ export function InboxPage() {
                       {importing ? <Butterfly size={18} color="currentColor" flutter /> : <Wand2 size={16} />}
                       {importing
                         ? t('Métamorphose en cours…', 'Transforming…')
-                        : t('Extraire et valider avec BC', 'Extract & validate with BC')}
+                        : ex
+                          ? t('Extraire et valider avec BC', 'Extract & validate with BC')
+                          : t('Saisir la facture manuellement', 'Enter invoice manually')}
                     </button>
                   </Can>
                 ) : (

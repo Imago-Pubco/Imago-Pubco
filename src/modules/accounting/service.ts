@@ -3,7 +3,7 @@ import { logAudit } from '@/data/stores';
 import { businessCentral, mailboxConnector } from './integrations';
 import { matchInvoice } from './matching';
 import { getSettings, invoices, mailbox } from './stores';
-import type { HistoryEntry, Invoice, InvoiceStage } from './types';
+import type { ExtractedInvoice, HistoryEntry, Invoice, InvoiceStage } from './types';
 
 const now = () => new Date().toISOString();
 const hist = (userId: string, action: string, note?: string): HistoryEntry => ({ at: now(), userId, action, note });
@@ -16,9 +16,22 @@ export async function importFromMail(mailId: string, userId: string): Promise<In
     const existing = await invoices.get(msg.invoiceId);
     if (existing) return existing;
   }
-  const att = msg.attachments.find((a) => a.extracted);
-  if (!att?.extracted) throw new Error('No invoice attachment found');
-  const ex = att.extracted;
+  // Prefer an attachment that was read automatically; otherwise open the first PDF for manual entry.
+  const att = msg.attachments.find((a) => a.extracted) ?? msg.attachments[0];
+  if (!att) throw new Error('No invoice attachment found');
+  const ex: ExtractedInvoice = att.extracted ?? {
+    vendorName: msg.fromName,
+    vendorEmail: msg.from,
+    invoiceNo: '',
+    invoiceDate: msg.receivedAt.slice(0, 10),
+    dueDate: msg.receivedAt.slice(0, 10),
+    poNo: '',
+    currency: '',
+    lines: [],
+    subtotal: 0,
+    tax: 0,
+    total: 0,
+  };
   const vendor = await businessCentral.findVendorByEmailOrName(msg.from, ex.vendorName);
 
   const inv = await invoices.insert({

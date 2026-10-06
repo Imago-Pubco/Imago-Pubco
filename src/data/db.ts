@@ -2,12 +2,52 @@
  * Data access layer.
  *
  * Every screen talks to data through `Collection<T>` — an async, promise-based
- * interface. In development it is backed by the browser's localStorage
- * (`BrowserCollection`). In production it will be replaced by an HTTP client
- * that calls the Imago API (Node + PostgreSQL on the Ubuntu server) with the
- * same method signatures, so no module code has to change.
+ * interface with two backends:
+ *  - `BrowserCollection` (dev, `npm run dev`): localStorage, demo data, no server.
+ *  - `ApiCollection` (production build): the Imago API (Node + PostgreSQL), shared by
+ *    all users, with server-side sessions and permission checks.
+ * `VITE_BACKEND=api|browser` overrides the default for a build or dev run.
  */
 import { useEffect, useState, useCallback } from 'react';
+
+export const API_MODE = import.meta.env.VITE_BACKEND ? import.meta.env.VITE_BACKEND === 'api' : import.meta.env.PROD;
+
+/** Thrown by `api()` for non-2xx responses. */
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** Fetch a JSON endpoint of the Imago API. A 401 signals the session ended (see AuthContext). */
+export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+  const res = await fetch('/api' + path, {
+    method: init.method ?? 'GET',
+    credentials: 'same-origin',
+    headers: {
+      Accept: 'application/json',
+      'X-Imago': '1',
+      ...(init.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+    },
+    body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+  });
+  if (res.status === 401 && path !== '/auth/login' && path !== '/auth/me') {
+    window.dispatchEvent(new Event('imago:unauthorized'));
+  }
+  if (!res.ok) {
+    let msg = res.statusText;
+    try {
+      msg = ((await res.json()) as { error?: string }).error ?? msg;
+    } catch {
+      /* no body */
+    }
+    throw new ApiError(res.status, msg);
+  }
+  return (res.status === 204 ? undefined : await res.json()) as T;
+}
 
 export interface Entity {
   id: string;
@@ -88,12 +128,95 @@ class BrowserCollection<T extends Entity> implements Collection<T> {
   }
 }
 
-const registry = new Map<string, BrowserCollection<Entity>>();
+/* ---------- API backend ---------- */
+
+const apiCollections = new Map<string, ApiCollection<Entity>>();
+let events: EventSource | null = null;
+
+/** One server-sent-events stream tells every collection when the server data changed. */
+function ensureEvents() {
+  if (events && events.readyState !== EventSource.CLOSED) return;
+  events = new EventSource('/api/events');
+  events.onmessage = (e) => {
+    try {
+      const { c } = JSON.parse(e.data) as { c: string };
+      apiCollections.get(c)?.emit();
+    } catch {
+      /* ignore */
+    }
+  };
+}
+
+/** After sign-in / sign-out: reconnect the event stream and reload every open screen. */
+export function refreshAllCollections() {
+  events?.close();
+  events = null;
+  if (apiCollections.size) ensureEvents();
+  apiCollections.forEach((c) => c.emit());
+}
+
+class ApiCollection<T extends Entity> implements Collection<T> {
+  private listeners = new Set<() => void>();
+  private readonly base: string;
+  constructor(readonly name: string) {
+    this.base = '/c/' + encodeURIComponent(name);
+  }
+  emit() {
+    this.listeners.forEach((fn) => fn());
+  }
+  private path(id: string) {
+    return `${this.base}/${encodeURIComponent(id)}`;
+  }
+  list() {
+    return api<T[]>(this.base);
+  }
+  async get(id: string) {
+    try {
+      return await api<T>(this.path(id));
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 404) return undefined;
+      throw e;
+    }
+  }
+  async insert(item: Omit<T, 'id'> & { id?: string }) {
+    const row = await api<T>(this.base, { method: 'POST', body: { ...item, id: item.id ?? uid() } });
+    this.emit();
+    return row;
+  }
+  async update(id: string, patch: Partial<T>) {
+    const row = await api<T>(this.path(id), { method: 'PATCH', body: patch });
+    this.emit();
+    return row;
+  }
+  async remove(id: string) {
+    await api<void>(this.path(id), { method: 'DELETE' });
+    this.emit();
+  }
+  async replaceAll(rows: T[]) {
+    await api<void>(this.base, { method: 'PUT', body: rows });
+    this.emit();
+  }
+  subscribe(fn: () => void) {
+    this.listeners.add(fn);
+    ensureEvents();
+    return () => {
+      this.listeners.delete(fn);
+    };
+  }
+}
+
+const registry = new Map<string, Collection<Entity> & { replaceAll(rows: Entity[]): Promise<void> }>();
 
 export function collection<T extends Entity>(name: string): Collection<T> & { replaceAll(rows: T[]): Promise<void> } {
   let c = registry.get(name);
   if (!c) {
-    c = new BrowserCollection<Entity>(name);
+    if (API_MODE) {
+      const ac = new ApiCollection<Entity>(name);
+      apiCollections.set(name, ac);
+      c = ac;
+    } else {
+      c = new BrowserCollection<Entity>(name);
+    }
     registry.set(name, c);
   }
   return c as unknown as Collection<T> & { replaceAll(rows: T[]): Promise<void> };
@@ -104,10 +227,17 @@ export function useCollection<T extends Entity>(col: Collection<T>) {
   const [rows, setRows] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const reload = useCallback(() => {
-    col.list().then((r) => {
-      setRows(r);
-      setLoading(false);
-    });
+    col.list().then(
+      (r) => {
+        setRows(r);
+        setLoading(false);
+      },
+      () => {
+        // Not signed in, no permission, or server unreachable: show nothing rather than hang.
+        setRows([]);
+        setLoading(false);
+      },
+    );
   }, [col]);
   useEffect(() => {
     reload();

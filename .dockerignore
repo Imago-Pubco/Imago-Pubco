@@ -3,4 +3,6 @@ dist
 .git
 .claude
 .env
+.env.*
+!.env.example
 *.log

@@ -1,23 +1,13 @@
 import { collection } from '@/data/db';
 import type { Estimate, EstimatingSettings, Material } from './types';
+import { DEFAULT_EST_SETTINGS } from './defaults';
 import { seedEstimates, seedMaterials } from './seed';
+
+export { DEFAULT_EST_SETTINGS };
 
 export const estimates = collection<Estimate>('est.estimates');
 export const materials = collection<Material>('est.materials');
 export const estSettings = collection<EstimatingSettings>('est.settings');
-
-export const DEFAULT_EST_SETTINGS: EstimatingSettings = {
-  id: 'settings',
-  defaultMarginPct: 30,
-  wastePct: 12,
-  printSetupPerColor: 350,
-  printRunPerColorUnit: 0.012,
-  dieCost: 450,
-  finishSetup: 150,
-  finishRunUnit: 0.015,
-  laborPerUnit: 0.03,
-  freightPct: 3,
-};
 
 export async function getEstSettings() {
   return (await estSettings.get('settings')) ?? DEFAULT_EST_SETTINGS;

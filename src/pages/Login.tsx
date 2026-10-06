@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Egg, Bug, Hourglass, LogIn, AlertCircle, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
+import { API_MODE } from '@/data/db';
 import { useI18n } from '@/i18n';
 import { Butterfly } from '@/components/Butterfly';
 import { useTheme } from '@/layout/theme';
@@ -66,6 +67,8 @@ export function Login() {
     setBusy(false);
     if (r === 'invalid') setError(t('Identifiant ou mot de passe invalide.', 'Invalid username or password.'));
     if (r === 'disabled') setError(t('Ce compte est désactivé.', 'This account is disabled.'));
+    if (r === 'locked') setError(t('Trop de tentatives. Réessayez dans 15 minutes.', 'Too many attempts. Try again in 15 minutes.'));
+    if (r === 'error') setError(t('Serveur injoignable. Réessayez.', 'Server unreachable. Please try again.'));
   };
 
   return (
@@ -117,7 +120,7 @@ export function Login() {
             {busy ? <Butterfly size={20} color="currentColor" flutter /> : <LogIn size={18} />}
             {t('Se connecter', 'Sign in')}
           </button>
-          {import.meta.env.DEV && (
+          {!API_MODE && (
             <p className="faint small" style={{ marginTop: 24, textAlign: 'center' }}>
               {t('Mode développement — comptes de démonstration : admin, prod, compta, lecture.', 'Development mode — demo accounts: admin, prod, compta, lecture.')}
             </p>

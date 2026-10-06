@@ -83,12 +83,33 @@ Estimates for custom packaging (folding carton, corrugated, rigid, display, co-p
 - Quantity breaks (up to 5) with cost breakdown, margin, selling price and unit price. Costs and margins are visible only with `estimating.pricing.view`.
 - ⚠ The cost model ([`src/modules/estimating/pricing.ts`](src/modules/estimating/pricing.ts)) is **provisional**. It will be replaced by the estimating team's rules.
 
-## Production (planned)
+## Production
 
-Ubuntu server + PostgreSQL. The screens depend only on the `Collection<T>` interface ([`src/data/db.ts`](src/data/db.ts)) and on the connectors in [`src/modules/accounting/integrations.ts`](src/modules/accounting/integrations.ts). Going to production means:
+Docker Compose runs two containers: **app** (Node 24, serves the built front end and the API on port 8080) and **db** (PostgreSQL 17, data in the `db_data` volume). All settings and keys are in `.env` — see [`.env.example`](.env.example). Put your HTTPS reverse proxy in front of port 8080.
 
-1. **Imago API** (Node + PostgreSQL) exposing the same collections over REST, with server-side authentication (argon2/bcrypt, sessions).
-2. **Mailbox**: Microsoft Graph (`/users/{mailbox}/messages` + attachments).
-3. **Extraction**: PDF text, then AI extraction on the server.
-4. **Business Central**: API v2.0 (`purchaseOrders`, `purchaseReceipts`, `purchaseInvoices`).
-5. Replace the browser implementations with HTTP clients. The screens don't change.
+```bash
+cp .env.example .env      # fill in POSTGRES_PASSWORD, ADMIN_PASSWORD, Microsoft and BC values
+docker compose up -d --build
+docker compose logs -f app
+```
+
+On first start the server creates the access groups and the first administrator from `ADMIN_*`, and loads reference data (compliance frameworks with every requirement set to "to do", estimating materials, default settings). There are **no demo accounts or demo data** in production.
+
+| Piece | Where |
+|---|---|
+| API server, routes and per-collection permission checks | [`server/api.ts`](server/api.ts) |
+| Sessions (HttpOnly cookie), scrypt password hashes, login throttling | [`server/auth.ts`](server/auth.ts) |
+| Business Central API v2.0 (vendors, purchase orders, purchase invoices) | [`server/bc.ts`](server/bc.ts) |
+| Invoice mailbox (Microsoft Graph), PDFs stored in the database | [`server/mailbox.ts`](server/mailbox.ts) |
+| PDF reading with Claude (optional, `ANTHROPIC_API_KEY`) | [`server/extract.ts`](server/extract.ts) |
+| Configuration (every `.env` variable) | [`server/config.ts`](server/config.ts) |
+
+The front end picks its backend at build time (`API_MODE` in [`src/data/db.ts`](src/data/db.ts)): `npm run dev` uses the browser backend with demo data, `npm run build` uses the API. `VITE_BACKEND=api|browser` overrides it. *Administration → Système* shows which integrations are configured and has **Test connection** buttons for Business Central and the mailbox.
+
+**Backups**
+
+```bash
+docker compose exec db pg_dump -U imago imago > imago-$(date +%F).sql
+```
+
+**Not yet validated against a real tenant:** the Business Central and Graph connectors follow the documented APIs but were tested only without credentials. Try them on a BC **Sandbox** environment first. With `BC_POST_MODE=draft` (default) Imago creates the purchase invoice in BC without posting it. That invoice is not linked to the PO receipt lines, so check with your BC partner how drafts should be completed (for example *Get Receipt Lines*) before switching to `post`.

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Plus, Pencil, Search, UserCheck, UserX, KeyRound } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { effectivePermissions } from '@/auth/permissions';
-import { uid, useCollection } from '@/data/db';
+import { API_MODE, uid, useCollection } from '@/data/db';
 import { groups, logAudit, users } from '@/data/stores';
 import { hashPassword, newSalt } from '@/data/crypto';
 import { useI18n } from '@/i18n';
@@ -62,18 +62,30 @@ export function Users() {
     }
 
     const base = { displayName: draft.displayName.trim(), username: uname, email: draft.email.trim(), active: draft.active, groupIds: draft.groupIds };
-    if (draft.id) {
-      const patch: Partial<User> = { ...base };
-      if (draft.password) {
-        patch.salt = newSalt();
-        patch.passwordHash = await hashPassword(draft.password, patch.salt);
+    try {
+      if (draft.id) {
+        const patch: Partial<User> & { password?: string } = { ...base };
+        if (draft.password) {
+          if (API_MODE) patch.password = draft.password; // hashed by the server
+          else {
+            patch.salt = newSalt();
+            patch.passwordHash = await hashPassword(draft.password, patch.salt);
+          }
+        }
+        await users.update(draft.id, patch);
+        await logAudit(me!.id, 'admin.user.update', uname + (draft.password ? ' (password reset)' : ''));
+      } else {
+        const created = { ...base, id: uid('u_'), createdAt: new Date().toISOString() };
+        if (API_MODE) {
+          await users.insert({ ...created, password: draft.password } as unknown as User);
+        } else {
+          const salt = newSalt();
+          await users.insert({ ...created, salt, passwordHash: await hashPassword(draft.password, salt) });
+        }
+        await logAudit(me!.id, 'admin.user.create', uname);
       }
-      await users.update(draft.id, patch);
-      await logAudit(me!.id, 'admin.user.update', uname + (draft.password ? ' (password reset)' : ''));
-    } else {
-      const salt = newSalt();
-      await users.insert({ ...base, id: uid('u_'), salt, passwordHash: await hashPassword(draft.password, salt), createdAt: new Date().toISOString() });
-      await logAudit(me!.id, 'admin.user.create', uname);
+    } catch (e) {
+      return setErr(e instanceof Error ? e.message : String(e));
     }
     setDraft(null);
     toast(t('Utilisateur enregistré', 'User saved'));

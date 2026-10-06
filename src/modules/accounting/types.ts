@@ -58,7 +58,9 @@ export interface ExtractedInvoice {
 export interface MailAttachment {
   name: string;
   sizeKb: number;
-  /** In dev, the "OCR / AI extraction" result travels with the attachment. */
+  /** Stored file on the API server (`/api/files/:id`). Absent in the browser dev backend. */
+  fileId?: string;
+  /** Extraction result (dev: canned; server: AI extraction of the PDF, when configured). */
   extracted?: ExtractedInvoice;
 }
 
@@ -71,6 +73,8 @@ export interface MailMessage {
   body: string;
   attachments: MailAttachment[];
   read: boolean;
+  /** Microsoft Graph message id (API server only). */
+  graphId?: string;
   /** Imago invoice created from this message. */
   invoiceId?: string;
   archived?: boolean;
