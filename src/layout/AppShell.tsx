@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Home as HomeIcon, PanelLeftClose, PanelLeftOpen, Moon, Sun, LogOut, Menu, ChevronDown, ArrowDownUp } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { useI18n } from '@/i18n';
-import { modules, moduleForPath, orderModules, HOME_ACCENT } from '@/modules/registry';
+import { COMPLIANCE_SEGMENT } from '@/modules/compliance';
+import { flatNav, modules, moduleForPath, orderModules, HOME_ACCENT } from '@/modules/registry';
 import type { ModuleDef } from '@/modules/types';
 import { Butterfly, Wordmark } from '@/components/Butterfly';
 import { RequirePermission } from '@/components/ui';
@@ -68,8 +69,7 @@ export function AppShell() {
     scrollRef.current?.scrollTo({ top: 0 });
   }, [moduleKey]);
 
-  const pageLabel = current?.nav
-    .slice()
+  const pageLabel = current && flatNav(current.nav)
     .reverse()
     .find((n) => (n.path ? location.pathname.startsWith(subPath(current, n.path)) : location.pathname === current.path));
 
@@ -103,6 +103,8 @@ export function AppShell() {
                   />
                 );
               })}
+              {/* Conformité moved into the RH module. */}
+              <Route path="/compliance/*" element={<Navigate to={location.pathname.replace(/^\/compliance/, '/rh/' + COMPLIANCE_SEGMENT) + location.search} replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </motion.div>

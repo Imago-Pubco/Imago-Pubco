@@ -1,0 +1,182 @@
+.o365-accent {
+  color: var(--accent);
+}
+
+.o365-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+.o365-picker .select {
+  min-width: 180px;
+}
+
+.o365-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+}
+.o365-search > svg {
+  position: absolute;
+  left: 12px;
+  color: var(--text);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.o365-search .input {
+  padding-left: 36px;
+}
+.o365-list .o365-search {
+  max-width: none;
+}
+.o365-list .o365-search > svg {
+  left: 24px;
+}
+
+.o365-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--err);
+  background: var(--err-bg);
+  border-color: transparent;
+}
+
+.o365-tenants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.o365-tenant {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.o365-tenant:hover {
+  border-color: var(--border-strong);
+}
+.o365-tenant.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.o365-tenant .mono {
+  overflow-wrap: anywhere;
+}
+
+.o365-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 24px;
+  margin: 0;
+}
+.o365-dl dt {
+  color: var(--text);
+  opacity: 0.6;
+}
+.o365-dl dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.o365-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px 16px;
+}
+
+.o365-split {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.o365-list {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+.o365-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.o365-list-item:hover {
+  background: var(--surface-hover);
+}
+.o365-list-item.active {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.o365-licenses {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.o365-license {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.o365-license:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.o365-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.o365-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s var(--ease-wing);
+}
+.o365-bar-fill.ok {
+  background: var(--ok);
+}
+.o365-bar-fill.warn {
+  background: var(--warn);
+}
+.o365-bar-fill.err {
+  background: var(--err);
+}
+.o365-holders {
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 800px) {
+  .o365-split {
+    grid-template-columns: 1fr;
+  }
+  .o365-list {
+    max-height: 280px;
+  }
+}

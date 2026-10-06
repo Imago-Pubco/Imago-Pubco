@@ -29,16 +29,16 @@ export function useDeadlines(days = 45): Deadline[] {
   const list: Deadline[] = [
     ...reqs
       .filter((r) => r.reviewDue && r.status !== 'na')
-      .map((r) => ({ key: r.id, date: r.reviewDue!, label: `${code(r.frameworkId)} ${r.ref} — ${r.title}`, kind: 'req' as const, to: `/compliance/frameworks/${r.frameworkId}` })),
+      .map((r) => ({ key: r.id, date: r.reviewDue!, label: `${code(r.frameworkId)} ${r.ref} — ${r.title}`, kind: 'req' as const, to: `/rh/conformite/frameworks/${r.frameworkId}` })),
     ...aus
       .filter((a) => a.status === 'planned')
-      .map((a) => ({ key: a.id, date: a.date, label: `${t('Audit', 'Audit')} : ${a.title}`, kind: 'audit' as const, to: '/compliance/audits' })),
+      .map((a) => ({ key: a.id, date: a.date, label: `${t('Audit', 'Audit')} : ${a.title}`, kind: 'audit' as const, to: '/rh/conformite/audits' })),
     ...docs
       .filter((d) => d.reviewDue && d.status !== 'obsolete')
-      .map((d) => ({ key: d.id, date: d.reviewDue!, label: `${t('Révision', 'Review')} : ${d.title}`, kind: 'doc' as const, to: '/compliance/documents' })),
+      .map((d) => ({ key: d.id, date: d.reviewDue!, label: `${t('Révision', 'Review')} : ${d.title}`, kind: 'doc' as const, to: '/rh/conformite/documents' })),
     ...openFindings
       .filter((f) => f.dueDate)
-      .map((f) => ({ key: f.id, date: f.dueDate!, label: `${t('NC', 'NC')} : ${f.title}`, kind: 'finding' as const, to: '/compliance/audits' })),
+      .map((f) => ({ key: f.id, date: f.dueDate!, label: `${t('NC', 'NC')} : ${f.title}`, kind: 'finding' as const, to: '/rh/conformite/audits' })),
   ];
   return list.filter((d) => d.date <= limit).sort((a, b) => a.date.localeCompare(b.date));
 }
@@ -52,8 +52,8 @@ export function ComplianceKpis() {
   const highRisk = reqs.filter((r) => r.risk === 'high' && r.status !== 'verified' && r.status !== 'na').length;
   return (
     <KpiGrid>
-      <Kpi to="/compliance/frameworks" label={t('Score global', 'Overall score')} value={`${score(reqs)} %`} icon={<Gauge size={17} />} tone="accent" hint={t(`${reqs.length} exigences suivies`, `${reqs.length} tracked requirements`)} />
-      <Kpi to="/compliance/audits" label={t('Non-conformités ouvertes', 'Open non-conformities')} value={openFindings.length} icon={<AlertOctagon size={17} />} tone={openFindings.length ? 'err' : undefined} />
+      <Kpi to="/rh/conformite/frameworks" label={t('Score global', 'Overall score')} value={`${score(reqs)} %`} icon={<Gauge size={17} />} tone="accent" hint={t(`${reqs.length} exigences suivies`, `${reqs.length} tracked requirements`)} />
+      <Kpi to="/rh/conformite/audits" label={t('Non-conformités ouvertes', 'Open non-conformities')} value={openFindings.length} icon={<AlertOctagon size={17} />} tone={openFindings.length ? 'err' : undefined} />
       <Kpi label={t('Risque élevé à traiter', 'High risk to address')} value={highRisk} icon={<Flame size={17} />} tone={highRisk ? 'warn' : undefined} />
       <Kpi label={t('Échéances (30 j)', 'Deadlines (30 d)')} value={deadlines.length} icon={<CalendarClock size={17} />} hint={deadlines.filter((d) => isOverdue(d.date)).length ? t(`${deadlines.filter((d) => isOverdue(d.date)).length} en retard`, `${deadlines.filter((d) => isOverdue(d.date)).length} overdue`) : undefined} />
     </KpiGrid>
@@ -94,7 +94,7 @@ export function Overview() {
         subtitle={t('Qualité, sécurité de l’information, vie privée, environnement et SST — au même endroit.', 'Quality, information security, privacy, environment and H&S — in one place.')}
         actions={
           <Can permission="compliance.frameworks">
-            <Link to="/compliance/frameworks?new=1" className="btn btn-primary">
+            <Link to="/rh/conformite/frameworks?new=1" className="btn btn-primary">
               <Plus size={16} /> {t('Référentiel', 'Framework')}
             </Link>
           </Can>
@@ -108,7 +108,7 @@ export function Overview() {
           const nextAudit = aus.filter((a) => a.frameworkId === f.id && a.status === 'planned').sort((a, b) => a.date.localeCompare(b.date))[0];
           const counts = (['todo', 'progress', 'implemented', 'verified'] as const).map((s) => r.filter((x) => x.status === s).length);
           return (
-            <Link key={f.id} to={`/compliance/frameworks/${f.id}`} className="fw-card card" style={{ ['--fw' as string]: f.color }}>
+            <Link key={f.id} to={`/rh/conformite/frameworks/${f.id}`} className="fw-card card" style={{ ['--fw' as string]: f.color }}>
               <div className="row" style={{ alignItems: 'flex-start' }}>
                 <div style={{ minWidth: 0 }}>
                   <div className="fw-code">{f.code}</div>

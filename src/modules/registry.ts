@@ -2,15 +2,22 @@
  * Module registry — the single place where modules are plugged into Imago.
  * To add a module: create src/modules/<name>/index.tsx exporting a ModuleDef, then add it here.
  */
-import type { ModuleDef } from './types';
+import type { ModuleDef, NavItem } from './types';
 import { accountingModule } from './accounting';
 import { shippingModule } from './shipping';
 import { estimatingModule } from './estimating';
 import { itModule } from './it';
-import { complianceModule } from './compliance';
+import { rhModule } from './rh';
+import { productionModule } from './production';
+import { o365Module } from './o365';
 import { adminModule } from './admin';
 
-export const modules: ModuleDef[] = [accountingModule, shippingModule, estimatingModule, complianceModule, itModule, adminModule];
+export const modules: ModuleDef[] = [accountingModule, shippingModule, estimatingModule, productionModule, rhModule, o365Module, itModule, adminModule];
+
+/** Nav items with nested sections expanded (parents first). */
+export function flatNav(nav: NavItem[]): NavItem[] {
+  return nav.flatMap((n) => [n, ...flatNav(n.children ?? [])]);
+}
 
 export const HOME_ACCENT = '#da291c';
 

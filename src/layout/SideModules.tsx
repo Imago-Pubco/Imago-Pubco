@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import { useI18n } from '@/i18n';
-import type { ModuleDef } from '@/modules/types';
+import type { ModuleDef, NavItem } from '@/modules/types';
 
 interface Props {
   modules: ModuleDef[];
@@ -49,6 +49,90 @@ export function SideModules({ modules, currentId, collapsed, isOpen, setOpen, on
         ) : null;
       })}
     </Reorder.Group>
+  );
+}
+
+/** A module's submenu; items with children render as an indented section. */
+function SubLinks({ m, items, can, parent, depth = 0 }: { m: ModuleDef; items: NavItem[]; can: (p: string) => boolean; parent?: string; depth?: number }) {
+  const { t } = useI18n();
+  return (
+    <>
+      {items
+        .filter((n) => !n.permission || can(n.permission))
+        .map((n) => {
+          const SubIcon = n.icon;
+          // A section header stays highlighted anywhere in the section; its landing item (same path) matches exactly.
+          const end = !n.children && (!n.path || n.path === 'new' || n.path === parent);
+          const link = (
+            <NavLink
+              to={subPath(m, n.path)}
+              end={end}
+              className={`side-sublink ${n.children ? 'side-section' : ''}`}
+              style={depth ? { paddingLeft: 10 + depth * 18 } : undefined}
+              draggable={false}
+            >
+              <SubIcon size={15} />
+              {t(n.label)}
+            </NavLink>
+          );
+          return n.children ? (
+            <SubSection key={n.path + '/'} id={`${m.id}:${n.path}`} header={link}>
+              <SubLinks m={m} items={n.children} can={can} parent={n.path} depth={depth + 1} />
+            </SubSection>
+          ) : (
+            <div key={n.path}>{link}</div>
+          );
+        })}
+    </>
+  );
+}
+
+const SECTIONS_KEY = 'imago:nav:closed-sections';
+
+function readClosed(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? '[]') as string[];
+  } catch {
+    return [];
+  }
+}
+
+/** Collapsible nested section (open by default; the choice is remembered in this browser). */
+function SubSection({ id, header, children }: { id: string; header: ReactNode; children: ReactNode }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(() => !readClosed().includes(id));
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    const closed = readClosed().filter((x) => x !== id);
+    try {
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify(next ? closed : [...closed, id]));
+    } catch {
+      /* storage unavailable: keep the state for this session only */
+    }
+  };
+  return (
+    <div className={`side-subsection ${open ? 'open' : ''}`}>
+      <div className="side-subsection-row">
+        {header}
+        <button className="side-toggle side-subsection-toggle" onClick={toggle} aria-expanded={open} aria-label={open ? t('Réduire la section', 'Collapse section') : t('Développer la section', 'Expand section')}>
+          <ChevronDown size={14} />
+        </button>
+      </div>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            style={{ overflow: 'hidden' }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }}
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -113,17 +197,7 @@ function SideModule({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.2, 0.7, 0.2, 1] }}
           >
-            {m.nav
-              .filter((n) => !n.permission || can(n.permission))
-              .map((n) => {
-                const SubIcon = n.icon;
-                return (
-                  <NavLink key={n.path} to={subPath(m, n.path)} end={!n.path || n.path === 'new'} className="side-sublink" draggable={false}>
-                    <SubIcon size={15} />
-                    {t(n.label)}
-                  </NavLink>
-                );
-              })}
+            <SubLinks m={m} items={m.nav} can={can} />
           </motion.div>
         )}
       </AnimatePresence>

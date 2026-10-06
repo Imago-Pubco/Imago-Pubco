@@ -674,3 +674,29 @@
 .topnav .user-btn:hover {
   border-color: rgba(255, 255, 255, 0.14);
 }
+/* Nested section header in a module submenu (e.g. RH › Conformité). */
+.side-sublink.side-section {
+  font-weight: 600;
+}
+.side-sublink.side-section.active {
+  color: var(--sidebar-text);
+  background: transparent;
+}
+.side-subsection-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.side-subsection-row .side-sublink {
+  flex: 1;
+  padding-right: 34px;
+}
+.side-module.open .side-subsection-toggle {
+  right: 0;
+  width: 26px;
+  height: 26px;
+  transform: rotate(-90deg);
+}
+.side-module.open .side-subsection.open .side-subsection-toggle {
+  transform: rotate(0deg);
+}

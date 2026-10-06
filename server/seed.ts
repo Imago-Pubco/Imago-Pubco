@@ -13,11 +13,24 @@ import { DEFAULT_EST_SETTINGS } from '../src/modules/estimating/defaults.ts';
 import { seedMaterials } from '../src/modules/estimating/seed.ts';
 import { hashPassword } from './auth.ts';
 import { config } from './config.ts';
-import { countDocs, getMeta, insertDoc, listDocs, replaceAll, setMeta, type Doc } from './db.ts';
+import { countDocs, getMeta, insertDoc, listDocs, replaceAll, setMeta, updateDoc, type Doc } from './db.ts';
 
 export async function initialise() {
   if ((await countDocs('users')) === 0) await createFirstAdmin();
   if (!(await getMeta('seed.reference'))) await loadReferenceData();
+  await migrateRhAccess();
+}
+
+/** One-time: Conformité moved into the RH module — groups with compliance access also get `rh.access`. */
+async function migrateRhAccess() {
+  if (await getMeta('migrate.rh-access')) return;
+  for (const g of await listDocs<Group>('groups')) {
+    const p = g.permissions;
+    if (!p.includes('*') && !p.includes('rh.access') && !p.includes('rh.*') && p.some((x) => x.startsWith('compliance.'))) {
+      await updateDoc<Group & { id: string }>('groups', g.id, { permissions: [...p, 'rh.access'].sort() });
+    }
+  }
+  await setMeta('migrate.rh-access', new Date().toISOString());
 }
 
 async function createFirstAdmin() {

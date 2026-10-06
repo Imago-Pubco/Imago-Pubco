@@ -51,14 +51,21 @@ export const seedGroups: Group[] = [
     id: 'g_conformite',
     name: 'Conformité',
     description: 'Gestion de la conformité (ISO, Loi 25, FSC, SST)',
-    permissions: ['compliance.*'],
+    permissions: ['compliance.*', 'rh.access'],
     color: '#d6336c',
+  },
+  {
+    id: 'g_o365',
+    name: 'Gestion O365',
+    description: 'Locataires, utilisateurs, contacts, groupes et licences Microsoft 365',
+    permissions: ['o365.*'],
+    color: '#0f6cbd',
   },
   {
     id: 'g_read',
     name: 'Lecture seule',
     description: 'Consultation sans modification',
-    permissions: ['accounting.access', 'accounting.po.view', 'shipping.access', 'estimating.access', 'compliance.access'],
+    permissions: ['accounting.access', 'accounting.po.view', 'shipping.access', 'estimating.access', 'compliance.access', 'rh.access'],
     color: '#5b6b82',
   },
 ];

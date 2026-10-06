@@ -62,6 +62,18 @@ export const config = {
     syncMinutes: Number(str('GRAPH_SYNC_MINUTES', '0')) || 0,
   },
 
+  /**
+   * Microsoft 365 management (module "Gestion O365"): a multi-tenant app registration
+   * consented in each managed tenant. Falls back to the MS_* app when not set.
+   */
+  o365: {
+    clientId: str('O365_CLIENT_ID', msClientId),
+    clientSecret: str('O365_CLIENT_SECRET', str('O365_CLIENT_ID') ? '' : msClientSecret),
+    get enabled() {
+      return !!(this.clientId && this.clientSecret);
+    },
+  },
+
   ai: {
     enabled: !!str('ANTHROPIC_API_KEY'),
     model: str('ANTHROPIC_MODEL', 'claude-opus-5-5'),

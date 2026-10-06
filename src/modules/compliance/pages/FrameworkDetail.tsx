@@ -48,7 +48,7 @@ export function FrameworkDetail() {
     return (
       <Page>
         <p>{t('Référentiel introuvable.', 'Framework not found.')}</p>
-        <Link to="/compliance/frameworks">{t('Retour', 'Back')}</Link>
+        <Link to="/rh/conformite/frameworks">{t('Retour', 'Back')}</Link>
       </Page>
     );
 
@@ -83,7 +83,7 @@ export function FrameworkDetail() {
     for (const r of reqs) await requirements.remove(r.id);
     await frameworks.remove(fw.id);
     await logAudit(user!.id, 'compliance.framework.delete', fw.code);
-    nav('/compliance/frameworks');
+    nav('/rh/conformite/frameworks');
   };
 
   const fwAudits = aus.filter((a) => a.frameworkId === fw.id).sort((a, b) => b.date.localeCompare(a.date));
@@ -91,7 +91,7 @@ export function FrameworkDetail() {
 
   return (
     <Page wide>
-      <Link to="/compliance/frameworks" className="btn btn-ghost btn-sm" style={{ marginBottom: 12, marginLeft: -10 }}>
+      <Link to="/rh/conformite/frameworks" className="btn btn-ghost btn-sm" style={{ marginBottom: 12, marginLeft: -10 }}>
         <ArrowLeft size={16} /> {t('Référentiels', 'Frameworks')}
       </Link>
 
@@ -203,7 +203,7 @@ export function FrameworkDetail() {
           <div className="card">
             <div className="card-head">
               <h3>{t('Audits', 'Audits')}</h3>
-              <Link to="/compliance/audits" className="btn btn-ghost btn-sm">{t('Tout voir', 'View all')}</Link>
+              <Link to="/rh/conformite/audits" className="btn btn-ghost btn-sm">{t('Tout voir', 'View all')}</Link>
             </div>
             <ul className="widget-list" style={{ border: 'none' }}>
               {fwAudits.slice(0, 4).map((a) => (
@@ -218,7 +218,7 @@ export function FrameworkDetail() {
           <div className="card">
             <div className="card-head">
               <h3>{t('Documents', 'Documents')}</h3>
-              <Link to="/compliance/documents" className="btn btn-ghost btn-sm">{t('Tout voir', 'View all')}</Link>
+              <Link to="/rh/conformite/documents" className="btn btn-ghost btn-sm">{t('Tout voir', 'View all')}</Link>
             </div>
             <ul className="widget-list" style={{ border: 'none' }}>
               {fwDocs.map((d) => (

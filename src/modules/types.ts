@@ -14,6 +14,11 @@ export interface NavItem {
   label: L;
   icon: LucideIcon;
   permission?: string;
+  /**
+   * Nested section (shown indented under this item in the sidebar). Child paths are
+   * relative to the module, like any other item (e.g. 'conformite/audits').
+   */
+  children?: NavItem[];
 }
 
 export interface WidgetDef {

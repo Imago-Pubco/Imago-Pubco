@@ -102,7 +102,7 @@ export function Frameworks() {
     await logAudit(user!.id, 'compliance.framework.save', edit.code);
     setEdit(null);
     toast(t('Référentiel enregistré', 'Framework saved'));
-    nav(`/compliance/frameworks/${edit.id}`);
+    nav(`/rh/conformite/frameworks/${edit.id}`);
   };
 
   const sorted = [...rows].sort((a, b) => Number(b.active) - Number(a.active) || a.code.localeCompare(b.code));
@@ -140,7 +140,7 @@ export function Frameworks() {
                 {sorted.map((f) => {
                   const r = reqs.filter((x) => x.frameworkId === f.id);
                   return (
-                    <tr key={f.id} className="clickable" onClick={() => nav(`/compliance/frameworks/${f.id}`)} style={{ opacity: f.active ? 1 : 0.55 }}>
+                    <tr key={f.id} className="clickable" onClick={() => nav(`/rh/conformite/frameworks/${f.id}`)} style={{ opacity: f.active ? 1 : 0.55 }}>
                       <td style={{ width: 70 }}>
                         <ScoreRing value={score(r)} size={44} color={f.color} />
                       </td>

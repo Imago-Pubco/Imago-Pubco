@@ -20,6 +20,8 @@ import {
   type AuthInfo,
 } from './auth.ts';
 import * as bc from './bc.ts';
+import * as o365 from './o365.ts';
+import type { O365Tenant } from '../src/modules/o365/types.ts';
 import { config } from './config.ts';
 import * as db from './db.ts';
 import { broadcast, eventsHandler } from './events.ts';
@@ -62,6 +64,8 @@ const RULES: Record<string, Rule> = {
   'ship.labels': { read: any('shipping.access'), write: any('shipping.labels.create', 'shipping.labels.print', 'shipping.labels.void') },
   'ship.addresses': { read: any('shipping.access'), write: any('shipping.addresses.manage', 'shipping.labels.create') },
   'ship.origins': { read: any('shipping.access'), write: any('shipping.settings') },
+
+  'o365.tenants': { read: any('o365.access'), write: any('o365.tenants.manage') },
 };
 
 /** Fields the generic API never accepts from the browser on users. */
@@ -143,6 +147,7 @@ export function apiRouter() {
         businessCentral: config.bc.enabled ? { environment: config.bc.environment, postMode: config.bc.postMode } : null,
         mailbox: config.graph.enabled ? { address: config.graph.mailbox } : null,
         extraction: config.ai.enabled ? { model: config.ai.model } : null,
+        o365: config.o365.enabled ? { clientId: config.o365.clientId } : null,
       },
     });
   });
@@ -314,6 +319,57 @@ export function apiRouter() {
     res.setHeader('Cache-Control', 'private, max-age=3600');
     res.send(f.data);
   }));
+
+  /* ---------- Microsoft 365 management (module "Gestion O365") ---------- */
+
+  /** Resolves :tid (Imago tenant record) to the Entra tenant id, after the permission check. */
+  const o365Tenant = async (req: Request, res: Response, perm: string): Promise<string | undefined> => {
+    if (!me(req).can(perm)) {
+      forbid(res);
+      return undefined;
+    }
+    o365.assertO365();
+    const t = await db.getDoc<O365Tenant & { id: string }>('o365.tenants', String(req.params.tid));
+    if (!t) {
+      res.status(404).json({ error: 'tenant not found' });
+      return undefined;
+    }
+    return t.tenantId;
+  };
+  const o365Route = (perm: string, fn: (tenantId: string, req: Request) => Promise<unknown>, status = 200) =>
+    wrap(async (req, res) => {
+      const tenantId = await o365Tenant(req, res, perm);
+      if (!tenantId) return;
+      const out = await fn(tenantId, req);
+      if (out === undefined) res.status(204).end();
+      else res.status(status).json(out);
+    });
+  const p = (req: Request, name: string) => String(req.params[name]);
+
+  r.get('/o365/:tid/overview', o365Route('o365.access', (t) => o365.overview(t)));
+  r.get('/o365/:tid/users', o365Route('o365.access', (t) => o365.listUsers(t)));
+  r.post('/o365/:tid/users', o365Route('o365.users.manage', (t, req) => o365.createUser(t, req.body), 201));
+  r.patch('/o365/:tid/users/:id', o365Route('o365.users.manage', (t, req) => o365.updateUser(t, p(req, 'id'), req.body ?? {})));
+  r.delete('/o365/:tid/users/:id', o365Route('o365.users.manage', (t, req) => o365.deleteUser(t, p(req, 'id'))));
+  r.post('/o365/:tid/users/:id/password', o365Route('o365.users.manage', (t, req) => {
+    const password = String(req.body?.password ?? '');
+    if (password.length < 8) throw new HttpError(400, 'Password must be at least 8 characters.');
+    return o365.resetPassword(t, p(req, 'id'), password, req.body?.forceChange !== false);
+  }));
+  r.post('/o365/:tid/users/:id/licenses', o365Route('o365.users.manage', (t, req) =>
+    o365.setLicenses(t, p(req, 'id'), (req.body?.add ?? []).map(String), (req.body?.remove ?? []).map(String)),
+  ));
+  r.get('/o365/:tid/contacts', o365Route('o365.access', (t) => o365.listContacts(t)));
+  r.post('/o365/:tid/contacts', o365Route('o365.contacts.manage', (t, req) => o365.createContact(t, req.body ?? {})));
+  r.delete('/o365/:tid/contacts/:id', o365Route('o365.contacts.manage', (t, req) => o365.deleteContact(t, p(req, 'id'))));
+  r.get('/o365/:tid/groups', o365Route('o365.access', (t) => o365.listGroups(t)));
+  r.get('/o365/:tid/groups/:id/members', o365Route('o365.access', (t, req) => o365.listMembers(t, p(req, 'id'))));
+  r.post('/o365/:tid/groups/:id/members', o365Route('o365.groups.manage', (t, req) => o365.addMember(t, p(req, 'id'), String(req.body?.email ?? ''))));
+  r.delete('/o365/:tid/groups/:id/members/:member', o365Route('o365.groups.manage', (t, req) =>
+    o365.removeMember(t, p(req, 'id'), p(req, 'member')),
+  ));
+  r.get('/o365/:tid/licenses', o365Route('o365.access', (t) => o365.listLicenses(t)));
+  r.get('/o365/:tid/licenses/:sku/users', o365Route('o365.access', (t, req) => o365.licenseHolders(t, p(req, 'sku'))));
 
   /* ---------- admin export ---------- */
 

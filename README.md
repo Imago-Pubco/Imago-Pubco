@@ -26,11 +26,14 @@ src/
     admin/         Admin portal: users, access groups, audit log, system
     accounting/    Vendor invoices: mailbox → extraction → 3-way match with Business Central → posting
     shipping/      4×6 shipping labels for production (Code128 barcodes, printing)
-    compliance/    Compliance: frameworks (ISO 9001/27001, Loi 25, FSC, SST…), requirements and evidence,
+    rh/            RH (human resources): hosts sections; first section is Conformité (/rh/conformite)
+    production/    Production: tools for Microsoft 365 and Dynamics (placeholder for now)
+    compliance/    Conformité section of RH: frameworks (ISO 9001/27001, Loi 25, FSC, SST…), requirements and evidence,
                    audits and non-conformities, policy register — all editable from the UI
     it/            IT support: embeds the AKAB support site (address set by `it.settings`);
                    full-screen layout there (`chrome: 'topnav'`): no top bar, modules in a thin bar on top
     estimating/    Packaging estimates: specs, box photo (future AI analysis), quantity breaks, pricing
+    o365/          Gestion O365: Microsoft 365 tenants, users, contacts, distribution groups, licenses
   pages/           Login, Home (customizable dashboard)
 ```
 
@@ -73,6 +76,15 @@ A user gets the union of the permissions from all their groups.
 | 🦋 Posted | Purchase invoice created in Business Central |
 
 Tolerances are configurable (*Comptabilité → Paramètres*). Posting despite exceptions requires the `accounting.invoices.override` permission and a written justification.
+
+## Gestion O365
+
+Manage several Microsoft 365 tenants from one place: tenant overview (domains, user count, license usage), users (create, edit, block/allow sign-in, reset password, delete, assign licenses), mail contacts (add/delete), distribution groups (members add/remove) and licenses (click a license to see who holds it). Choose the tenant in the top bar.
+
+- Users, licenses and the overview use **Microsoft Graph**; contacts and distribution groups use the **Exchange Online admin API**, because Graph cannot create mail contacts or change distribution-list members.
+- One multi-tenant app registration signs in to every tenant (`O365_CLIENT_ID` / `O365_CLIENT_SECRET`); setup steps are in [`.env.example`](.env.example).
+- Permissions: `o365.access` (read), `o365.tenants.manage`, `o365.users.manage`, `o365.contacts.manage`, `o365.groups.manage`. Every change is written to the audit log.
+- In dev (`npm run dev`) two demo tenants are loaded in the browser.
 
 ## Estimating (layout — rules to come)
 
