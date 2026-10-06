@@ -105,7 +105,7 @@ export function Frameworks() {
     else await frameworks.insert(edit);
     await logAudit(user!.id, 'compliance.framework.save', edit.code);
     setEdit(null);
-    toast(t('Référentiel enregistré', 'Framework saved'));
+    toast(t('Certification ou norme enregistrée', 'Certification or standard saved'));
     nav(`/rh/conformite/frameworks/${edit.id}`);
   };
 
@@ -128,7 +128,7 @@ export function Frameworks() {
         }
         await logAudit(user!.id, 'compliance.framework.template', tpl.code);
       }
-      toast(t(`${chosen.length} référentiel(s) ajouté(s)`, `${chosen.length} framework(s) added`));
+      toast(t(`${chosen.length} certification(s) ou norme(s) ajoutée(s)`, `${chosen.length} certification(s) or standard(s) added`));
       setTplOpen(false);
       setPickedId('');
     } finally {
@@ -142,7 +142,7 @@ export function Frameworks() {
     <Page>
       <PageHeader
         eyebrow={t('Conformité', 'Compliance')}
-        title={t('Référentiels', 'Frameworks')}
+        title={t('Certifications et normes', 'Certifications & standards')}
         subtitle={t('Normes, lois et exigences clients suivies par Pubco.', 'Standards, laws and customer requirements tracked by Pubco.')}
         actions={
           <Can permission="compliance.frameworks">
@@ -150,7 +150,7 @@ export function Frameworks() {
               <LayoutTemplate size={16} /> {t('Depuis un modèle', 'From a template')}
             </button>
             <button className="btn btn-primary" onClick={() => setEdit(blank())}>
-              <Plus size={16} /> {t('Référentiel', 'Framework')}
+              <Plus size={16} /> {t('Certification / norme', 'Certification / standard')}
             </button>
           </Can>
         }
@@ -162,7 +162,7 @@ export function Frameworks() {
               <thead>
                 <tr>
                   <th>{t('Score', 'Score')}</th>
-                  <th>{t('Référentiel', 'Framework')}</th>
+                  <th>{t('Certification / norme', 'Certification / standard')}</th>
                   <th>{t('Catégorie', 'Category')}</th>
                   <th className="num">{t('Exigences', 'Requirements')}</th>
                   <th>{t('Responsable', 'Owner')}</th>
@@ -202,14 +202,14 @@ export function Frameworks() {
             </table>
           </div>
         ) : (
-          <Empty icon={<Library size={36} />} title={t('Aucun référentiel', 'No frameworks')} />
+          <Empty icon={<Library size={36} />} title={t('Aucune certification ou norme', 'No certifications or standards')} />
         )}
       </div>
 
       <Modal
         open={!!edit}
         onClose={() => setEdit(null)}
-        title={t('Référentiel', 'Framework')}
+        title={t('Certification / norme', 'Certification / standard')}
         footer={
           <>
             <button className="btn" onClick={() => setEdit(null)}>{t('Annuler', 'Cancel')}</button>

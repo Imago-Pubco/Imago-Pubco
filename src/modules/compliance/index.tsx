@@ -36,7 +36,7 @@ export const complianceNav: NavItem = {
   permission: 'compliance.access',
   children: [
     { path: s(''), label: { fr: 'Aperçu', en: 'Overview' }, icon: LayoutDashboard },
-    { path: s('frameworks'), label: { fr: 'Référentiels', en: 'Frameworks' }, icon: Library },
+    { path: s('frameworks'), label: { fr: 'Certifications et normes', en: 'Certifications & standards' }, icon: Library },
     { path: s('audits'), label: { fr: 'Audits et NC', en: 'Audits & NC' }, icon: ClipboardCheck },
     { path: s('documents'), label: { fr: 'Politiques et procédures', en: 'Policies & procedures' }, icon: FileText },
   ],
@@ -45,7 +45,7 @@ export const complianceNav: NavItem = {
 export const compliancePermissions: PermissionDef[] = [
   { key: 'compliance.access', label: { fr: 'Conformité : accéder', en: 'Compliance: access' } },
   { key: 'compliance.edit', label: { fr: 'Conformité : gérer les exigences et preuves', en: 'Compliance: manage requirements & evidence' } },
-  { key: 'compliance.frameworks', label: { fr: 'Conformité : créer / modifier les référentiels', en: 'Compliance: create / edit frameworks' } },
+  { key: 'compliance.frameworks', label: { fr: 'Conformité : créer / modifier les certifications et normes', en: 'Compliance: create / edit certifications & standards' } },
   { key: 'compliance.audits', label: { fr: 'Conformité : gérer les audits et non-conformités', en: 'Compliance: manage audits & non-conformities' } },
   { key: 'compliance.documents', label: { fr: 'Conformité : gérer les politiques et procédures', en: 'Compliance: manage policies & procedures' } },
 ];

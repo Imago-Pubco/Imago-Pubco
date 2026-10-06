@@ -61,7 +61,7 @@ export function Documents() {
                 <tr>
                   <th>{t('Document', 'Document')}</th>
                   <th>Version</th>
-                  <th>{t('Référentiels', 'Frameworks')}</th>
+                  <th>{t('Certifications et normes', 'Certifications & standards')}</th>
                   <th>{t('Responsable', 'Owner')}</th>
                   <th>{t('Approuvé le', 'Approved')}</th>
                   <th>{t('Prochaine révision', 'Next review')}</th>
@@ -159,7 +159,7 @@ export function Documents() {
               <input className="input" value={edit.link ?? ''} onChange={(e) => setEdit({ ...edit, link: e.target.value || undefined })} placeholder="https://" />
             </label>
             <div className="field span-2">
-              <span>{t('Référentiels liés', 'Linked frameworks')}</span>
+              <span>{t('Certifications et normes liées', 'Linked certifications & standards')}</span>
               <div className="chips">
                 {fws.map((f) => (
                   <button

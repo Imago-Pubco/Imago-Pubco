@@ -76,7 +76,7 @@ export function Audits() {
                   <th></th>
                   <th>{t('Constat', 'Finding')}</th>
                   <th>{t('Type', 'Type')}</th>
-                  <th>{t('Référentiel', 'Framework')}</th>
+                  <th>{t('Certification / norme', 'Certification / standard')}</th>
                   <th>{t('Responsable', 'Owner')}</th>
                   <th>{t('Échéance', 'Due')}</th>
                 </tr>
@@ -120,7 +120,7 @@ export function Audits() {
                 <tr>
                   <th>{t('Date', 'Date')}</th>
                   <th>{t('Audit', 'Audit')}</th>
-                  <th>{t('Référentiel', 'Framework')}</th>
+                  <th>{t('Certification / norme', 'Certification / standard')}</th>
                   <th>{t('Type', 'Type')}</th>
                   <th>{t('Auditeur', 'Auditor')}</th>
                   <th className="num">{t('Constats', 'Findings')}</th>
@@ -179,7 +179,7 @@ export function Audits() {
                 <input className="input" value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} autoFocus />
               </label>
               <label className="field">
-                <span>{t('Référentiel', 'Framework')}</span>
+                <span>{t('Certification / norme', 'Certification / standard')}</span>
                 <select className="select" value={edit.frameworkId} onChange={(e) => setEdit({ ...edit, frameworkId: e.target.value })}>
                   {fws.map((f) => <option key={f.id} value={f.id}>{f.code} — {f.name}</option>)}
                 </select>

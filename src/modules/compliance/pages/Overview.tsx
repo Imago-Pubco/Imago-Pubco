@@ -95,7 +95,7 @@ export function Overview() {
         actions={
           <Can permission="compliance.frameworks">
             <Link to="/rh/conformite/frameworks?new=1" className="btn btn-primary">
-              <Plus size={16} /> {t('Référentiel', 'Framework')}
+              <Plus size={16} /> {t('Certification / norme', 'Certification / standard')}
             </Link>
           </Can>
         }

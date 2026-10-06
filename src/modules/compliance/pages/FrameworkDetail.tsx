@@ -47,7 +47,7 @@ export function FrameworkDetail() {
   if (!fw)
     return (
       <Page>
-        <p>{t('Référentiel introuvable.', 'Framework not found.')}</p>
+        <p>{t('Certification ou norme introuvable.', 'Certification or standard not found.')}</p>
         <Link to="/rh/conformite/frameworks">{t('Retour', 'Back')}</Link>
       </Page>
     );
@@ -77,7 +77,7 @@ export function FrameworkDetail() {
     if (!fwEdit) return;
     await frameworks.update(fwEdit.id, fwEdit);
     setFwEdit(null);
-    toast(t('Référentiel enregistré', 'Framework saved'));
+    toast(t('Certification ou norme enregistrée', 'Certification or standard saved'));
   };
   const deleteFw = async () => {
     for (const r of reqs) await requirements.remove(r.id);
@@ -92,7 +92,7 @@ export function FrameworkDetail() {
   return (
     <Page wide>
       <Link to="/rh/conformite/frameworks" className="btn btn-ghost btn-sm" style={{ marginBottom: 12, marginLeft: -10 }}>
-        <ArrowLeft size={16} /> {t('Référentiels', 'Frameworks')}
+        <ArrowLeft size={16} /> {t('Certifications et normes', 'Certifications & standards')}
       </Link>
 
       <div className="card fw-hero" style={{ ['--fw' as string]: fw.color, marginBottom: 16 }}>
@@ -179,7 +179,7 @@ export function FrameworkDetail() {
             </div>
           ) : (
             <Empty icon={<ListChecks size={34} />} title={t('Aucune exigence', 'No requirements')}>
-              {canEdit && t('Ajoutez les exigences de ce référentiel.', 'Add this framework’s requirements.')}
+              {canEdit && t('Ajoutez les exigences de cette certification ou norme.', 'Add this certification’s requirements.')}
             </Empty>
           )}
         </div>
@@ -339,7 +339,7 @@ export function FrameworkDetail() {
       <Modal
         open={!!fwEdit}
         onClose={() => setFwEdit(null)}
-        title={t('Modifier le référentiel', 'Edit framework')}
+        title={t('Modifier la certification ou norme', 'Edit certification or standard')}
         footer={
           <>
             <button className="btn" onClick={() => setFwEdit(null)}>{t('Annuler', 'Cancel')}</button>
@@ -353,7 +353,7 @@ export function FrameworkDetail() {
       <Modal
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        title={t('Supprimer le référentiel ?', 'Delete framework?')}
+        title={t('Supprimer la certification ou norme ?', 'Delete certification or standard?')}
         footer={
           <>
             <button className="btn" onClick={() => setConfirmDelete(false)}>{t('Annuler', 'Cancel')}</button>

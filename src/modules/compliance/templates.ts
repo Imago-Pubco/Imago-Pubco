@@ -338,7 +338,7 @@ export const FRAMEWORK_TEMPLATES: FrameworkTemplate[] = [
     code: 'CCCS-13',
     name: 'Contrôles de cybersécurité de base (Centre canadien pour la cybersécurité)',
     category: 'security',
-    description: 'Les 13 contrôles de base du Centre canadien pour la cybersécurité à l’intention des petites et moyennes organisations. Bon point de départ avant un référentiel complet.' + NOTE,
+    description: 'Les 13 contrôles de base du Centre canadien pour la cybersécurité à l’intention des petites et moyennes organisations. Bon point de départ avant une norme complète.' + NOTE,
     color: '#da291c',
     requirements: [
       ['CCCS-1', 'Plan d’intervention en cas d’incident élaboré et testé', 'Rôles, contacts, étapes de confinement et de reprise.', 'high'],
