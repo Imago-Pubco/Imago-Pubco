@@ -250,7 +250,11 @@ async function exo<T = Record<string, unknown>>(tenantId: string, cmdlet: string
       {
         method: 'POST',
         body,
-        headers: { 'X-AnchorMailbox': `UPN:SystemMailbox{bb558c35-97f1-4cb9-8ff7-d53741dc928c}@${domain}` },
+        headers: {
+          'X-AnchorMailbox': `UPN:SystemMailbox{bb558c35-97f1-4cb9-8ff7-d53741dc928c}@${domain}`,
+          // The Exchange admin API can send gzip that undici fails to inflate (Z_DATA_ERROR "incorrect header check").
+          'Accept-Encoding': 'identity',
+        },
       },
       auth(tenantId),
     ).catch((e: unknown) => {
