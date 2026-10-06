@@ -80,8 +80,8 @@ function forbid(res: Response) {
   return res.status(403).json({ error: 'forbidden' });
 }
 
-async function audit(userId: string, action: string, detail = '') {
-  await db.insertDoc('audit', { id: uid('a_'), at: now(), userId, action, detail });
+async function audit(userId: string, action: string, detail = '', ip = '') {
+  await db.insertDoc('audit', { id: uid('a_'), at: now(), userId, action, detail, ip });
   broadcast('audit');
 }
 
@@ -113,6 +113,7 @@ export function apiRouter() {
     const user = (await db.listDocs<User>('users')).find((u) => u.username.toLowerCase() === username);
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       recordLoginFailure(key);
+      await audit(user?.id ?? '', 'auth.login.failed', username, req.ip ?? '');
       return res.status(401).json({ error: 'invalid' });
     }
     if (!user.active) return res.status(403).json({ error: 'disabled' });
@@ -120,12 +121,12 @@ export function apiRouter() {
     await createSession(res, req, user.id);
     await db.updateDoc<User>('users', user.id, { lastLoginAt: now() });
     broadcast('users');
-    await audit(user.id, 'auth.login', user.username);
+    await audit(user.id, 'auth.login', user.username, req.ip ?? '');
     res.json({ user: publicUser(user) });
   }));
 
   r.post('/auth/logout', wrap(async (req, res) => {
-    if (req.auth) await audit(req.auth.user.id, 'auth.logout', req.auth.user.username);
+    if (req.auth) await audit(req.auth.user.id, 'auth.logout', req.auth.user.username, req.ip ?? '');
     await destroySession(res, req.auth?.sessionId);
     res.json({ ok: true });
   }));
@@ -138,6 +139,21 @@ export function apiRouter() {
   /* Everything below needs a signed-in user. */
   r.use(requireAuth);
   const me = (req: Request) => req.auth!;
+
+  // Automatic audit trail: every state-changing request by a signed-in user is logged
+  // (successes as api.<METHOD>, refused attempts as api.denied). Bodies are never stored.
+  r.use((req, res, next) => {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) || req.path === '/c/audit') return next();
+    const userId = req.auth!.user.id;
+    res.on('finish', () => {
+      const ok = res.statusCode < 400;
+      if (!ok && res.statusCode !== 403) return;
+      audit(userId, ok ? `api.${req.method.toLowerCase()}` : 'api.denied', `${req.method} ${req.path} ${res.statusCode}`, req.ip ?? '').catch((e) =>
+        console.error('[audit]', e),
+      );
+    });
+    next();
+  });
 
   r.get('/events', eventsHandler);
 
@@ -247,6 +263,7 @@ export function apiRouter() {
       userId: me(req).user.id,
       action: String(req.body?.action ?? '').slice(0, 100),
       detail: String(req.body?.detail ?? '').slice(0, 2000),
+      ip: req.ip ?? '',
     };
     await db.insertDoc('audit', entry);
     broadcast('audit');

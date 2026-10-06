@@ -49,4 +49,6 @@ export interface AuditEntry {
   userId: string;
   action: string;
   detail: string;
+  /** Client address, recorded server-side. */
+  ip?: string;
 }
