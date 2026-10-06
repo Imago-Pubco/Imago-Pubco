@@ -86,7 +86,7 @@ export function Frameworks() {
   const { rows: reqs } = useCollection(requirements);
   const [edit, setEdit] = useState<Framework | null>(null);
   const [tplOpen, setTplOpen] = useState(false);
-  const [picked, setPicked] = useState<string[]>([]);
+  const [pickedId, setPickedId] = useState('');
   const [adding, setAdding] = useState(false);
 
   const blank = (): Framework => ({ id: uid('fw_'), code: '', name: '', category: 'other', description: '', ownerId: user!.id, color: COLORS[rows.length % COLORS.length], active: true });
@@ -112,10 +112,12 @@ export function Frameworks() {
   const existingCodes = new Set(rows.map((f) => f.code.trim().toLowerCase()));
   const taken = (tpl: FrameworkTemplate) => existingCodes.has(tpl.code.trim().toLowerCase());
 
+  const pickedTpl = FRAMEWORK_TEMPLATES.find((x) => x.id === pickedId);
+
   const addTemplates = async () => {
     setAdding(true);
     try {
-      const chosen = FRAMEWORK_TEMPLATES.filter((x) => picked.includes(x.id) && !taken(x));
+      const chosen = FRAMEWORK_TEMPLATES.filter((x) => x.id === pickedId && !taken(x));
       const at = new Date().toISOString();
       for (const tpl of chosen) {
         const fw: Framework = { id: uid('fw_'), code: tpl.code, name: tpl.name, category: tpl.category, description: tpl.description, ownerId: user!.id, color: tpl.color, active: true };
@@ -128,7 +130,7 @@ export function Frameworks() {
       }
       toast(t(`${chosen.length} référentiel(s) ajouté(s)`, `${chosen.length} framework(s) added`));
       setTplOpen(false);
-      setPicked([]);
+      setPickedId('');
     } finally {
       setAdding(false);
     }
@@ -144,7 +146,7 @@ export function Frameworks() {
         subtitle={t('Normes, lois et exigences clients suivies par Pubco.', 'Standards, laws and customer requirements tracked by Pubco.')}
         actions={
           <Can permission="compliance.frameworks">
-            <button className="btn" onClick={() => { setPicked([]); setTplOpen(true); }}>
+            <button className="btn" onClick={() => { setPickedId(''); setTplOpen(true); }}>
               <LayoutTemplate size={16} /> {t('Depuis un modèle', 'From a template')}
             </button>
             <button className="btn btn-primary" onClick={() => setEdit(blank())}>
@@ -225,8 +227,8 @@ export function Frameworks() {
         footer={
           <>
             <button className="btn" onClick={() => setTplOpen(false)}>{t('Annuler', 'Cancel')}</button>
-            <button className="btn btn-primary" onClick={addTemplates} disabled={!picked.length || adding}>
-              {t(`Ajouter (${picked.length})`, `Add (${picked.length})`)}
+            <button className="btn btn-primary" onClick={addTemplates} disabled={!pickedTpl || taken(pickedTpl) || adding}>
+              {t('Ajouter', 'Add')}
             </button>
           </>
         }
@@ -237,31 +239,35 @@ export function Frameworks() {
             'Starting templates for a Québec business. Requirements are created as "to do" and stay editable. Confirm them with the regulator or a legal advisor.',
           )}
         </p>
-        {(Object.keys(TEMPLATE_SCOPES) as TemplateScope[]).map((scope) => (
-          <div key={scope} style={{ marginBottom: 14 }}>
-            <h4 style={{ margin: '12px 0 6px' }}>{t(TEMPLATE_SCOPES[scope])}</h4>
-            {FRAMEWORK_TEMPLATES.filter((x) => x.scope === scope).map((tpl) => {
-              const done = taken(tpl);
-              return (
-                <label key={tpl.id} className="check" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '6px 0', opacity: done ? 0.55 : 1 }}>
-                  <input
-                    type="checkbox"
-                    disabled={done}
-                    checked={picked.includes(tpl.id) && !done}
-                    onChange={(e) => setPicked((p) => (e.target.checked ? [...p, tpl.id] : p.filter((x) => x !== tpl.id)))}
-                  />
-                  <span>
-                    <strong>{tpl.code}</strong> — {tpl.name}
-                    <span className="faint small" style={{ display: 'block' }}>
-                      {t(`${tpl.requirements.length} exigences`, `${tpl.requirements.length} requirements`)}
-                      {done && ' · ' + t('déjà ajouté', 'already added')}
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
+        <label className="field">
+          <span>{t('Modèle', 'Template')}</span>
+          <select className="select" value={pickedId} onChange={(e) => setPickedId(e.target.value)} autoFocus>
+            <option value="">{t('Choisir un modèle…', 'Choose a template…')}</option>
+            {(Object.keys(TEMPLATE_SCOPES) as TemplateScope[]).map((scope) => (
+              <optgroup key={scope} label={t(TEMPLATE_SCOPES[scope])}>
+                {FRAMEWORK_TEMPLATES.filter((x) => x.scope === scope).map((tpl) => (
+                  <option key={tpl.id} value={tpl.id} disabled={taken(tpl)}>
+                    {tpl.code} — {tpl.name}
+                    {taken(tpl) ? ` (${t('déjà ajouté', 'already added')})` : ''}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        {pickedTpl && (
+          <div style={{ marginTop: 14 }}>
+            <p className="muted small" style={{ margin: '0 0 8px' }}>{pickedTpl.description}</p>
+            <strong className="small">{t(`${pickedTpl.requirements.length} exigences incluses`, `${pickedTpl.requirements.length} requirements included`)}</strong>
+            <ul className="small" style={{ margin: '6px 0 0', paddingLeft: 18, maxHeight: 260, overflow: 'auto' }}>
+              {pickedTpl.requirements.map(([ref, title]) => (
+                <li key={ref}>
+                  <span className="mono faint">{ref}</span> {title}
+                </li>
+              ))}
+            </ul>
           </div>
-        ))}
+        )}
       </Modal>
     </Page>
   );
