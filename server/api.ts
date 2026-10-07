@@ -741,6 +741,7 @@ export function apiRouter() {
   ));
   r.get('/o365/:tid/contacts', o365Route('o365.access', (t) => o365.listContacts(t)));
   r.post('/o365/:tid/contacts', o365Route('o365.contacts.manage', (t, req) => o365.createContact(t, req.body ?? {})));
+  r.patch('/o365/:tid/contacts/:id', o365Route('o365.contacts.manage', (t, req) => o365.updateContact(t, p(req, 'id'), req.body ?? {})));
   r.delete('/o365/:tid/contacts/:id', o365Route('o365.contacts.manage', (t, req) => o365.deleteContact(t, p(req, 'id'))));
   r.get('/o365/:tid/groups', o365Route('o365.access', (t) => o365.listGroups(t)));
   r.get('/o365/:tid/groups/:id/members', o365Route('o365.access', (t, req) => o365.listMembers(t, p(req, 'id'))));

@@ -41,7 +41,7 @@ export const o365Module: ModuleDef = {
     { key: 'o365.tenants.view', label: { fr: 'Voir la section Locataires', en: 'See the Tenants section' } },
     { key: 'o365.tenants.manage', label: { fr: 'Ajouter / retirer des locataires', en: 'Add / remove tenants' } },
     { key: 'o365.users.manage', label: { fr: 'Gérer les utilisateurs et leurs licences', en: 'Manage users and their licenses' } },
-    { key: 'o365.contacts.manage', label: { fr: 'Ajouter / supprimer des contacts', en: 'Add / delete contacts' } },
+    { key: 'o365.contacts.manage', label: { fr: 'Ajouter / modifier / supprimer des contacts', en: 'Add / edit / delete contacts' } },
     { key: 'o365.groups.manage', label: { fr: 'Gérer les membres des groupes de distribution', en: 'Manage distribution group members' } },
   ],
   nav: [

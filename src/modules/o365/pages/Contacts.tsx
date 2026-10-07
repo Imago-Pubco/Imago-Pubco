@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Contact, Plus, Search, Trash2 } from 'lucide-react';
+import { Contact, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { logAudit } from '@/data/stores';
 import { useI18n } from '@/i18n';
@@ -25,6 +25,7 @@ function ContactsFor({ tenant }: { tenant: O365Tenant }) {
   const contacts = useTenantData(tenant.id, o365.listContacts);
   const [q, setQ] = useState('');
   const [draft, setDraft] = useState<O365ContactInput | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [del, setDel] = useState<O365Contact | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -47,9 +48,15 @@ function ContactsFor({ tenant }: { tenant: O365Tenant }) {
     setBusy(true);
     setErr('');
     try {
-      await o365.createContact(tenant.id, input);
-      await logAudit(me!.id, 'o365.contact.create', `${tenant.name}: ${input.displayName} <${input.email}>`);
-      toast(t('Contact ajouté', 'Contact added'));
+      if (editId) {
+        await o365.updateContact(tenant.id, editId, input);
+        await logAudit(me!.id, 'o365.contact.update', `${tenant.name}: ${input.displayName} <${input.email}>`);
+        toast(t('Contact modifié', 'Contact updated'));
+      } else {
+        await o365.createContact(tenant.id, input);
+        await logAudit(me!.id, 'o365.contact.create', `${tenant.name}: ${input.displayName} <${input.email}>`);
+        toast(t('Contact ajouté', 'Contact added'));
+      }
       setDraft(null);
       contacts.reload();
     } catch (e) {
@@ -77,6 +84,17 @@ function ContactsFor({ tenant }: { tenant: O365Tenant }) {
 
   const set = <K extends keyof O365ContactInput>(k: K, v: string) => setDraft((d) => d && { ...d, [k]: v });
 
+  const openNew = () => {
+    setErr('');
+    setEditId(null);
+    setDraft({ ...EMPTY });
+  };
+  const openEdit = (c: O365Contact) => {
+    setErr('');
+    setEditId(c.id);
+    setDraft({ displayName: c.displayName, email: c.email, firstName: c.firstName, lastName: c.lastName, company: c.company });
+  };
+
   return (
     <Page>
       <PageHeader
@@ -87,13 +105,7 @@ function ContactsFor({ tenant }: { tenant: O365Tenant }) {
           <>
             <ReloadButton onClick={contacts.reload} loading={contacts.loading} />
             {manage && (
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  setErr('');
-                  setDraft({ ...EMPTY });
-                }}
-              >
+              <button className="btn btn-primary" onClick={openNew}>
                 <Plus size={16} /> {t('Contact', 'Contact')}
               </button>
             )}
@@ -123,17 +135,22 @@ function ContactsFor({ tenant }: { tenant: O365Tenant }) {
                 </thead>
                 <tbody>
                   {rows.map((c) => (
-                    <tr key={c.id}>
+                    <tr key={c.id} className={manage ? 'clickable' : ''} onClick={() => manage && openEdit(c)}>
                       <td>
                         <strong>{c.displayName}</strong>
                       </td>
                       <td className="mono small">{c.email}</td>
                       <td className="small">{c.company || <span className="faint">—</span>}</td>
                       {manage && (
-                        <td className="num">
-                          <button className="btn btn-ghost btn-icon btn-sm" title={t('Supprimer', 'Delete')} onClick={() => setDel(c)}>
-                            <Trash2 size={15} />
-                          </button>
+                        <td className="num" onClick={(e) => e.stopPropagation()}>
+                          <div className="row" style={{ gap: 2, justifyContent: 'flex-end' }}>
+                            <button className="btn btn-ghost btn-icon btn-sm" title={t('Modifier', 'Edit')} onClick={() => openEdit(c)}>
+                              <Pencil size={15} />
+                            </button>
+                            <button className="btn btn-ghost btn-icon btn-sm" title={t('Supprimer', 'Delete')} onClick={() => setDel(c)}>
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -150,14 +167,14 @@ function ContactsFor({ tenant }: { tenant: O365Tenant }) {
       <Modal
         open={!!draft}
         onClose={() => setDraft(null)}
-        title={t('Nouveau contact', 'New contact')}
+        title={editId ? t('Modifier le contact', 'Edit contact') : t('Nouveau contact', 'New contact')}
         footer={
           <>
             <button className="btn" onClick={() => setDraft(null)}>
               {t('Annuler', 'Cancel')}
             </button>
             <button className="btn btn-primary" onClick={save} disabled={busy || !draft || !EMAIL.test(draft.email.trim())}>
-              {t('Ajouter', 'Add')}
+              {editId ? t('Enregistrer', 'Save') : t('Ajouter', 'Add')}
             </button>
           </>
         }

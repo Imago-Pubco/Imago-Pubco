@@ -28,6 +28,7 @@ export interface O365Connector {
   setLicenses(tenant: string, id: string, add: string[], remove: string[]): Promise<void>;
   listContacts(tenant: string): Promise<O365Contact[]>;
   createContact(tenant: string, input: O365ContactInput): Promise<void>;
+  updateContact(tenant: string, id: string, input: O365ContactInput): Promise<void>;
   deleteContact(tenant: string, id: string): Promise<void>;
   listGroups(tenant: string): Promise<O365Group[]>;
   listMembers(tenant: string, groupId: string): Promise<O365Member[]>;
@@ -54,6 +55,7 @@ const apiConnector: O365Connector = {
   setLicenses: (tenant, id, add, remove) => api(t(tenant, `/users/${e(id)}/licenses`), { method: 'POST', body: { add, remove } }),
   listContacts: (tenant) => api(t(tenant, '/contacts')),
   createContact: (tenant, input) => api(t(tenant, '/contacts'), { method: 'POST', body: input }),
+  updateContact: (tenant, id, input) => api(t(tenant, `/contacts/${e(id)}`), { method: 'PATCH', body: input }),
   deleteContact: (tenant, id) => api(t(tenant, `/contacts/${e(id)}`), { method: 'DELETE' }),
   listGroups: (tenant) => api(t(tenant, '/groups')),
   listMembers: (tenant, groupId) => api(t(tenant, `/groups/${e(groupId)}/members`)),
@@ -153,6 +155,16 @@ const mockConnector: O365Connector = {
   async createContact(tenant, input) {
     await delay(400);
     await mockContacts.insert({ ...input, id: uid('oc_'), tenant });
+  },
+  async updateContact(tenant, id, input) {
+    await delay(400);
+    await mockContacts.update(id, input);
+    // Keep group memberships in step with the new name and address.
+    for (const g of await of(mockGroups, tenant)) {
+      if (g.members.some((m) => m.id === id)) {
+        await mockGroups.update(g.id, { members: g.members.map((m) => (m.id === id ? { ...m, displayName: input.displayName, email: input.email } : m)) });
+      }
+    }
   },
   async deleteContact(_tenant, id) {
     await delay();

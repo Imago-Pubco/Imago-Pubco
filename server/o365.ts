@@ -319,6 +319,31 @@ export async function createContact(tenantId: string, input: O365ContactInput) {
   }
 }
 
+/** Updates display name and external address (mail contact) and first/last name and company (contact). */
+export async function updateContact(tenantId: string, id: string, input: Partial<O365ContactInput>) {
+  requireGuid(id, 'contact id');
+  const mail: Record<string, unknown> = {};
+  if (input.displayName !== undefined) {
+    const displayName = String(input.displayName).trim();
+    if (!displayName) throw new HttpError(400, 'Display name is required.');
+    mail.DisplayName = displayName;
+  }
+  if (input.email !== undefined) {
+    const email = String(input.email).trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(400, 'Invalid e-mail address.');
+    mail.ExternalEmailAddress = email;
+  }
+  if (Object.keys(mail).length) await exo(tenantId, 'Set-MailContact', { Identity: id, ...mail });
+
+  // Empty values clear the field (sent as null).
+  const contact: Record<string, unknown> = {};
+  const clear = (v: unknown) => String(v ?? '').trim() || null;
+  if (input.firstName !== undefined) contact.FirstName = clear(input.firstName);
+  if (input.lastName !== undefined) contact.LastName = clear(input.lastName);
+  if (input.company !== undefined) contact.Company = clear(input.company);
+  if (Object.keys(contact).length) await exo(tenantId, 'Set-Contact', { Identity: id, ...contact });
+}
+
 export async function deleteContact(tenantId: string, id: string) {
   await exo(tenantId, 'Remove-MailContact', { Identity: requireGuid(id, 'contact id'), Confirm: false });
 }
