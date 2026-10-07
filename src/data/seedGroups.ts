@@ -30,6 +30,7 @@ export const seedGroups: Group[] = [
       'accounting.invoices.approve',
       'accounting.invoices.post',
       'accounting.po.view',
+      'accounting.payables.view',
       'accounting.po.process',
       'accounting.po.approve',
     ],
