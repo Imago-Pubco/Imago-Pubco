@@ -26,8 +26,26 @@ const msTenant = str('MS_TENANT_ID');
 const msClientId = str('MS_CLIENT_ID');
 const msClientSecret = str('MS_CLIENT_SECRET');
 
+const smtpHost = str('SMTP_HOST');
+const smtpPort = int('SMTP_PORT', 587);
+const smtpFrom = str('SMTP_FROM');
+
 export const config = {
   port: int('PORT', 8080),
+  /** Public address of the portal, used in the links of e-mails (falls back to the address the request came to). */
+  appUrl: str('APP_URL').replace(/\/+$/, ''),
+  /** Outgoing e-mail (welcome message, password reset...). */
+  smtp: {
+    host: smtpHost,
+    port: smtpPort,
+    /** true = TLS from the start (port 465); false = STARTTLS when the server offers it (port 587). */
+    secure: bool('SMTP_SECURE', smtpPort === 465),
+    user: str('SMTP_USER'),
+    password: str('SMTP_PASSWORD'),
+    from: smtpFrom,
+    fromName: str('SMTP_FROM_NAME', 'Pubco Hub'),
+    enabled: !!(smtpHost && smtpFrom),
+  },
   /** Express `trust proxy` setting, so client IPs are read from X-Forwarded-For behind a reverse proxy. */
   trustProxy: str('TRUST_PROXY', 'loopback, linklocal, uniquelocal'),
   /** Set to false only when the site is served over plain HTTP (not recommended). */

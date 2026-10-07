@@ -1,5 +1,5 @@
 import { Link, NavLink, Route, Routes } from 'react-router-dom';
-import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Server } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Server, Mail as MailIcon } from 'lucide-react';
 import { useCollection } from '@/data/db';
 import { groups, users } from '@/data/stores';
 import { useAuth } from '@/auth/AuthContext';
@@ -12,6 +12,7 @@ import { Users } from './pages/Users';
 import { Groups } from './pages/Groups';
 import { Audit, AuditTable } from './pages/Audit';
 import { System } from './pages/System';
+import { Mail } from './pages/Mail';
 import './admin.css';
 
 function AdminKpis() {
@@ -76,6 +77,7 @@ function AdminRoutes() {
       <Route path="users" element={<RequirePermission permission="admin.users.manage"><Users /></RequirePermission>} />
       <Route path="groups" element={<RequirePermission permission="admin.groups.manage"><Groups /></RequirePermission>} />
       <Route path="audit" element={<RequirePermission permission="admin.audit.view"><Audit /></RequirePermission>} />
+      <Route path="mail" element={<RequirePermission permission="admin.mail"><Mail /></RequirePermission>} />
       <Route path="system" element={<RequirePermission permission="admin.system"><System /></RequirePermission>} />
     </Routes>
     </>
@@ -97,6 +99,7 @@ export const adminModule: ModuleDef = {
     { key: 'admin.users.manage', label: { fr: 'Gérer les utilisateurs', en: 'Manage users' } },
     { key: 'admin.groups.manage', label: { fr: 'Gérer les groupes et permissions', en: 'Manage groups & permissions' } },
     { key: 'admin.audit.view', label: { fr: 'Consulter le journal d’audit', en: 'View audit log' } },
+    { key: 'admin.mail', label: { fr: 'Courriels : serveur d’envoi et modèles', en: 'E-mail: sending server and templates' } },
     { key: 'admin.system', label: { fr: 'Paramètres système', en: 'System settings' } },
   ],
   nav: [
@@ -104,6 +107,7 @@ export const adminModule: ModuleDef = {
     { path: 'users', label: { fr: 'Utilisateurs', en: 'Users' }, icon: UsersIcon, permission: 'admin.users.manage' },
     { path: 'groups', label: { fr: 'Groupes d’accès', en: 'Access groups' }, icon: KeyRound, permission: 'admin.groups.manage' },
     { path: 'audit', label: { fr: 'Journal d’audit', en: 'Audit log' }, icon: ScrollText, permission: 'admin.audit.view' },
+    { path: 'mail', label: { fr: 'Courriels', en: 'E-mail' }, icon: MailIcon, permission: 'admin.mail' },
     { path: 'system', label: { fr: 'Système', en: 'System' }, icon: Server, permission: 'admin.system' },
   ],
   component: AdminRoutes,

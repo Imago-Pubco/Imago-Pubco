@@ -10,6 +10,7 @@ interface ServerConfig {
     businessCentral: { environment: string; postMode: 'draft' | 'post' } | null;
     mailbox: { address: string } | null;
     extraction: { model: string } | null;
+    smtp?: { from: string; host: string } | null;
   };
 }
 
@@ -141,6 +142,13 @@ function ServerSystem() {
               {result(mailTest)}
             </div>
           </div>
+
+          <div className="row">
+            <strong>{t('Courriels sortants (SMTP)', 'Outgoing e-mail (SMTP)')}</strong>
+            <span className="spacer" />
+            {status(!!i?.smtp)}
+          </div>
+          {i?.smtp && <div className="faint small">{i.smtp.from} · {i.smtp.host}</div>}
 
           <div className="row">
             <strong>{t('Lecture automatique des PDF (IA)', 'Automatic PDF reading (AI)')}</strong>

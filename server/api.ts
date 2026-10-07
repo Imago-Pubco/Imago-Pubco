@@ -28,6 +28,8 @@ import { broadcast, eventsHandler } from './events.ts';
 import { syncMailbox, testMailbox } from './mailbox.ts';
 import * as pipeline from './pipeline.ts';
 import { runAutomation } from './automation.ts';
+import { assertMail, defaultTemplate, getTemplate, renderTemplate, sampleVars, sendMail, sendTemplate, verifySmtp, type MailTemplate } from './mail.ts';
+import { consumeToken, createToken, humanDuration, peekToken } from './tokens.ts';
 import { HttpError } from './ms.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
@@ -72,6 +74,8 @@ const RULES: Record<string, Rule> = {
   'ship.origins': { read: any('shipping.access'), write: any('shipping.settings') },
 
   'o365.tenants': { read: any('o365.access'), write: any('o365.tenants.manage') },
+
+  'mail.templates': { read: any('admin.mail'), write: any('admin.mail') },
 };
 
 /** Fields the generic API never accepts from the browser on users. */
@@ -137,6 +141,69 @@ export function apiRouter() {
     res.json({ ok: true });
   }));
 
+  /* ---------- password: forgotten / first choice (public) ---------- */
+
+  const baseUrl = (req: Request) => config.appUrl || `${req.protocol}://${req.get('host')}`;
+  const FORGOT_TTL = 3600_000;
+  const WELCOME_TTL = 72 * 3600_000;
+  const forgotHits = new Map<string, number[]>();
+  const tooManyForgot = (key: string) => {
+    const hits = (forgotHits.get(key) ?? []).filter((t) => Date.now() - t < 3600_000);
+    hits.push(Date.now());
+    forgotHits.set(key, hits);
+    return hits.length > 5;
+  };
+
+  /** What the login page may offer: "forgot password" only exists when e-mail is configured. */
+  r.get('/auth/options', (_req, res) => res.json({ forgotPassword: config.smtp.enabled }));
+
+  r.post('/auth/forgot', wrap(async (req, res) => {
+    const id = String(req.body?.identifier ?? '').trim().toLowerCase();
+    // The answer never reveals whether the account exists.
+    res.json({ ok: true });
+    if (!id || !config.smtp.enabled || tooManyForgot(`ip|${req.ip}`) || tooManyForgot(`id|${id}`)) return;
+    try {
+      const user = (await db.listDocs<User>('users')).find((u) => u.active && (u.username.toLowerCase() === id || (u.email && u.email.toLowerCase() === id)));
+      if (!user?.email) return;
+      const token = await createToken(user.id, 'reset_password', FORGOT_TTL);
+      await sendTemplate('password_reset', user.email, {
+        nom: user.displayName,
+        identifiant: user.username,
+        portail: baseUrl(req),
+        lien: `${baseUrl(req)}/reset-password?token=${token}`,
+        expiration: humanDuration(FORGOT_TTL),
+      });
+      await audit(user.id, 'auth.password.forgot', user.username, req.ip ?? '');
+    } catch (e) {
+      console.error('[mail] password reset e-mail failed:', e instanceof Error ? e.message : e);
+    }
+  }));
+
+  r.get('/auth/reset/check', wrap(async (req, res) => {
+    const userId = await peekToken(String(req.query.token ?? ''));
+    const user = userId ? await db.getDoc<User>('users', userId) : undefined;
+    if (!user?.active) return res.status(400).json({ error: 'invalid_or_expired' });
+    res.json({ ok: true, username: user.username, name: user.displayName });
+  }));
+
+  r.post('/auth/reset', wrap(async (req, res) => {
+    const password = String(req.body?.password ?? '');
+    if (password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
+    const userId = await consumeToken(String(req.body?.token ?? ''));
+    const user = userId ? await db.getDoc<User>('users', userId) : undefined;
+    if (!user?.active) return res.status(400).json({ error: 'invalid_or_expired' });
+    await db.updateDoc<User>('users', user.id, { passwordHash: await hashPassword(password), salt: '' });
+    await destroyUserSessions(user.id);
+    await audit(user.id, 'auth.password.reset', user.username, req.ip ?? '');
+    broadcast('users');
+    res.json({ ok: true, username: user.username });
+    if (config.smtp.enabled && user.email) {
+      sendTemplate('password_changed', user.email, { nom: user.displayName, identifiant: user.username, portail: baseUrl(req) }).catch((e) =>
+        console.error('[mail] confirmation e-mail failed:', e instanceof Error ? e.message : e),
+      );
+    }
+  }));
+
   r.get('/auth/me', (req, res) => {
     if (!req.auth) return res.status(401).json({ error: 'unauthenticated' });
     res.json({ user: publicUser(req.auth.user) });
@@ -170,6 +237,7 @@ export function apiRouter() {
         mailbox: config.graph.enabled ? { address: config.graph.mailbox } : null,
         extraction: config.ai.enabled ? { model: config.ai.model } : null,
         o365: config.o365.enabled ? { clientId: config.o365.clientId } : null,
+        smtp: config.smtp.enabled ? { from: config.smtp.from, host: config.smtp.host } : null,
       },
     });
   });
@@ -254,6 +322,79 @@ export function apiRouter() {
     await destroyUserSessions(id);
     broadcast('users');
     res.status(204).end();
+  }));
+
+  /* ---------- e-mail: status, templates, test, welcome message ---------- */
+
+  r.get('/mail/status', wrap(async (req, res) => {
+    if (!me(req).canAny('admin.mail', 'admin.users.manage')) return forbid(res);
+    const s = config.smtp;
+    res.json({ enabled: s.enabled, host: s.host, port: s.port, secure: s.secure, user: s.user, from: s.from, fromName: s.fromName, appUrl: config.appUrl || baseUrl(req) });
+  }));
+
+  /** Checks the SMTP connection and login, without sending anything. */
+  r.post('/mail/verify', wrap(async (req, res) => {
+    if (!me(req).can('admin.mail')) return forbid(res);
+    await verifySmtp();
+    res.json({ ok: true });
+  }));
+
+  /** Renders a template (possibly an unsaved draft from the editor) with sample values. */
+  r.post('/mail/preview', wrap(async (req, res) => {
+    if (!me(req).can('admin.mail')) return forbid(res);
+    const base = await getTemplate(String(req.body?.id ?? ''));
+    const draft = { ...base, ...(req.body?.draft ?? {}) } as MailTemplate;
+    res.json(renderTemplate(draft, sampleVars(base)));
+  }));
+
+  /** Sends the template, filled with sample values, to an address (default: the signed-in person's). */
+  r.post('/mail/test', wrap(async (req, res) => {
+    const a = me(req);
+    if (!a.can('admin.mail')) return forbid(res);
+    assertMail();
+    const base = await getTemplate(String(req.body?.id ?? ''));
+    const draft = { ...base, ...(req.body?.draft ?? {}) } as MailTemplate;
+    const to = String(req.body?.to ?? a.user.email ?? '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return res.status(400).json({ error: 'A valid e-mail address is required.' });
+    const rendered = renderTemplate(draft, sampleVars(base));
+    await sendMail(to, { ...rendered, subject: `[TEST] ${rendered.subject}` });
+    await audit(a.user.id, 'mail.test', `${base.id} -> ${to}`, req.ip ?? '');
+    res.json({ ok: true, to });
+  }));
+
+  r.post('/mail/templates/:id/reset', wrap(async (req, res) => {
+    if (!me(req).can('admin.mail')) return forbid(res);
+    const def = defaultTemplate(String(req.params.id));
+    if (!def) return res.status(404).json({ error: 'not_found' });
+    const doc = { ...def, updatedAt: now(), updatedBy: me(req).user.id };
+    await db.replaceAll('mail.templates', [...(await db.listDocs<MailTemplate>('mail.templates')).filter((t) => t.id !== def.id), doc]);
+    await audit(me(req).user.id, 'mail.template.reset', def.id, req.ip ?? '');
+    broadcast('mail.templates');
+    res.json(doc);
+  }));
+
+  /** Sends (or re-sends) the welcome message: the person's identifier and a link to choose a password. */
+  r.post('/users/:id/welcome-email', wrap(async (req, res) => {
+    const a = me(req);
+    if (!a.can('admin.users.manage')) return forbid(res);
+    assertMail();
+    const user = await db.getDoc<User>('users', String(req.params.id));
+    if (!user) return res.status(404).json({ error: 'not_found' });
+    if (!user.email) return res.status(400).json({ error: 'This user has no e-mail address.' });
+    const groupNames = (await db.listDocs<Group>('groups')).filter((g) => user.groupIds.includes(g.id)).map((g) => g.name);
+    const token = await createToken(user.id, 'set_password', WELCOME_TTL);
+    const sent = await sendTemplate('welcome', user.email, {
+      nom: user.displayName,
+      identifiant: user.username,
+      courriel: user.email,
+      groupes: groupNames.join(', ') || '—',
+      portail: baseUrl(req),
+      lien: `${baseUrl(req)}/reset-password?token=${token}`,
+      expiration: humanDuration(WELCOME_TTL),
+    });
+    if (!sent) return res.status(409).json({ error: 'The welcome template is disabled (Administration → Courriels).' });
+    await audit(a.user.id, 'mail.welcome', `${user.username} <${user.email}>`, req.ip ?? '');
+    res.json({ ok: true, to: user.email });
   }));
 
   /* ---------- audit log (append-only) ---------- */

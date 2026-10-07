@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-import { Plus, Pencil, Search, UserCheck, UserX, KeyRound } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Plus, Pencil, Search, UserCheck, UserX, KeyRound, Mail } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { effectivePermissions } from '@/auth/permissions';
-import { API_MODE, uid, useCollection } from '@/data/db';
+import { API_MODE, api, uid, useCollection } from '@/data/db';
 import { groups, logAudit, users } from '@/data/stores';
 import { hashPassword, newSalt } from '@/data/crypto';
 import { useI18n } from '@/i18n';
@@ -18,7 +18,15 @@ interface Draft {
   active: boolean;
   groupIds: string[];
   password: string;
+  /** New users only: send the welcome e-mail (identifier + link to choose a password). */
+  sendWelcome?: boolean;
 }
+
+/** A password nobody knows: the person sets their own through the link in the welcome e-mail. */
+const randomPassword = () => {
+  const b = crypto.getRandomValues(new Uint8Array(24));
+  return btoa(String.fromCharCode(...b)).replace(/[+/=]/g, 'x');
+};
 
 export function Users() {
   const { t, fmtDate } = useI18n();
@@ -29,6 +37,12 @@ export function Users() {
   const [q, setQ] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
   const [err, setErr] = useState('');
+  const [mailOn, setMailOn] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (API_MODE) api<{ enabled: boolean }>('/mail/status').then((r) => setMailOn(r.enabled), () => setMailOn(false));
+  }, []);
 
   const filtered = useMemo(() => {
     const s = q.toLowerCase();
@@ -42,7 +56,7 @@ export function Users() {
     setDraft(
       u
         ? { id: u.id, displayName: u.displayName, username: u.username, email: u.email, active: u.active, groupIds: [...u.groupIds], password: '' }
-        : { displayName: '', username: '', email: '', active: true, groupIds: [], password: '' },
+        : { displayName: '', username: '', email: '', active: true, groupIds: [], password: '', sendWelcome: mailOn },
     );
   };
 
@@ -52,7 +66,10 @@ export function Users() {
     if (!draft.displayName.trim() || !uname) return setErr(t('Nom et identifiant requis.', 'Name and username are required.'));
     if (rows.some((u) => u.username.toLowerCase() === uname && u.id !== draft.id))
       return setErr(t('Cet identifiant existe déjà.', 'That username already exists.'));
-    if (!draft.id && draft.password.length < 8) return setErr(t('Mot de passe : 8 caractères minimum.', 'Password: at least 8 characters.'));
+    // With the welcome e-mail the password is optional: the person chooses their own from the link.
+    const welcome = !draft.id && !!draft.sendWelcome && mailOn && !!draft.email.trim();
+    if (!draft.id && draft.sendWelcome && mailOn && !draft.email.trim()) return setErr(t('Un courriel est requis pour envoyer le message de bienvenue.', 'An e-mail address is required to send the welcome message.'));
+    if (!draft.id && !welcome && draft.password.length < 8) return setErr(t('Mot de passe : 8 caractères minimum.', 'Password: at least 8 characters.'));
     if (draft.id && draft.password && draft.password.length < 8) return setErr(t('Mot de passe : 8 caractères minimum.', 'Password: at least 8 characters.'));
     if (draft.id === me?.id && !draft.active) return setErr(t('Vous ne pouvez pas désactiver votre propre compte.', 'You cannot deactivate your own account.'));
     if (draft.id === me?.id) {
@@ -77,7 +94,15 @@ export function Users() {
       } else {
         const created = { ...base, id: uid('u_'), createdAt: new Date().toISOString() };
         if (API_MODE) {
-          await users.insert({ ...created, password: draft.password } as unknown as User);
+          await users.insert({ ...created, password: draft.password || randomPassword() } as unknown as User);
+          if (welcome) {
+            try {
+              const r = await api<{ to: string }>(`/users/${created.id}/welcome-email`, { method: 'POST' });
+              toast(t(`Courriel de bienvenue envoyé à ${r.to}`, `Welcome e-mail sent to ${r.to}`));
+            } catch (e) {
+              toast(t('Utilisateur créé, mais le courriel n’a pas pu être envoyé : ', 'User created, but the e-mail could not be sent: ') + (e instanceof Error ? e.message : String(e)), 'err');
+            }
+          }
         } else {
           const salt = newSalt();
           await users.insert({ ...created, salt, passwordHash: await hashPassword(draft.password, salt) });
@@ -89,6 +114,19 @@ export function Users() {
     }
     setDraft(null);
     toast(t('Utilisateur enregistré', 'User saved'));
+  };
+
+  const resendWelcome = async () => {
+    if (!draft?.id) return;
+    setSending(true);
+    try {
+      const r = await api<{ to: string }>(`/users/${draft.id}/welcome-email`, { method: 'POST' });
+      toast(t(`Courriel de bienvenue envoyé à ${r.to}`, `Welcome e-mail sent to ${r.to}`));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSending(false);
+    }
   };
 
   const toggleGroup = (gid: string) =>
@@ -212,6 +250,19 @@ export function Users() {
                 <input className="input" type="password" value={draft.password} onChange={(e) => setDraft({ ...draft, password: e.target.value })} autoComplete="new-password" />
               </label>
             </div>
+            {mailOn && !draft.id && (
+              <label className="check">
+                <input type="checkbox" checked={!!draft.sendWelcome} onChange={(e) => setDraft({ ...draft, sendWelcome: e.target.checked })} />
+                {t('Envoyer le courriel de bienvenue (le mot de passe devient facultatif : la personne le choisit)', 'Send the welcome e-mail (password becomes optional: the person chooses it)')}
+              </label>
+            )}
+            {mailOn && draft.id && draft.email && (
+              <div>
+                <button className="btn btn-sm" type="button" onClick={resendWelcome} disabled={sending}>
+                  <Mail size={14} /> {t('Renvoyer le courriel de bienvenue', 'Resend the welcome e-mail')}
+                </button>
+              </div>
+            )}
             <label className="check">
               <input type="checkbox" checked={draft.active} onChange={(e) => setDraft({ ...draft, active: e.target.checked })} />
               {t('Compte actif', 'Account active')}

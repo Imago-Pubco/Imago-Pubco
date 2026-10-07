@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Egg, Bug, Hourglass, LogIn, AlertCircle, Moon, Sun } from 'lucide-react';
+import { Egg, Bug, Hourglass, LogIn, AlertCircle, CheckCircle2, Mail, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
-import { API_MODE } from '@/data/db';
+import { API_MODE, api } from '@/data/db';
 import { useI18n } from '@/i18n';
 import { Butterfly } from '@/components/Butterfly';
 import { useTheme } from '@/layout/theme';
@@ -58,6 +58,28 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // "Forgot password" exists only when the server can send e-mail.
+  const [canReset, setCanReset] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    if (API_MODE) api<{ forgotPassword: boolean }>('/auth/options').then((r) => setCanReset(r.forgotPassword), () => setCanReset(false));
+  }, []);
+
+  const submitForgot = async (e: FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setBusy(true);
+    try {
+      await api('/auth/forgot', { method: 'POST', body: { identifier: username } });
+      setSent(true);
+    } catch {
+      setError(t('Serveur injoignable. Réessayez.', 'Server unreachable. Please try again.'));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -96,6 +118,40 @@ export function Login() {
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
+        {forgot ? (
+          <motion.form className="login-form" onSubmit={submitForgot} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <h1>{t('Mot de passe oublié', 'Forgot password')}</h1>
+            <p className="muted" style={{ margin: '6px 0 24px' }}>
+              {t('Entrez votre identifiant ou votre courriel. Si un compte correspond, vous recevrez un lien pour choisir un nouveau mot de passe.', 'Enter your username or e-mail. If an account matches, you will receive a link to choose a new password.')}
+            </p>
+            {error && (
+              <div className="alert alert-err" style={{ marginBottom: 16 }}>
+                <AlertCircle size={16} /> {error}
+              </div>
+            )}
+            {sent ? (
+              <div className="alert" style={{ marginBottom: 20 }}>
+                <CheckCircle2 size={16} /> {t('Si un compte correspond, un courriel vient d’être envoyé. Le lien est valide 1 heure.', 'If an account matches, an e-mail has just been sent. The link is valid for 1 hour.')}
+              </div>
+            ) : (
+              <>
+                <label className="field" style={{ marginBottom: 22 }}>
+                  <span>{t('Identifiant ou courriel', 'Username or e-mail')}</span>
+                  <input className="input input-lg" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus required />
+                </label>
+                <button className="btn btn-primary btn-lg" type="submit" disabled={busy} style={{ width: '100%' }}>
+                  {busy ? <Butterfly size={20} color="currentColor" flutter /> : <Mail size={18} />}
+                  {t('Envoyer le lien', 'Send the link')}
+                </button>
+              </>
+            )}
+            <p style={{ marginTop: 20, textAlign: 'center' }}>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setForgot(false); setSent(false); setError(''); }}>
+                {t('Retour à la connexion', 'Back to sign-in')}
+              </button>
+            </p>
+          </motion.form>
+        ) : (
         <motion.form className="login-form" onSubmit={submit} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
           <h1>{t('Connexion', 'Sign in')}</h1>
           <p className="muted" style={{ margin: '6px 0 28px' }}>
@@ -120,12 +176,20 @@ export function Login() {
             {busy ? <Butterfly size={20} color="currentColor" flutter /> : <LogIn size={18} />}
             {t('Se connecter', 'Sign in')}
           </button>
+          {canReset && (
+            <p style={{ marginTop: 16, textAlign: 'center' }}>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setForgot(true); setError(''); }}>
+                {t('Mot de passe oublié?', 'Forgot password?')}
+              </button>
+            </p>
+          )}
           {!API_MODE && (
             <p className="faint small" style={{ marginTop: 24, textAlign: 'center' }}>
               {t('Mode développement — comptes de démonstration : admin, prod, compta, lecture.', 'Development mode — demo accounts: admin, prod, compta, lecture.')}
             </p>
           )}
         </motion.form>
+        )}
       </section>
     </div>
   );

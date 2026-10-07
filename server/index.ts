@@ -9,6 +9,7 @@ import { apiRouter } from './api.ts';
 import { loadSession, purgeExpiredSessions } from './auth.ts';
 import { syncBc } from './pipeline.ts';
 import { runAutomation } from './automation.ts';
+import { ensureMailTemplates } from './mail.ts';
 import { config } from './config.ts';
 import { migrate, pool } from './db.ts';
 import { broadcast } from './events.ts';
@@ -45,6 +46,7 @@ app.get('/{*path}', (_req, res) => {
 async function start() {
   await migrate();
   await initialise();
+  await ensureMailTemplates();
   await purgeExpiredSessions();
   setInterval(() => purgeExpiredSessions().catch((e) => console.error('[sessions]', e)), 3600_000);
 
@@ -70,7 +72,8 @@ async function start() {
     console.log(
       `[imago] Business Central: ${config.bc.enabled ? config.bc.environment + ' (' + config.bc.postMode + ')' : 'not configured'}` +
         ` · Mailbox: ${config.graph.enabled ? config.graph.mailbox : 'not configured'}` +
-        ` · AI extraction: ${config.ai.enabled ? config.ai.model : 'off'}`,
+        ` · AI extraction: ${config.ai.enabled ? config.ai.model : 'off'}` +
+        ` · E-mail: ${config.smtp.enabled ? config.smtp.host : 'not configured'}`,
     );
   });
 
