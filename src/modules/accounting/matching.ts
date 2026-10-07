@@ -54,7 +54,17 @@ export function matchInvoice(
     });
   }
 
-  if (inv.vendorNo && inv.vendorNo !== po.vendorNo) {
+  if (!inv.vendorNo) {
+    // The sender could not be tied to a vendor card by e-mail address: never treat it as confirmed.
+    header.push({
+      code: 'vendor.unverified',
+      level: 'warn',
+      message: {
+        fr: `Expéditeur non reconnu : aucun fournisseur de Business Central n’a cette adresse de courriel (le bon de commande est à ${po.vendorName}).`,
+        en: `Unrecognised sender: no Business Central vendor has this e-mail address (the purchase order is for ${po.vendorName}).`,
+      },
+    });
+  } else if (inv.vendorNo !== po.vendorNo) {
     header.push({
       code: 'vendor.mismatch',
       level: 'fail',

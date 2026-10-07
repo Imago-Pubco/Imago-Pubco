@@ -17,7 +17,7 @@ import { config } from './config.ts';
 import * as db from './db.ts';
 import { broadcast } from './events.ts';
 import { HttpError } from './ms.ts';
-import { approvePo, getSettings, processPo, rematchPo } from './pipeline.ts';
+import { approvePo, getSettings, processPo, rematchPo, withLock } from './pipeline.ts';
 
 export const SYSTEM_USER = 'system';
 
@@ -55,7 +55,8 @@ export async function importInvoice(mailId: string, attIndex: number, userId: st
     tax: 0,
     total: 0,
   };
-  const vendor = config.bc.enabled ? await bc.findVendor(msg.from, ex.vendorName).catch(() => undefined) : undefined;
+  // Strictly by e-mail address: a vendor found only by the name printed on the PDF is not trusted.
+  const vendor = config.bc.enabled ? await bc.findVendor(msg.from, ex.vendorName, true).catch(() => undefined) : undefined;
   const inv: Invoice = {
     id: uid('inv_'),
     mailId: msg.id,
@@ -90,7 +91,7 @@ export async function matchInvoiceRecord(id: string, userId: string): Promise<In
   if (!inv) throw new HttpError(404, 'Invoice not found');
   if (inv.stage === 'posted') return inv;
   const [po, settings] = await Promise.all([config.bc.enabled && inv.poNo.trim() ? bc.getPurchaseOrder(inv.poNo) : Promise.resolve(undefined), getSettings()]);
-  const vendorNo = inv.vendorNo ?? po?.vendorNo;
+  const vendorNo = inv.vendorNo; // never borrowed from the PO
   const match = matchInvoice({ ...inv, vendorNo }, po, settings);
   const out = await db.updateDoc<Invoice>('acc.invoices', id, {
     vendorNo,
@@ -103,7 +104,11 @@ export async function matchInvoiceRecord(id: string, userId: string): Promise<In
 }
 
 /** Creates the purchase invoice in Business Central for a validated vendor invoice. */
-export async function postInvoice(id: string, userId: string, overrideNote?: string, automated = false): Promise<Invoice> {
+export function postInvoice(id: string, userId: string, overrideNote?: string, automated = false): Promise<Invoice> {
+  return withLock(`inv:${id}`, () => doPostInvoice(id, userId, overrideNote, automated));
+}
+
+async function doPostInvoice(id: string, userId: string, overrideNote?: string, automated = false): Promise<Invoice> {
   const inv = await db.getDoc<Invoice>('acc.invoices', id);
   if (!inv) throw new HttpError(404, 'Invoice not found');
   if (inv.stage === 'posted') throw new HttpError(409, 'Already posted');
@@ -186,8 +191,11 @@ async function doRun(): Promise<AutomationResult> {
   // 3. Fully automatic: clean matches only. Any variance, however small, waits for a person.
   if (settings.mode === 'auto') {
     for (const p of await db.listDocs<PoRecord>('acc.pos')) {
-      if (p.stage !== 'matched' || p.match?.level !== 'ok' || !withinCap(p.total)) continue;
+      if (p.stage !== 'matched' || !withinCap(p.total)) continue;
       try {
+        // Never trust the stored result: recompute it, and only act on a perfect, verified match.
+        const fresh = await rematchPo(p.id, SYSTEM_USER);
+        if (fresh.stage !== 'matched' || fresh.match?.level !== 'ok') continue;
         await approvePo(p.id, SYSTEM_USER, undefined, true);
         out.approved++;
       } catch (e) {
@@ -195,8 +203,10 @@ async function doRun(): Promise<AutomationResult> {
       }
     }
     for (const inv of await db.listDocs<Invoice>('acc.invoices')) {
-      if (inv.stage !== 'validated' || inv.match?.level !== 'ok' || !withinCap(inv.total)) continue;
+      if (inv.stage !== 'validated' || !withinCap(inv.total)) continue;
       try {
+        const fresh = await matchInvoiceRecord(inv.id, SYSTEM_USER);
+        if (fresh.stage !== 'validated' || fresh.match?.level !== 'ok' || !fresh.vendorNo) continue;
         await postInvoice(inv.id, SYSTEM_USER, undefined, true);
         out.approved++;
       } catch (e) {

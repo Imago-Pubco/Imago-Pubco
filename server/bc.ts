@@ -105,7 +105,8 @@ export async function listVendors(): Promise<BcVendor[]> {
   return r.value.map(mapVendor);
 }
 
-export async function findVendor(email: string | undefined, name: string): Promise<BcVendor | undefined> {
+/** `emailOnly`: never fall back to the display name (a name is easy to forge, an address on the vendor card is not). */
+export async function findVendor(email: string | undefined, name: string, emailOnly = false): Promise<BcVendor | undefined> {
   assertBc();
   const tryFilter = async (filter: string) =>
     (await get<{ value: RawVendor[] }>(`${company()}/vendors?$top=1&$filter=${encodeURIComponent(filter)}`)).value[0];
@@ -113,7 +114,7 @@ export async function findVendor(email: string | undefined, name: string): Promi
   const v =
     (email && (await tryFilter(`email eq ${lit(email)}`))) ||
     (domain && (await tryFilter(`contains(email,${lit('@' + domain)})`))) ||
-    (name && (await tryFilter(`displayName eq ${lit(name)}`))) ||
+    (name && !emailOnly && (await tryFilter(`displayName eq ${lit(name)}`))) ||
     undefined;
   return v ? mapVendor(v) : undefined;
 }
@@ -357,4 +358,11 @@ export async function listBcInvoices(): Promise<BcInvoiceRow[]> {
       syncedAt: at,
     })),
   ];
+}
+
+/** The customer card's e-mail address(es) in BC, used to check who really sent a purchase order. */
+export async function getCustomerEmails(no: string): Promise<string[]> {
+  assertBc();
+  const r = await get<{ value: { email?: string }[] }>(`${company()}/customers?$filter=${encodeURIComponent(`number eq ${lit(no)}`)}&$select=email`);
+  return (r.value[0]?.email ?? '').split(/[;,]/).map((e) => e.trim().toLowerCase()).filter(Boolean);
 }

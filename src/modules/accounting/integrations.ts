@@ -26,7 +26,7 @@ export interface BusinessCentral {
   getPurchaseOrder(no: string): Promise<BcPurchaseOrder | undefined>;
   listPurchaseOrders(): Promise<BcPurchaseOrder[]>;
   /** Create + post a purchase invoice against the PO; updates PO invoiced quantities. */
-  postPurchaseInvoice(inv: Invoice): Promise<BcPurchaseInvoice>;
+  postPurchaseInvoice(inv: Invoice, overrideNote?: string): Promise<BcPurchaseInvoice>;
 }
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -114,7 +114,7 @@ const apiBusinessCentral: BusinessCentral = {
     return (await api<BcPurchaseOrder | null>('/bc/purchase-orders/' + encodeURIComponent(no.trim()))) ?? undefined;
   },
   listPurchaseOrders: () => bcPurchaseOrders.list(),
-  postPurchaseInvoice: (inv) => api<BcPurchaseInvoice>('/bc/purchase-invoices', { method: 'POST', body: { invoiceId: inv.id } }),
+  postPurchaseInvoice: (inv, overrideNote) => api<BcPurchaseInvoice>('/bc/purchase-invoices', { method: 'POST', body: { invoiceId: inv.id, overrideNote } }),
 };
 
 export const mailboxConnector: MailboxConnector = API_MODE ? apiMailbox : mockMailbox;

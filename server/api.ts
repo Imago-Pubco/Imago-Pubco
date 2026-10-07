@@ -4,10 +4,14 @@
  */
 import { randomBytes } from 'node:crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
+import { effectivePermissions } from '../src/auth/permissions.ts';
 import type { Group, User } from '../src/data/types.ts';
 import type { Invoice } from '../src/modules/accounting/types.ts';
 import {
+  burnPasswordCheck,
   clearLoginFailures,
+  ipBlocked,
+  recordIpFailure,
   createSession,
   destroySession,
   destroyUserSessions,
@@ -27,7 +31,7 @@ import * as db from './db.ts';
 import { broadcast, eventsHandler } from './events.ts';
 import { syncMailbox, testMailbox } from './mailbox.ts';
 import * as pipeline from './pipeline.ts';
-import { runAutomation } from './automation.ts';
+import { matchInvoiceRecord, runAutomation } from './automation.ts';
 import { assertMail, defaultTemplate, getTemplate, renderTemplate, sampleVars, sendMail, sendTemplate, verifySmtp, type MailTemplate } from './mail.ts';
 import { consumeToken, createToken, humanDuration, peekToken } from './tokens.ts';
 import { HttpError } from './ms.ts';
@@ -81,6 +85,26 @@ const RULES: Record<string, Rule> = {
 /** Fields the generic API never accepts from the browser on users. */
 const PROTECTED_USER_FIELDS = ['passwordHash', 'salt', 'lastLoginAt', 'createdAt'] as const;
 
+/** Longest-standing rule of the portal: passwords are at least this long. */
+const MIN_PASSWORD = 12;
+
+/** Fields only the server may write, per collection (the generic API drops them from browser requests). */
+const SERVER_OWNED: Record<string, string[]> = {
+  'acc.pos': ['mailId', 'attIndex', 'fileId', 'direction', 'stage', 'match', 'bcOrderId', 'bcOrderNo', 'bcInvoiceId', 'bcInvoiceNo', 'approvedBy', 'approvedAt', 'overrideNote', 'automated', 'history', 'partyNo', 'createdAt'],
+  'acc.invoices': ['approvedBy', 'approvedAt', 'overrideNote', 'bcInvoiceNo', 'postedAt'],
+};
+/** Ids the system uses for itself (the automation signs its actions as "system"). */
+const RESERVED_IDS = new Set(['system']);
+
+/** The permissions a set of groups would give. */
+async function groupPerms(groupIds: unknown): Promise<Set<string>> {
+  const ids = Array.isArray(groupIds) ? groupIds.map(String) : [];
+  return effectivePermissions({ groupIds: ids } as User, await db.listDocs<Group>('groups'));
+}
+
+/** Nobody can hand out, or take over, more than they hold themselves: "manage users" is not "be an administrator". */
+const canGrant = (a: AuthInfo, perms: Iterable<string>) => [...perms].every((p) => a.can(p));
+
 const wrap =
   (fn: (req: Request, res: Response) => Promise<unknown>) =>
   (req: Request, res: Response, next: NextFunction) =>
@@ -119,10 +143,14 @@ export function apiRouter() {
     const username = String(req.body?.username ?? '').trim().toLowerCase();
     const password = String(req.body?.password ?? '');
     const key = `${req.ip}|${username}`;
-    if (loginBlocked(key)) return res.status(429).json({ error: 'too_many_attempts' });
+    if (loginBlocked(key) || ipBlocked(req.ip ?? '')) return res.status(429).json({ error: 'too_many_attempts' });
     const user = (await db.listDocs<User>('users')).find((u) => u.username.toLowerCase() === username);
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    let valid = false;
+    if (user) valid = await verifyPassword(password, user.passwordHash);
+    else await burnPasswordCheck(password); // same cost as a real check, so response time does not reveal which usernames exist
+    if (!user || !valid) {
       recordLoginFailure(key);
+      recordIpFailure(req.ip ?? '');
       await audit(user?.id ?? '', 'auth.login.failed', username, req.ip ?? '');
       return res.status(401).json({ error: 'invalid' });
     }
@@ -143,7 +171,12 @@ export function apiRouter() {
 
   /* ---------- password: forgotten / first choice (public) ---------- */
 
-  const baseUrl = (req: Request) => config.appUrl || `${req.protocol}://${req.get('host')}`;
+  /** Address used in e-mail links. The Host header is attacker-controlled: in production only APP_URL is trusted. */
+  const baseUrl = (req: Request) => {
+    if (config.appUrl) return config.appUrl;
+    if (process.env.NODE_ENV === 'production') throw new HttpError(503, 'APP_URL is not set in .env: e-mail links cannot be built safely.');
+    return `${req.protocol}://${req.get('host')}`;
+  };
   const FORGOT_TTL = 3600_000;
   const WELCOME_TTL = 72 * 3600_000;
   const forgotHits = new Map<string, number[]>();
@@ -188,7 +221,7 @@ export function apiRouter() {
 
   r.post('/auth/reset', wrap(async (req, res) => {
     const password = String(req.body?.password ?? '');
-    if (password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
+    if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `password must be at least ${MIN_PASSWORD} characters` });
     const userId = await consumeToken(String(req.body?.token ?? ''));
     const user = userId ? await db.getDoc<User>('users', userId) : undefined;
     if (!user?.active) return res.status(400).json({ error: 'invalid_or_expired' });
@@ -259,7 +292,9 @@ export function apiRouter() {
     const password = String(body.password ?? '');
     const username = String(body.username ?? '').trim().toLowerCase();
     if (!username) return res.status(400).json({ error: 'username required' });
-    if (password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
+    if (RESERVED_IDS.has(String(body.id ?? '').toLowerCase()) || RESERVED_IDS.has(username)) return res.status(400).json({ error: 'reserved name' });
+    if (!canGrant(me(req), await groupPerms(body.groupIds))) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
+    if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `password must be at least ${MIN_PASSWORD} characters` });
     if ((await db.listDocs<User>('users')).some((u) => u.username.toLowerCase() === username)) {
       return res.status(409).json({ error: 'username exists' });
     }
@@ -291,6 +326,14 @@ export function apiRouter() {
       if (id !== a.user.id || keys.some((k) => k !== 'prefs')) return forbid(res);
     }
     for (const f of PROTECTED_USER_FIELDS) delete body[f];
+    delete (body as { id?: string }).id;
+    if (isAdmin) {
+      // You cannot change someone who holds more than you do (password reset = account takeover), nor give anyone more than you hold.
+      const target = await db.getDoc<User>('users', id);
+      if (!target) return res.status(404).json({ error: 'not_found' });
+      if (id !== a.user.id && !canGrant(a, await groupPerms(target.groupIds))) return res.status(403).json({ error: 'This account has more permissions than you.' });
+      if (body.groupIds !== undefined && !canGrant(a, await groupPerms(body.groupIds))) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
+    }
     const password = body.password;
     delete body.password;
     if (body.username) {
@@ -302,7 +345,7 @@ export function apiRouter() {
     }
     const patch: Partial<User> = { ...body };
     if (password !== undefined && password !== '') {
-      if (password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' });
+      if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `password must be at least ${MIN_PASSWORD} characters` });
       patch.passwordHash = await hashPassword(password);
       patch.salt = '';
     }
@@ -318,6 +361,8 @@ export function apiRouter() {
     const id = String(req.params.id);
     if (!me(req).can('admin.users.manage')) return forbid(res);
     if (id === me(req).user.id) return res.status(400).json({ error: 'cannot delete yourself' });
+    const target = await db.getDoc<User>('users', id);
+    if (target && !canGrant(me(req), await groupPerms(target.groupIds))) return res.status(403).json({ error: 'This account has more permissions than you.' });
     await db.removeDoc('users', id);
     await destroyUserSessions(id);
     broadcast('users');
@@ -329,7 +374,7 @@ export function apiRouter() {
   r.get('/mail/status', wrap(async (req, res) => {
     if (!me(req).canAny('admin.mail', 'admin.users.manage')) return forbid(res);
     const s = config.smtp;
-    res.json({ enabled: s.enabled, host: s.host, port: s.port, secure: s.secure, user: s.user, from: s.from, fromName: s.fromName, appUrl: config.appUrl || baseUrl(req) });
+    res.json({ enabled: s.enabled, host: s.host, port: s.port, secure: s.secure, user: s.user, from: s.from, fromName: s.fromName, appUrl: config.appUrl });
   }));
 
   /** Checks the SMTP connection and login, without sending anything. */
@@ -408,9 +453,11 @@ export function apiRouter() {
       id: uid('a_'),
       at: now(),
       userId: me(req).user.id,
-      action: String(req.body?.action ?? '').slice(0, 100),
+      // Entries sent by the browser are labelled: only the server's own entries (api.*, auth.*, automation) prove what happened.
+      action: String(req.body?.action ?? '').replace(/[^a-z0-9_.:-]/gi, '_').slice(0, 100),
       detail: String(req.body?.detail ?? '').slice(0, 2000),
       ip: req.ip ?? '',
+      via: 'ui',
     };
     await db.insertDoc('audit', entry);
     broadcast('audit');
@@ -419,10 +466,47 @@ export function apiRouter() {
 
   /* ---------- groups: system groups cannot be deleted ---------- */
 
+  const validPerms = (v: unknown): v is string[] => Array.isArray(v) && v.every((p) => typeof p === 'string' && /^[a-z0-9_.*-]{1,100}$/i.test(p));
+
+  r.post('/c/groups', wrap(async (req, res) => {
+    const a = me(req);
+    if (!a.can('admin.groups.manage')) return forbid(res);
+    const body = { ...(req.body ?? {}) } as Partial<Group>;
+    if (!validPerms(body.permissions ?? [])) return res.status(400).json({ error: 'invalid permissions' });
+    if (!canGrant(a, body.permissions ?? [])) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
+    delete body.system;
+    const doc = { ...body, id: body.id ?? uid('g_'), permissions: body.permissions ?? [] } as unknown as db.Doc;
+    try {
+      await db.insertDoc('groups', doc);
+    } catch (e) {
+      if ((e as { code?: string }).code === '23505') return res.status(409).json({ error: 'duplicate id' });
+      throw e;
+    }
+    broadcast('groups');
+    res.status(201).json(doc);
+  }));
+
+  r.patch('/c/groups/:id', wrap(async (req, res) => {
+    const a = me(req);
+    if (!a.can('admin.groups.manage')) return forbid(res);
+    const g = await db.getDoc<Group>('groups', String(req.params.id));
+    if (!g) return res.status(404).json({ error: 'not_found' });
+    const body = { ...(req.body ?? {}) } as Partial<Group>;
+    delete (body as { id?: string }).id;
+    delete body.system;
+    if (body.permissions !== undefined && !validPerms(body.permissions)) return res.status(400).json({ error: 'invalid permissions' });
+    // A group that holds more than you do cannot be edited by you, and you cannot add to a group what you do not hold.
+    if (!canGrant(a, g.permissions) || !canGrant(a, body.permissions ?? [])) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
+    const updated = await db.updateDoc<Group>('groups', g.id, body);
+    broadcast('groups');
+    res.json(updated);
+  }));
+
   r.delete('/c/groups/:id', wrap(async (req, res) => {
     if (!me(req).can('admin.groups.manage')) return forbid(res);
     const g = await db.getDoc<Group>('groups', String(req.params.id));
     if (g?.system) return res.status(400).json({ error: 'system group' });
+    if (g && !canGrant(me(req), g.permissions)) return res.status(403).json({ error: 'This group has more permissions than you.' });
     await db.removeDoc('groups', String(req.params.id));
     broadcast('groups');
     res.status(204).end();
@@ -439,7 +523,7 @@ export function apiRouter() {
 
   r.get('/bc/vendors/find', wrap(async (req, res) => {
     if (!bcRead(me(req))) return forbid(res);
-    const v = await bc.findVendor(req.query.email ? String(req.query.email) : undefined, String(req.query.name ?? ''));
+    const v = await bc.findVendor(req.query.email ? String(req.query.email) : undefined, String(req.query.name ?? ''), true);
     res.json(v ?? null);
   }));
   r.get('/bc/purchase-orders/:no', wrap(async (req, res) => {
@@ -448,12 +532,24 @@ export function apiRouter() {
     res.json(po ?? null);
   }));
   r.post('/bc/purchase-invoices', wrap(async (req, res) => {
-    if (!me(req).can('accounting.invoices.post')) return forbid(res);
-    const inv = await db.getDoc<Invoice & { id: string }>('acc.invoices', String(req.body?.invoiceId ?? ''));
-    if (!inv) return res.status(404).json({ error: 'invoice not found' });
-    if (inv.stage === 'posted') return res.status(409).json({ error: 'already posted' });
-    const result = await bc.createPurchaseInvoice(inv);
-    res.json(result);
+    const a = me(req);
+    if (!a.can('accounting.invoices.post')) return forbid(res);
+    const id = String(req.body?.invoiceId ?? '');
+    const note = req.body?.overrideNote ? String(req.body.overrideNote).trim() : '';
+    await pipeline.withLock(`inv:${id}`, async () => {
+      const inv = await db.getDoc<Invoice & { id: string }>('acc.invoices', id);
+      if (!inv) return res.status(404).json({ error: 'invoice not found' });
+      if (inv.stage === 'posted') return res.status(409).json({ error: 'already posted' });
+      // The match shown in the browser is not trusted: it is recomputed here, against Business Central, right now.
+      const fresh = await matchInvoiceRecord(id, a.user.id);
+      if (fresh.match?.level === 'fail' && (!note || !a.can('accounting.invoices.override'))) {
+        return res.status(403).json({ error: 'The match failed: posting needs the override permission and a written justification.' });
+      }
+      const result = await bc.createPurchaseInvoice(fresh);
+      // Approval details are written by the server only (the generic API drops them from browser requests).
+      await db.updateDoc('acc.invoices', id, { approvedBy: a.user.id, approvedAt: now(), overrideNote: note || undefined, bcInvoiceNo: result.no, postedAt: now() } as Partial<Invoice>);
+      res.json(result);
+    });
   }));
   r.post('/bc/test', wrap(async (req, res) => {
     if (!me(req).canAny('admin.system', 'accounting.settings')) return forbid(res);
@@ -563,7 +659,7 @@ export function apiRouter() {
   r.delete('/o365/:tid/users/:id', o365Route('o365.users.manage', (t, req) => o365.deleteUser(t, p(req, 'id'))));
   r.post('/o365/:tid/users/:id/password', o365Route('o365.users.manage', (t, req) => {
     const password = String(req.body?.password ?? '');
-    if (password.length < 8) throw new HttpError(400, 'Password must be at least 8 characters.');
+    if (password.length < MIN_PASSWORD) throw new HttpError(400, 'Password must be at least 8 characters.');
     return o365.resetPassword(t, p(req, 'id'), password, req.body?.forceChange !== false);
   }));
   r.post('/o365/:tid/users/:id/licenses', o365Route('o365.users.manage', (t, req) =>
@@ -622,7 +718,11 @@ export function apiRouter() {
     const rl = rule(req, res);
     if (!rl) return;
     if (!rl.write(me(req))) return forbid(res);
-    const doc = { ...(req.body ?? {}), id: req.body?.id ?? uid('') } as db.Doc;
+    if (String(req.params.c) === 'acc.pos') return forbid(res); // created by the server (/pos/process) from a received document
+    const body = { ...(req.body ?? {}) } as Record<string, unknown>;
+    for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete body[f];
+    if (RESERVED_IDS.has(String(body.id ?? '').toLowerCase())) return res.status(400).json({ error: 'reserved id' });
+    const doc = { ...body, id: body.id ?? uid('') } as db.Doc;
     try {
       await db.insertDoc(String(req.params.c), doc);
     } catch (e) {
@@ -637,7 +737,10 @@ export function apiRouter() {
     const rl = rule(req, res);
     if (!rl) return;
     if (!rl.write(me(req))) return forbid(res);
-    const doc = await db.updateDoc(String(req.params.c), String(req.params.id), req.body ?? {});
+    const patch = { ...(req.body ?? {}) } as Record<string, unknown>;
+    delete patch.id; // the document's identity never changes
+    for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete patch[f];
+    const doc = await db.updateDoc(String(req.params.c), String(req.params.id), patch);
     if (!doc) return res.status(404).json({ error: 'not_found' });
     broadcast(String(req.params.c));
     res.json(doc);

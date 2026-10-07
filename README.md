@@ -102,6 +102,14 @@ Estimates for custom packaging (folding carton, corrugated, rigid, display, co-p
 - Quantity breaks (up to 5) with cost breakdown, margin, selling price and unit price. Costs and margins are visible only with `estimating.pricing.view`.
 - ⚠ The cost model ([`src/modules/estimating/pricing.ts`](src/modules/estimating/pricing.ts)) is **provisional**. It will be replaced by the estimating team's rules.
 
+## Security notes
+
+- **Sign-in:** scrypt password hashes, server-side sessions in an HttpOnly cookie, throttling per account and per IP, passwords of 12+ characters, one-time hashed links for first password and reset.
+- **Permissions are enforced on the server.** Nobody can give (or take over) more than they hold: a user manager cannot add themselves to the administrators, edit a group that holds more than they do, or reset the password of a more privileged account.
+- **Workflow fields** (approval, match result, BC numbers) are written by the server; the match is recomputed on the server before anything is created in Business Central. Automatic mode only acts on a perfect match whose sender address belongs to the customer / vendor in BC.
+- **Network:** put an HTTPS reverse proxy in front, keep `COOKIE_SECURE=true`, set `APP_URL`, and publish port 8080 to the proxy only (for example `127.0.0.1:8080`). Only the proxy should be able to reach the app, because the client address is read from `X-Forwarded-For`.
+- The audit log marks entries written by the browser (`·ui`); entries written by the server (`api.*`, `auth.*`, automation) are the ones that prove what happened.
+
 ## Production
 
 Docker Compose runs two containers: **app** (Node 24, serves the built front end and the API on port 8080) and **db** (PostgreSQL 17, data in the `db_data` volume). All settings and keys are in `.env` — see [`.env.example`](.env.example). Put your HTTPS reverse proxy in front of port 8080.

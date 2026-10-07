@@ -115,6 +115,8 @@ async function loadAttachments(messageId: string, fromEmail: string, subject: st
     if (a['@odata.type'] !== '#microsoft.graph.fileAttachment' || a.isInline || !isPdf || !a.contentBytes) continue;
     if (a.size > MAX_PDF_BYTES) continue;
     const data = Buffer.from(a.contentBytes, 'base64');
+    // A file called .pdf is only kept when it really is one (it is served back to the browser as a PDF).
+    if (data.subarray(0, 5).toString('latin1') !== '%PDF-') continue;
     const fileId = hashId('f_', messageId + a.id);
     await saveFile(fileId, a.name, 'application/pdf', data);
     const att: MailAttachment = { name: a.name, sizeKb: Math.round(a.size / 1024), fileId, extracted: await extractInvoice(data, fromEmail) };

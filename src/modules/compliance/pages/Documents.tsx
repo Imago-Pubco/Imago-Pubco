@@ -76,7 +76,7 @@ export function Documents() {
                         <FileText size={16} className="faint" />
                         {d.title}
                         {d.link && (
-                          <a href={d.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="faint">
+                          <a href={/^https?:\/\//i.test(d.link) ? d.link : undefined} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="faint">
                             <ExternalLink size={13} />
                           </a>
                         )}

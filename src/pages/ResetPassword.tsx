@@ -37,7 +37,7 @@ export function ResetPassword() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    if (password.length < 8) return setError(t('Mot de passe : 8 caractères minimum.', 'Password: at least 8 characters.'));
+    if (password.length < 12) return setError(t('Mot de passe : 12 caractères minimum.', 'Password: at least 12 characters.'));
     if (password !== confirm) return setError(t('Les deux mots de passe ne sont pas identiques.', 'The two passwords do not match.'));
     setBusy(true);
     try {
@@ -117,7 +117,7 @@ export function ResetPassword() {
                 <span>{t('Confirmer le mot de passe', 'Confirm password')}</span>
                 <input className="input input-lg" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" required />
               </label>
-              <p className="faint small" style={{ margin: '0 0 22px' }}>{t('8 caractères minimum.', 'At least 8 characters.')}</p>
+              <p className="faint small" style={{ margin: '0 0 22px' }}>{t('12 caractères minimum. Une phrase de passe fonctionne très bien.', 'At least 12 characters. A passphrase works well.')}</p>
               <button className="btn btn-primary btn-lg" type="submit" disabled={busy} style={{ width: '100%' }}>
                 {busy ? <Butterfly size={20} color="currentColor" flutter /> : <KeyRound size={18} />}
                 {t('Enregistrer le mot de passe', 'Save password')}

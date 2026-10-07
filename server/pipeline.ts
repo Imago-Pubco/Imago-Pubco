@@ -48,6 +48,40 @@ async function doSync() {
   return { salesOrders: orders.length, invoices: invoices.length };
 }
 
+/* ---------- one at a time ---------- */
+
+const busy = new Set<string>();
+
+/** Runs fn unless the same key is already running (a double click must not create two invoices in BC). */
+export async function withLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  if (busy.has(key)) throw new HttpError(409, 'This document is already being processed.');
+  busy.add(key);
+  try {
+    return await fn();
+  } finally {
+    busy.delete(key);
+  }
+}
+
+/* ---------- who sent it ---------- */
+
+const domainOf = (e: string) => e.split('@')[1]?.trim().toLowerCase() ?? '';
+
+/**
+ * True when the sender's address belongs to the customer / vendor the order is for, according to Business Central.
+ * A forged display name or PDF proves nothing; an address on the BC card does.
+ */
+async function senderVerified(direction: PoRecord['direction'], partyNo: string | undefined, from: string): Promise<boolean> {
+  if (!config.bc.enabled || !partyNo || !from) return false;
+  try {
+    if (direction === 'vendor') return (await bc.findVendor(from, '', true))?.no === partyNo;
+    const emails = await bc.getCustomerEmails(partyNo);
+    return emails.some((e) => e === from.toLowerCase() || (domainOf(e) && domainOf(e) === domainOf(from)));
+  } catch {
+    return false;
+  }
+}
+
 /* ---------- order lookup ---------- */
 
 /** Live from BC when it is configured (and cached); otherwise from the local copy. */
@@ -114,7 +148,9 @@ export async function rematchPo(id: string, userId: string): Promise<PoRecord> {
   if (rec.stage === 'invoiced' || rec.stage === 'confirmed') return rec;
   const settings = await getSettings();
   const { order } = await findOrder(rec.direction, rec.poNo);
-  const match = matchPo(rec, order, settings);
+  const msg = await db.getDoc<MailMessage & { id: string }>('acc.mailbox', rec.mailId);
+  const verified = order ? await senderVerified(rec.direction, order.partyNo, msg?.from ?? '') : undefined;
+  const match = matchPo(rec, order, settings, verified);
   return save({
     ...rec,
     partyNo: order?.partyNo ?? rec.partyNo,
@@ -129,12 +165,17 @@ export async function rematchPo(id: string, userId: string): Promise<PoRecord> {
  * Approves a matched PO. Customer PO: creates the sales invoice in BC. Vendor PO: records the confirmation.
  * A failed match needs an override note (the route checks the override permission).
  */
-export async function approvePo(id: string, userId: string, overrideNote?: string, automated = false): Promise<PoRecord> {
+export function approvePo(id: string, userId: string, overrideNote?: string, automated = false): Promise<PoRecord> {
+  return withLock(`po:${id}`, () => doApprovePo(id, userId, overrideNote, automated));
+}
+
+async function doApprovePo(id: string, userId: string, overrideNote?: string, automated = false): Promise<PoRecord> {
   let rec = await db.getDoc<PoRecord>('acc.pos', id);
   if (!rec) throw new HttpError(404, 'PO not found');
   if (rec.stage === 'invoiced' || rec.stage === 'confirmed') throw new HttpError(409, 'Already processed');
   if (rec.stage === 'rejected') throw new HttpError(409, 'This PO was rejected: reopen it first.');
-  if (!rec.match) rec = await rematchPo(id, userId);
+  // The match is always recomputed here: the stored one can be edited through the generic API and is not trusted.
+  rec = await rematchPo(id, userId);
   if (rec.match?.level === 'fail' && !overrideNote?.trim()) throw new HttpError(400, 'The match failed: a written justification is required to approve.');
 
   if (rec.direction === 'vendor') {

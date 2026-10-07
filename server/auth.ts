@@ -157,3 +157,26 @@ export function recordLoginFailure(key: string) {
 export function clearLoginFailures(key: string) {
   failures.delete(key);
 }
+
+/** Per-IP throttle on top of the per-account one: 40 failed sign-ins per IP per 15 minutes, whatever the usernames tried. */
+const ipFailures = new Map<string, { count: number; until: number }>();
+export function ipBlocked(ip: string): boolean {
+  const f = ipFailures.get(ip);
+  if (!f) return false;
+  if (Date.now() > f.until) {
+    ipFailures.delete(ip);
+    return false;
+  }
+  return f.count >= 40;
+}
+export function recordIpFailure(ip: string) {
+  const f = ipFailures.get(ip);
+  if (!f || Date.now() > f.until) ipFailures.set(ip, { count: 1, until: Date.now() + WINDOW_MS });
+  else f.count++;
+}
+
+/** A real hash nobody can match: verifying against it makes an unknown username cost the same time as a known one. */
+const dummy = hashPassword(randomBytes(16).toString('hex'));
+export async function burnPasswordCheck(password: string) {
+  await verifyPassword(password, await dummy);
+}

@@ -51,4 +51,6 @@ export interface AuditEntry {
   detail: string;
   /** Client address, recorded server-side. */
   ip?: string;
+  /** 'ui' = written by the browser (declared, not proven); absent = written by the server itself. */
+  via?: 'ui';
 }

@@ -126,7 +126,13 @@ export const fromPurchaseOrder = (o: BcPurchaseOrder): OrderLike => ({
  * Compares a received PO with the BC order it should correspond to. The result uses the same shape as the
  * invoice match (header checks + one result per line) so the screens can show both the same way.
  */
-export function matchPo(po: Pick<PoRecord, 'direction' | 'poNo' | 'partyName' | 'partyNo' | 'currency' | 'lines'>, order: OrderLike | undefined, settings: AccountingSettings): MatchResult {
+export function matchPo(
+  po: Pick<PoRecord, 'direction' | 'poNo' | 'partyName' | 'partyNo' | 'currency' | 'lines'>,
+  order: OrderLike | undefined,
+  settings: AccountingSettings,
+  /** Whether the e-mail's sender address matches the customer / vendor in BC. `false` or unknown blocks automatic approval. */
+  senderVerified?: boolean,
+): MatchResult {
   const at = new Date().toISOString();
   const header: Check[] = [];
   const customer = po.direction === 'customer';
@@ -156,6 +162,17 @@ export function matchPo(po: Pick<PoRecord, 'direction' | 'poNo' | 'partyName' | 
       ? { code: 'party.ok', level: 'ok', message: { fr: `${customer ? 'Client' : 'Fournisseur'} confirmé : ${order.partyName}.`, en: `${customer ? 'Customer' : 'Vendor'} confirmed: ${order.partyName}.` } }
       : { code: 'party.mismatch', level: 'fail', message: { fr: `${customer ? 'Client' : 'Fournisseur'} du document (${po.partyName}) ≠ BC (${order.partyName}).`, en: `${customer ? 'Customer' : 'Vendor'} on the document (${po.partyName}) ≠ BC (${order.partyName}).` } },
   );
+
+  if (senderVerified !== true) {
+    header.push({
+      code: 'sender.unverified',
+      level: 'warn',
+      message: {
+        fr: `Expéditeur non vérifié : l’adresse du courriel ne correspond pas à celle du ${customer ? 'client' : 'fournisseur'} dans Business Central.`,
+        en: `Sender not verified: the e-mail address does not match the ${customer ? 'customer' : 'vendor'} in Business Central.`,
+      },
+    });
+  }
 
   if (po.currency && po.currency !== order.currency) {
     header.push({ code: 'currency', level: 'fail', message: { fr: `Devise ${po.currency} ≠ devise du BC ${order.currency}.`, en: `Currency ${po.currency} ≠ BC currency ${order.currency}.` } });

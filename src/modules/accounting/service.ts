@@ -70,7 +70,7 @@ export async function runMatching(invoiceId: string, userId: string): Promise<In
   if (!inv) throw new Error('Invoice not found');
   if (inv.stage === 'posted') return inv;
   const [po, settings] = await Promise.all([businessCentral.getPurchaseOrder(inv.poNo), getSettings()]);
-  const vendorNo = inv.vendorNo ?? po?.vendorNo;
+  const vendorNo = inv.vendorNo; // never borrowed from the PO: that would make the vendor check pass by itself
   const match = matchInvoice({ ...inv, vendorNo }, po, settings);
   const stage: InvoiceStage = match.level === 'fail' ? 'extracted' : 'validated';
   return invoices.update(inv.id, {
@@ -100,7 +100,7 @@ export async function saveInvoice(inv: Invoice, userId: string) {
 export async function approveAndPost(invoiceId: string, userId: string, overrideNote?: string) {
   const inv = await invoices.get(invoiceId);
   if (!inv) throw new Error('Invoice not found');
-  const bc = await businessCentral.postPurchaseInvoice(inv);
+  const bc = await businessCentral.postPurchaseInvoice(inv, overrideNote);
   await logAudit(userId, 'accounting.invoice.post', `${inv.vendorName} #${inv.invoiceNo} → ${bc.no}`);
   return invoices.update(inv.id, {
     stage: 'posted',

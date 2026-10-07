@@ -69,8 +69,8 @@ export function Users() {
     // With the welcome e-mail the password is optional: the person chooses their own from the link.
     const welcome = !draft.id && !!draft.sendWelcome && mailOn && !!draft.email.trim();
     if (!draft.id && draft.sendWelcome && mailOn && !draft.email.trim()) return setErr(t('Un courriel est requis pour envoyer le message de bienvenue.', 'An e-mail address is required to send the welcome message.'));
-    if (!draft.id && !welcome && draft.password.length < 8) return setErr(t('Mot de passe : 8 caractères minimum.', 'Password: at least 8 characters.'));
-    if (draft.id && draft.password && draft.password.length < 8) return setErr(t('Mot de passe : 8 caractères minimum.', 'Password: at least 8 characters.'));
+    if (!draft.id && !welcome && draft.password.length < 12) return setErr(t('Mot de passe : 12 caractères minimum.', 'Password: at least 12 characters.'));
+    if (draft.id && draft.password && draft.password.length < 12) return setErr(t('Mot de passe : 12 caractères minimum.', 'Password: at least 12 characters.'));
     if (draft.id === me?.id && !draft.active) return setErr(t('Vous ne pouvez pas désactiver votre propre compte.', 'You cannot deactivate your own account.'));
     if (draft.id === me?.id) {
       const perms = effectivePermissions({ ...me!, groupIds: draft.groupIds }, allGroups);

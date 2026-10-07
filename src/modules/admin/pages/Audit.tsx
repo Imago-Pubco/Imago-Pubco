@@ -59,6 +59,11 @@ export function AuditTable({ limit, filter = '', filters }: { limit?: number; fi
                 <td>{userName(r.userId)}</td>
                 <td>
                   <span className="badge mono">{r.action}</span>
+                {r.via === 'ui' && (
+                  <span className="faint small" style={{ marginLeft: 6 }} title={t('Déclaré par le navigateur (non prouvé par le serveur)', 'Declared by the browser (not proven by the server)')}>
+                    ·ui
+                  </span>
+                )}
                 </td>
                 <td className="muted small" style={{ maxWidth: 480, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.detail}>
                   {r.detail}
