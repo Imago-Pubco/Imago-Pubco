@@ -17,6 +17,11 @@ function bool(name: string, fallback: boolean): boolean {
   return ['1', 'true', 'yes', 'on'].includes(v);
 }
 
+const anthropicKey = str('ANTHROPIC_API_KEY');
+const geminiKey = str('GEMINI_API_KEY');
+/** AI_PROVIDER wins; otherwise whichever key is present (Anthropic first). */
+const aiProvider = (str('AI_PROVIDER').toLowerCase() || (anthropicKey ? 'anthropic' : geminiKey ? 'gemini' : '')) as 'anthropic' | 'gemini' | '';
+
 const msTenant = str('MS_TENANT_ID');
 const msClientId = str('MS_CLIENT_ID');
 const msClientSecret = str('MS_CLIENT_SECRET');
@@ -75,8 +80,10 @@ export const config = {
   },
 
   ai: {
-    enabled: !!str('ANTHROPIC_API_KEY'),
-    model: str('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+    provider: aiProvider,
+    enabled: aiProvider === 'anthropic' ? !!anthropicKey : aiProvider === 'gemini' ? !!geminiKey : false,
+    model: aiProvider === 'gemini' ? str('GEMINI_MODEL', 'gemini-flash-latest') : str('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+    geminiKey,
   },
 };
 

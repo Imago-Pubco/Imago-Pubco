@@ -1,6 +1,6 @@
 /**
- * Invoice extraction: sends the PDF to Claude and gets back the fields Imago needs,
- * validated against a schema. Enabled only when ANTHROPIC_API_KEY is set.
+ * Invoice extraction: sends the PDF to an AI model (Claude, or Google Gemini) and gets back the fields
+ * Imago needs, validated against a schema. Enabled only when the chosen provider's API key is set.
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
@@ -43,6 +43,41 @@ let client: Anthropic | undefined;
 
 export async function extractInvoice(pdf: Buffer, fromEmail: string): Promise<ExtractedInvoice | undefined> {
   if (!config.ai.enabled) return undefined;
+  const out = config.ai.provider === 'gemini' ? await extractWithGemini(pdf) : await extractWithClaude(pdf);
+  return out ? { ...out, vendorEmail: out.vendorEmail || fromEmail } : undefined;
+}
+
+/** Google Gemini (REST, no SDK): the PDF is sent inline and the answer is constrained to the JSON schema. */
+async function extractWithGemini(pdf: Buffer): Promise<z.infer<typeof InvoiceSchema> | undefined> {
+  try {
+    const { $schema: _s, ...schema } = z.toJSONSchema(InvoiceSchema) as Record<string, unknown>;
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(config.ai.model)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.ai.geminiKey },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ inlineData: { mimeType: 'application/pdf', data: pdf.toString('base64') } }, { text: PROMPT }] }],
+        generationConfig: { responseMimeType: 'application/json', responseJsonSchema: schema, temperature: 0 },
+      }),
+    });
+    const body = await res.text();
+    if (!res.ok) {
+      console.error(`[extract] Gemini error ${res.status}: ${body.slice(0, 300)}`);
+      return undefined;
+    }
+    const text = (JSON.parse(body) as { candidates?: { content?: { parts?: { text?: string }[] } }[] }).candidates?.[0]?.content?.parts?.[0]?.text;
+    const parsed = InvoiceSchema.safeParse(text ? JSON.parse(text) : undefined);
+    if (!parsed.success) {
+      console.warn('[extract] Gemini returned no valid result');
+      return undefined;
+    }
+    return parsed.data;
+  } catch (e) {
+    console.error('[extract] Gemini failed', e);
+    return undefined;
+  }
+}
+
+async function extractWithClaude(pdf: Buffer): Promise<z.infer<typeof InvoiceSchema> | undefined> {
   client ??= new Anthropic();
   try {
     const response = await client.messages.parse({
@@ -63,8 +98,7 @@ export async function extractInvoice(pdf: Buffer, fromEmail: string): Promise<Ex
       console.warn(`[extract] no result (stop_reason=${response.stop_reason})`);
       return undefined;
     }
-    const out = response.parsed_output;
-    return { ...out, vendorEmail: out.vendorEmail || fromEmail };
+    return response.parsed_output;
   } catch (e) {
     if (e instanceof Anthropic.APIError) console.error(`[extract] API error ${e.status}: ${e.message}`);
     else console.error('[extract] failed', e);
