@@ -164,7 +164,7 @@ export function Users() {
   const toggleGroup = (gid: string) =>
     setDraft((d) => d && { ...d, groupIds: d.groupIds.includes(gid) ? d.groupIds.filter((x) => x !== gid) : [...d.groupIds, gid] });
 
-  const draftPerms = draft ? effectivePermissions({ groupIds: draft.groupIds } as User, allGroups) : new Set<string>();
+  const draftPerms = draft ? effectivePermissions({ groupIds: draft.groupIds, permissions: rows.find((u) => u.id === draft.id)?.permissions } as User, allGroups) : new Set<string>();
 
   return (
     <Page>
@@ -211,6 +211,11 @@ export function Users() {
                   <td className="mono">{u.username}</td>
                   <td>
                     <div className="row row-wrap" style={{ gap: 4 }}>
+                      {!!u.permissions?.length && (
+                        <span className="badge badge-accent" title={t('Droits donnés directement, en plus des groupes', 'Rights given directly, on top of the groups')}>
+                          +{u.permissions.length} {t('individuel(s)', 'individual')}
+                        </span>
+                      )}
                       {u.groupIds.map((gid) => {
                         const g = allGroups.find((x) => x.id === gid);
                         return g ? (

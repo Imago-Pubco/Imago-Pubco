@@ -102,6 +102,14 @@ async function groupPerms(groupIds: unknown): Promise<Set<string>> {
   return effectivePermissions({ groupIds: ids } as User, await db.listDocs<Group>('groups'));
 }
 
+/** Everything one person has: their groups plus the rights given to them directly. */
+async function userPerms(u: User): Promise<Set<string>> {
+  return effectivePermissions(u, await db.listDocs<Group>('groups'));
+}
+
+/** Permission keys: letters, digits, dots and the wildcard. */
+const validPerms = (v: unknown): v is string[] => Array.isArray(v) && v.length <= 300 && v.every((p) => typeof p === 'string' && /^[a-z0-9_.*-]{1,100}$/i.test(p));
+
 /** Nobody can hand out, or take over, more than they hold themselves: "manage users" is not "be an administrator". */
 const canGrant = (a: AuthInfo, perms: Iterable<string>) => [...perms].every((p) => a.can(p));
 
@@ -277,13 +285,17 @@ export function apiRouter() {
 
   /* ---------- users (hashes never leave the server) ---------- */
 
-  r.get('/c/users', wrap(async (_req, res) => {
-    res.json((await db.listDocs<User>('users')).map(publicUser));
+  /** A person's directly-granted rights are shown to them and to those who manage users or groups, not to everyone. */
+  const userView = (u: User, a: AuthInfo) =>
+    u.id === a.user.id || a.canAny('admin.groups.manage', 'admin.users.manage') ? publicUser(u) : { ...publicUser(u), permissions: undefined };
+
+  r.get('/c/users', wrap(async (req, res) => {
+    res.json((await db.listDocs<User>('users')).map((u) => userView(u, me(req))));
   }));
   r.get('/c/users/:id', wrap(async (req, res) => {
     const u = await db.getDoc<User>('users', String(req.params.id));
     if (!u) return res.status(404).json({ error: 'not_found' });
-    res.json(publicUser(u));
+    res.json(userView(u, me(req)));
   }));
 
   r.post('/c/users', wrap(async (req, res) => {
@@ -294,6 +306,12 @@ export function apiRouter() {
     if (!username) return res.status(400).json({ error: 'username required' });
     if (RESERVED_IDS.has(String(body.id ?? '').toLowerCase()) || RESERVED_IDS.has(username)) return res.status(400).json({ error: 'reserved name' });
     if (!canGrant(me(req), await groupPerms(body.groupIds))) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
+    if (body.permissions !== undefined) {
+      if (!validPerms(body.permissions)) return res.status(400).json({ error: 'invalid permissions' });
+      if (body.permissions.length && !me(req).can('admin.groups.manage')) return forbid(res);
+      if (!canGrant(me(req), body.permissions)) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
+      body.permissions = [...new Set(body.permissions)].sort();
+    }
     if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `password must be at least ${MIN_PASSWORD} characters` });
     if ((await db.listDocs<User>('users')).some((u) => u.username.toLowerCase() === username)) {
       return res.status(409).json({ error: 'username exists' });
@@ -331,7 +349,7 @@ export function apiRouter() {
       // You cannot change someone who holds more than you do (password reset = account takeover), nor give anyone more than you hold.
       const target = await db.getDoc<User>('users', id);
       if (!target) return res.status(404).json({ error: 'not_found' });
-      if (id !== a.user.id && !canGrant(a, await groupPerms(target.groupIds))) return res.status(403).json({ error: 'This account has more permissions than you.' });
+      if (id !== a.user.id && !canGrant(a, await userPerms(target))) return res.status(403).json({ error: 'This account has more permissions than you.' });
       if (body.groupIds !== undefined && !canGrant(a, await groupPerms(body.groupIds))) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
     }
     const password = body.password;
@@ -343,6 +361,17 @@ export function apiRouter() {
       }
       body.username = username;
     }
+    let rightsDiff = '';
+    if (body.permissions !== undefined) {
+      // Giving rights directly is rights management: it needs the groups-management permission, and the same grant rule as groups.
+      if (!a.can('admin.groups.manage')) return forbid(res);
+      if (!validPerms(body.permissions)) return res.status(400).json({ error: 'invalid permissions' });
+      if (!canGrant(a, body.permissions)) return res.status(403).json({ error: 'You cannot give permissions you do not hold yourself.' });
+      body.permissions = [...new Set(body.permissions)].sort();
+      const before = new Set((await db.getDoc<User>('users', id))?.permissions ?? []);
+      const after = new Set(body.permissions);
+      rightsDiff = [...[...after].filter((p) => !before.has(p)).map((p) => '+' + p), ...[...before].filter((p) => !after.has(p)).map((p) => '-' + p)].join(' ');
+    }
     const patch: Partial<User> = { ...body };
     if (password !== undefined && password !== '') {
       if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `password must be at least ${MIN_PASSWORD} characters` });
@@ -351,6 +380,7 @@ export function apiRouter() {
     }
     const updated = await db.updateDoc<User>('users', id, patch);
     if (!updated) return res.status(404).json({ error: 'not_found' });
+    if (rightsDiff) await audit(a.user.id, 'admin.user.rights', `${updated.username}: ${rightsDiff}`, req.ip ?? '');
     // A password reset or deactivation signs the user out everywhere else.
     if (patch.passwordHash || updated.active === false) await destroyUserSessions(id, id === a.user.id ? a.sessionId : undefined);
     broadcast('users');
@@ -362,12 +392,12 @@ export function apiRouter() {
     if (!me(req).can('admin.users.manage')) return forbid(res);
     if (id === me(req).user.id) return res.status(400).json({ error: 'cannot delete yourself' });
     const target = await db.getDoc<User>('users', id);
-    if (target && !canGrant(me(req), await groupPerms(target.groupIds))) return res.status(403).json({ error: 'This account has more permissions than you.' });
+    if (target && !canGrant(me(req), await userPerms(target))) return res.status(403).json({ error: 'This account has more permissions than you.' });
     // Never delete the last super administrator: nobody could manage the portal afterwards.
-    if (target && (await groupPerms(target.groupIds)).has('*')) {
+    if (target && (await userPerms(target)).has('*')) {
       const others = (await db.listDocs<User>('users')).filter((u) => u.id !== id && u.active);
       let another = false;
-      for (const u of others) if ((await groupPerms(u.groupIds)).has('*')) another = true;
+      for (const u of others) if ((await userPerms(u)).has('*')) another = true;
       if (!another) return res.status(400).json({ error: 'This is the last administrator account and cannot be deleted.' });
     }
     await db.removeDoc('users', id);
@@ -473,8 +503,6 @@ export function apiRouter() {
   }));
 
   /* ---------- groups: system groups cannot be deleted ---------- */
-
-  const validPerms = (v: unknown): v is string[] => Array.isArray(v) && v.every((p) => typeof p === 'string' && /^[a-z0-9_.*-]{1,100}$/i.test(p));
 
   r.post('/c/groups', wrap(async (req, res) => {
     const a = me(req);

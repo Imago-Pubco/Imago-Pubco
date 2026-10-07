@@ -6,7 +6,8 @@ import { groups, logAudit, users } from '@/data/stores';
 import { useI18n } from '@/i18n';
 import { Page } from '@/components/Page';
 import { PageHeader, useToast } from '@/components/ui';
-import { modules } from '@/modules/registry';
+import { PermissionMatrix } from '../PermissionMatrix';
+import { UserRights } from './UserRights';
 import type { Group } from '@/data/types';
 
 const COLORS = ['#da291c', '#e07a10', '#1e6fd9', '#7b4fd6', '#1f8a4c', '#0f8b8d', '#c2185b', '#5b6b82'];
@@ -19,6 +20,7 @@ export function Groups() {
   const { rows: allUsers } = useCollection(users);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Group | null>(null);
+  const [view, setView] = useState<'groups' | 'users'>('groups');
 
   const selected = rows.find((g) => g.id === selectedId) ?? rows[0];
   useEffect(() => {
@@ -32,23 +34,6 @@ export function Groups() {
   const superAdmin = perms.has('*');
 
   const setPerms = (next: Set<string>) => draft && setDraft({ ...draft, permissions: [...next].sort() });
-  const toggle = (key: string) => {
-    const n = new Set(perms);
-    if (n.has(key)) n.delete(key);
-    else n.add(key);
-    setPerms(n);
-  };
-  const toggleModule = (modId: string, keys: string[]) => {
-    const n = new Set(perms);
-    const wild = `${modId}.*`;
-    if (n.has(wild)) n.delete(wild);
-    else {
-      keys.forEach((k) => n.delete(k));
-      n.add(wild);
-    }
-    setPerms(n);
-  };
-
   const save = async () => {
     if (!draft || !draft.name.trim()) return;
     if (isNewDraft) await groups.insert(draft);
@@ -84,11 +69,24 @@ export function Groups() {
           'Each group grants granular per-module permissions. A user gets the union of all their groups.',
         )}
         actions={
-          <button className="btn btn-primary" onClick={create}>
-            <Plus size={16} /> {t('Groupe', 'Group')}
-          </button>
+          view === 'groups' ? (
+            <button className="btn btn-primary" onClick={create}>
+              <Plus size={16} /> {t('Groupe', 'Group')}
+            </button>
+          ) : undefined
         }
       />
+      <div className="tabs" style={{ marginBottom: 16 }}>
+        <button className={`tab ${view === 'groups' ? 'active' : ''}`} onClick={() => setView('groups')}>
+          {t('Groupes', 'Groups')}
+        </button>
+        <button className={`tab ${view === 'users' ? 'active' : ''}`} onClick={() => setView('users')}>
+          {t('Droits individuels', 'Individual rights')}
+        </button>
+      </div>
+      {view === 'users' ? (
+        <UserRights />
+      ) : (
       <div className="groups-layout">
         <div className="card groups-list">
           {rows.map((g) => (
@@ -163,40 +161,7 @@ export function Groups() {
                   <ShieldCheck size={16} /> {t('Super administrateur (tout)', 'Super administrator (everything)')}
                 </label>
               </div>
-              <div className={`perm-matrix ${superAdmin ? 'disabled' : ''}`}>
-                {modules.map((m) => {
-                  const wild = perms.has(`${m.id}.*`);
-                  const Icon = m.icon;
-                  return (
-                    <div key={m.id} className="perm-module" style={{ ['--accent' as string]: m.accent }}>
-                      <div className="perm-module-head">
-                        <span className="perm-module-icon">
-                          <Icon size={16} />
-                        </span>
-                        <strong>{t(m.name)}</strong>
-                        <span className="spacer" />
-                        <label className="check small">
-                          <input type="checkbox" checked={superAdmin || wild} disabled={superAdmin} onChange={() => toggleModule(m.id, m.permissions.map((p) => p.key))} />
-                          {t('Tout le module', 'Entire module')}
-                        </label>
-                      </div>
-                      <div className="perm-list">
-                        {m.permissions.map((p) => (
-                          <label key={p.key} className="check perm-item">
-                            <input type="checkbox" checked={superAdmin || wild || perms.has(p.key)} disabled={superAdmin || wild} onChange={() => toggle(p.key)} />
-                            <div>
-                              <div>{t(p.label)}</div>
-                              <div className="mono faint" style={{ fontSize: 11 }}>
-                                {p.key}
-                              </div>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <PermissionMatrix perms={perms} onChange={setPerms} disabled={superAdmin} />
             </div>
 
             <div className="card">
@@ -220,6 +185,7 @@ export function Groups() {
           </div>
         )}
       </div>
+      )}
     </Page>
   );
 }

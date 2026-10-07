@@ -10,6 +10,8 @@ export function effectivePermissions(user: User | null, allGroups: Group[]): Set
   for (const g of allGroups) {
     if (user.groupIds.includes(g.id)) g.permissions.forEach((p) => set.add(p));
   }
+  // Rights given to the person directly, on top of their groups.
+  user.permissions?.forEach((p) => set.add(p));
   return set;
 }
 

@@ -26,6 +26,8 @@ export interface User {
   passwordHash: string;
   salt: string;
   groupIds: string[];
+  /** Rights given to this person directly, on top of their groups (Administration → Groupes d'accès → Droits individuels). */
+  permissions?: string[];
   active: boolean;
   createdAt: string;
   lastLoginAt?: string;
