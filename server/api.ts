@@ -33,7 +33,7 @@ import { syncMailbox, testMailbox } from './mailbox.ts';
 import * as pipeline from './pipeline.ts';
 import { matchInvoiceRecord, runAutomation } from './automation.ts';
 import { assertMail, defaultTemplate, getTemplate, renderTemplate, sampleVars, sendMail, sendTemplate, verifySmtp, type MailTemplate } from './mail.ts';
-import { consumeToken, createToken, humanDuration, peekToken } from './tokens.ts';
+import { consumeToken, createToken, deleteUserTokens, humanDuration, peekToken } from './tokens.ts';
 import { HttpError } from './ms.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
@@ -363,8 +363,16 @@ export function apiRouter() {
     if (id === me(req).user.id) return res.status(400).json({ error: 'cannot delete yourself' });
     const target = await db.getDoc<User>('users', id);
     if (target && !canGrant(me(req), await groupPerms(target.groupIds))) return res.status(403).json({ error: 'This account has more permissions than you.' });
+    // Never delete the last super administrator: nobody could manage the portal afterwards.
+    if (target && (await groupPerms(target.groupIds)).has('*')) {
+      const others = (await db.listDocs<User>('users')).filter((u) => u.id !== id && u.active);
+      let another = false;
+      for (const u of others) if ((await groupPerms(u.groupIds)).has('*')) another = true;
+      if (!another) return res.status(400).json({ error: 'This is the last administrator account and cannot be deleted.' });
+    }
     await db.removeDoc('users', id);
     await destroyUserSessions(id);
+    await deleteUserTokens(id);
     broadcast('users');
     res.status(204).end();
   }));

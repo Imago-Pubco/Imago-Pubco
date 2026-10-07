@@ -44,3 +44,8 @@ export const humanDuration = (ms: number) => {
   const h = Math.round(ms / 3600_000);
   return h >= 48 ? `${Math.round(h / 24)} jours` : h === 1 ? '1 heure' : `${h} heures`;
 };
+
+/** A deleted account leaves no usable link behind. */
+export async function deleteUserTokens(userId: string) {
+  for (const t of await db.listDocs<TokenDoc>('auth.tokens')) if (t.userId === userId) await db.removeDoc('auth.tokens', t.id);
+}

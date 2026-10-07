@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Pencil, Search, UserCheck, UserX, KeyRound, Mail } from 'lucide-react';
+import { Plus, Pencil, Search, UserCheck, UserX, KeyRound, Mail, Trash2, Clock } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { effectivePermissions } from '@/auth/permissions';
 import { API_MODE, api, uid, useCollection } from '@/data/db';
@@ -39,6 +39,9 @@ export function Users() {
   const [err, setErr] = useState('');
   const [mailOn, setMailOn] = useState(false);
   const [sending, setSending] = useState(false);
+  const [delUser, setDelUser] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [inviting, setInviting] = useState('');
 
   useEffect(() => {
     if (API_MODE) api<{ enabled: boolean }>('/mail/status').then((r) => setMailOn(r.enabled), () => setMailOn(false));
@@ -116,6 +119,35 @@ export function Users() {
     toast(t('Utilisateur enregistré', 'User saved'));
   };
 
+  /** Sends the invitation again (a fresh one-time link; earlier links stop working). */
+  const resendInvite = async (u: User) => {
+    setInviting(u.id);
+    try {
+      const r = await api<{ to: string }>(`/users/${u.id}/welcome-email`, { method: 'POST' });
+      toast(t(`Invitation renvoyée à ${r.to}`, `Invitation re-sent to ${r.to}`));
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err');
+    } finally {
+      setInviting('');
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!delUser) return;
+    setDeleting(true);
+    try {
+      await users.remove(delUser.id);
+      await logAudit(me!.id, 'admin.user.delete', delUser.username);
+      toast(t('Utilisateur supprimé', 'User deleted'));
+      setDelUser(null);
+      setDraft(null);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const resendWelcome = async () => {
     if (!draft?.id) return;
     setSending(true);
@@ -191,7 +223,11 @@ export function Users() {
                   </td>
                   <td className="muted small">{fmtDate(u.lastLoginAt, true)}</td>
                   <td>
-                    {u.active ? (
+                    {u.active && !u.lastLoginAt && API_MODE ? (
+                      <span className="badge badge-warn" title={t('Cette personne ne s’est jamais connectée.', 'This person has never signed in.')}>
+                        <Clock size={12} /> {t('Invitation en attente', 'Invitation pending')}
+                      </span>
+                    ) : u.active ? (
                       <span className="badge badge-ok">
                         <UserCheck size={12} /> {t('Actif', 'Active')}
                       </span>
@@ -201,8 +237,20 @@ export function Users() {
                       </span>
                     )}
                   </td>
-                  <td className="num">
-                    <Pencil size={14} className="faint" />
+                  <td className="num" style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                    {mailOn && u.email && (
+                      <button className="btn btn-ghost btn-icon btn-sm" title={t('Renvoyer l’invitation par courriel', 'Resend the invitation e-mail')} aria-label={t('Renvoyer l’invitation', 'Resend invitation')} disabled={inviting === u.id} onClick={() => resendInvite(u)}>
+                        <Mail size={15} />
+                      </button>
+                    )}
+                    <button className="btn btn-ghost btn-icon btn-sm" title={t('Modifier', 'Edit')} aria-label={t('Modifier', 'Edit')} onClick={() => open(u)}>
+                      <Pencil size={15} />
+                    </button>
+                    {u.id !== me?.id && (
+                      <button className="btn btn-ghost btn-icon btn-sm" title={t('Supprimer', 'Delete')} aria-label={t('Supprimer', 'Delete')} onClick={() => setDelUser(u)}>
+                        <Trash2 size={15} color="var(--err)" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -212,11 +260,41 @@ export function Users() {
       </div>
 
       <Modal
+        open={!!delUser}
+        onClose={() => setDelUser(null)}
+        title={t('Supprimer l’utilisateur', 'Delete user')}
+        footer={
+          <>
+            <button className="btn" onClick={() => setDelUser(null)}>{t('Annuler', 'Cancel')}</button>
+            <button className="btn btn-danger" onClick={confirmDelete} disabled={deleting}>
+              <Trash2 size={15} /> {t('Supprimer définitivement', 'Delete permanently')}
+            </button>
+          </>
+        }
+      >
+        {delUser && (
+          <div className="stack">
+            <p style={{ margin: 0 }}>
+              {t('Supprimer', 'Delete')} <strong>{delUser.displayName}</strong> (<span className="mono">{delUser.username}</span>) {t('? Son compte disparaît et ses sessions sont fermées. Cette action est irréversible.', '? Their account disappears and their sessions are closed. This cannot be undone.')}
+            </p>
+            <p className="faint small" style={{ margin: 0 }}>
+              {t('Son historique dans le journal d’audit est conservé. Pour seulement bloquer l’accès, décochez plutôt « Compte actif ».', 'Their history in the audit log is kept. To only block access, untick “Account active” instead.')}
+            </p>
+          </div>
+        )}
+      </Modal>
+
+      <Modal
         open={!!draft}
         onClose={() => setDraft(null)}
         title={draft?.id ? t('Modifier l’utilisateur', 'Edit user') : t('Nouvel utilisateur', 'New user')}
         footer={
           <>
+            {draft?.id && draft.id !== me?.id && (
+              <button className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => setDelUser(rows.find((u) => u.id === draft.id) ?? null)}>
+                <Trash2 size={15} /> {t('Supprimer', 'Delete')}
+              </button>
+            )}
             <button className="btn" onClick={() => setDraft(null)}>
               {t('Annuler', 'Cancel')}
             </button>
