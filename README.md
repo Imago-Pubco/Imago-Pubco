@@ -66,16 +66,23 @@ Keys use the form `module.area.action` (for example `accounting.invoices.post`).
 
 A user gets the union of the permissions from all their groups.
 
-## Accounting: invoice flow
+## Accounting
 
-| Stage | Meaning |
+E-mails with PDFs arrive in the invoice mailbox (Microsoft Graph). Each PDF is **classified** (invoice, purchase order or other) by the AI when enabled, otherwise by keyword rules; people can correct it in *Boîte de réception → Documents*.
+
+| Area | What it does |
 |---|---|
-| 🥚 Received | E-mail with a PDF in the invoice mailbox |
-| 🐛 Extracted | Invoice fields read (vendor, no., PO, lines) |
-| ⏳ BC validated | 3-way match: invoice ↔ PO ↔ receipt (quantities received and not yet invoiced, price within tolerance, vendor, currency) |
-| 🦋 Posted | Purchase invoice created in Business Central |
+| **Boîte de réception** | *Courriels*, and *Documents* with sub-sections *Factures* and *Bons de commande* (classified PDFs) |
+| **Entrant (clients)** | Customer POs matched with Business Central **sales orders**, then the **sales invoice** is created in BC; *Factures clients* (BC sales invoices, synced); *À recevoir* (open customer invoices by due date) |
+| **Sortant (fournisseurs)** | BC purchase orders and vendor PO confirmations; *Factures fournisseurs* (vendor invoices: 3-way match with the PO and receipt, then the purchase invoice is created in BC; BC purchase invoices, synced); *À payer* (open vendor invoices by due date) |
 
-Tolerances are configurable (*Comptabilité → Paramètres*). Posting despite exceptions requires the `accounting.invoices.override` permission and a written justification.
+Invoice stages: 🥚 Received → 🐛 Extracted → ⏳ BC validated → 🦋 Posted. Purchase-order stages: Received → Matched (or Needs attention) → Invoiced (customer PO) / Confirmed (vendor PO).
+
+**Approval mode** (*Comptabilité → Paramètres*): *Manual* (people do every step), *Assisted* (default: new documents are read and matched automatically, a person approves before anything is created in BC) or *Automatic* (perfect matches within an amount cap are also approved; any variance waits for a person). Automatic actions are logged as "Automatisation".
+
+**Business Central sync** (*Synchroniser BC*, or `BC_SYNC_MINUTES` in `.env`) keeps a local copy of sales orders and of sales/purchase invoices; *À payer* and *À recevoir* read that copy, so a payment recorded in BC disappears at the next sync.
+
+Tolerances are configurable. Posting despite exceptions requires `accounting.invoices.override` and a written justification. Other permissions: `accounting.po.process`, `accounting.po.approve`, `accounting.payables.view`.
 
 ## Gestion O365
 
