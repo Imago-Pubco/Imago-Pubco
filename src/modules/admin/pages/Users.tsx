@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Pencil, Search, UserCheck, UserX, KeyRound, Mail, Trash2, Clock } from 'lucide-react';
+import { Plus, Pencil, Search, UserCheck, UserX, KeyRound, Mail, Trash2, Clock, Eye } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { effectivePermissions } from '@/auth/permissions';
 import { API_MODE, api, uid, useCollection } from '@/data/db';
@@ -30,7 +30,7 @@ const randomPassword = () => {
 
 export function Users() {
   const { t, fmtDate } = useI18n();
-  const { user: me } = useAuth();
+  const { user: me, can, impersonate } = useAuth();
   const toast = useToast();
   const { rows } = useCollection(users);
   const { rows: allGroups } = useCollection(groups);
@@ -40,6 +40,7 @@ export function Users() {
   const [mailOn, setMailOn] = useState(false);
   const [sending, setSending] = useState(false);
   const [delUser, setDelUser] = useState<User | null>(null);
+  const [viewAs, setViewAs] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [inviting, setInviting] = useState('');
 
@@ -243,6 +244,11 @@ export function Users() {
                     )}
                   </td>
                   <td className="num" style={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
+                    {API_MODE && can('admin.impersonate') && u.id !== me?.id && u.active && (
+                      <button className="btn btn-ghost btn-icon btn-sm" title={t('Voir le portail comme cette personne (lecture seule)', 'View the portal as this person (read-only)')} aria-label={t('Voir en tant que', 'View as')} onClick={() => setViewAs(u)}>
+                        <Eye size={15} />
+                      </button>
+                    )}
                     {mailOn && u.email && (
                       <button className="btn btn-ghost btn-icon btn-sm" title={t('Renvoyer l’invitation par courriel', 'Resend the invitation e-mail')} aria-label={t('Renvoyer l’invitation', 'Resend invitation')} disabled={inviting === u.id} onClick={() => resendInvite(u)}>
                         <Mail size={15} />
@@ -263,6 +269,36 @@ export function Users() {
           </table>
         </div>
       </div>
+
+      <Modal
+        open={!!viewAs}
+        onClose={() => setViewAs(null)}
+        title={t('Voir le portail comme cette personne', 'View the portal as this person')}
+        footer={
+          <>
+            <button className="btn" onClick={() => setViewAs(null)}>{t('Annuler', 'Cancel')}</button>
+            <button
+              className="btn btn-primary"
+              onClick={() => viewAs && impersonate(viewAs.id).catch((e) => { toast(e instanceof Error ? e.message : String(e), 'err'); setViewAs(null); })}
+            >
+              <Eye size={15} /> {t('Voir comme cette personne', 'View as this person')}
+            </button>
+          </>
+        }
+      >
+        {viewAs && (
+          <div className="stack">
+            <p style={{ margin: 0 }}>
+              {t('Vous allez voir le portail exactement comme', 'You will see the portal exactly as')} <strong>{viewAs.displayName}</strong> (<span className="mono">{viewAs.username}</span>) {t('le voit : mêmes modules, mêmes menus, mêmes données.', 'sees it: same modules, same menus, same data.')}
+            </p>
+            <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
+              <li>{t('Lecture seule : rien ne peut être modifié, créé ni approuvé au nom de cette personne.', 'Read-only: nothing can be changed, created or approved in this person’s name.')}</li>
+              <li>{t('La session dure 30 minutes. Un bandeau en bas de l’écran permet de revenir à votre compte.', 'The session lasts 30 minutes. A bar at the bottom of the screen takes you back to your account.')}</li>
+              <li>{t('Le début et la fin sont inscrits au journal d’audit, à votre nom.', 'The start and the end are written to the audit log, in your name.')}</li>
+            </ul>
+          </div>
+        )}
+      </Modal>
 
       <Modal
         open={!!delUser}

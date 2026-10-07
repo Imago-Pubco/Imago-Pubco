@@ -14,6 +14,11 @@ interface AuthCtx {
   logout: () => void;
   can: (permission: string) => boolean;
   updatePrefs: (patch: Partial<UserPrefs>) => Promise<void>;
+  /** Set while an administrator is viewing the portal as this user (read-only). */
+  impersonated: boolean;
+  /** Start viewing the portal as another user (administrators with admin.impersonate). */
+  impersonate: (userId: string) => Promise<void>;
+  stopImpersonating: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -26,11 +31,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // API backend: the server holds the session (HttpOnly cookie); we ask it who we are.
   const [sessionId, setSessionId] = useState<string | null>(() => (API_MODE ? null : localStorage.getItem(SESSION_KEY)));
   const [sessionChecked, setSessionChecked] = useState(!API_MODE);
+  const [impersonated, setImpersonated] = useState(false);
 
   useEffect(() => {
     if (!API_MODE) return;
-    api<{ user: User }>('/auth/me')
+    api<{ user: User; impersonatedBy?: { id: string } }>('/auth/me')
       .then((r) => {
+        setImpersonated(!!r.impersonatedBy);
         setSessionId(r.user.id);
         refreshAllCollections();
       })
@@ -106,7 +113,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-  return <Ctx.Provider value={{ user, ready, login, logout, can, updatePrefs }}>{children}</Ctx.Provider>;
+  // The whole page reloads on each switch so nothing of the previous identity stays in memory.
+  const impersonate = useCallback(async (userId: string) => {
+    await api(`/admin/impersonate/${encodeURIComponent(userId)}`, { method: 'POST' });
+    window.location.href = '/';
+  }, []);
+  const stopImpersonating = useCallback(async () => {
+    await api('/auth/impersonate/stop', { method: 'POST' });
+    window.location.href = '/admin/users';
+  }, []);
+
+  return <Ctx.Provider value={{ user, ready, login, logout, can, updatePrefs, impersonated, impersonate, stopImpersonating }}>{children}</Ctx.Provider>;
 }
 
 export function useAuth() {

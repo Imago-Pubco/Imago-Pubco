@@ -99,6 +99,7 @@ export const adminModule: ModuleDef = {
     { key: 'admin.users.manage', label: { fr: 'Gérer les utilisateurs', en: 'Manage users' } },
     { key: 'admin.groups.manage', label: { fr: 'Gérer les groupes et permissions', en: 'Manage groups & permissions' } },
     { key: 'admin.audit.view', label: { fr: 'Consulter le journal d’audit', en: 'View audit log' } },
+    { key: 'admin.impersonate', label: { fr: 'Voir le portail comme un autre utilisateur (lecture seule)', en: 'View the portal as another user (read-only)' } },
     { key: 'admin.mail', label: { fr: 'Courriels : serveur d’envoi et modèles', en: 'E-mail: sending server and templates' } },
     { key: 'admin.system', label: { fr: 'Paramètres système', en: 'System settings' } },
   ],

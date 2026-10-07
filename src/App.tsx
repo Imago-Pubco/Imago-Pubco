@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ui';
 import { AppShell } from '@/layout/AppShell';
 import { Login } from '@/pages/Login';
 import { ResetPassword } from '@/pages/ResetPassword';
+import { ImpersonationBanner } from '@/layout/ImpersonationBanner';
 
 function Gate() {
   const { user, ready } = useAuth();
@@ -17,6 +18,7 @@ function Gate() {
     <AnimatePresence mode="wait">
       {user ? (
         <motion.div key="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }}>
+          <ImpersonationBanner />
           <AppShell />
         </motion.div>
       ) : (

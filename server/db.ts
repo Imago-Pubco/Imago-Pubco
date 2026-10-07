@@ -30,6 +30,9 @@ export async function migrate() {
       user_agent text
     );
     create index if not exists sessions_user on sessions (user_id);
+    -- "View as" sessions: who is really behind them, and the session to go back to.
+    alter table sessions add column if not exists impersonator_id text;
+    alter table sessions add column if not exists parent_sid text;
 
     create table if not exists files (
       id text primary key,

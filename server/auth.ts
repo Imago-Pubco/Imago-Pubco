@@ -47,6 +47,9 @@ export function publicUser(u: User): Omit<User, 'passwordHash' | 'salt'> & { pas
 export interface AuthInfo {
   user: User;
   sessionId: string;
+  /** Set when an administrator is viewing the portal as this user (read-only). */
+  impersonatorId?: string;
+  parentSid?: string;
   can: (permission: string) => boolean;
   canAny: (...permissions: string[]) => boolean;
 }
@@ -73,15 +76,24 @@ function cookieAttrs(maxAgeSeconds: number) {
     .join('; ');
 }
 
-export async function createSession(res: Response, req: Request, userId: string) {
+export async function createSession(res: Response, req: Request, userId: string, opts: { ttlSeconds?: number; impersonatorId?: string; parentSid?: string } = {}) {
   const id = randomBytes(32).toString('base64url');
-  const ttl = config.sessionHours * 3600;
+  const ttl = opts.ttlSeconds ?? config.sessionHours * 3600;
   await pool.query(
-    `insert into sessions (id, user_id, expires_at, ip, user_agent)
-     values ($1, $2, now() + make_interval(secs => $3), $4, $5)`,
-    [id, userId, ttl, req.ip ?? null, (req.headers['user-agent'] ?? '').slice(0, 300)],
+    `insert into sessions (id, user_id, expires_at, ip, user_agent, impersonator_id, parent_sid)
+     values ($1, $2, now() + make_interval(secs => $3), $4, $5, $6, $7)`,
+    [id, userId, ttl, req.ip ?? null, (req.headers['user-agent'] ?? '').slice(0, 300), opts.impersonatorId ?? null, opts.parentSid ?? null],
   );
   res.setHeader('Set-Cookie', `${COOKIE}=${id}; ${cookieAttrs(ttl)}`);
+}
+
+/** Gives the browser back the administrator's own session after "view as" (if it is still valid; otherwise they sign in again). */
+export async function restoreParentSession(res: Response, parentSid: string | undefined, impersonatorId: string | undefined) {
+  const r = parentSid
+    ? await pool.query('select extract(epoch from (expires_at - now()))::int as left from sessions where id = $1 and user_id = $2 and impersonator_id is null and expires_at > now()', [parentSid, impersonatorId])
+    : undefined;
+  const left = r?.rows[0]?.left as number | undefined;
+  res.setHeader('Set-Cookie', `${COOKIE}=${left ? parentSid : ''}; ${cookieAttrs(left ?? 0)}`);
 }
 
 export async function destroySession(res: Response, sessionId?: string) {
@@ -108,7 +120,7 @@ export async function loadSession(req: Request, _res: Response, next: NextFuncti
     const sid = readCookie(req, COOKIE);
     if (!sid) return next();
     const r = await pool.query(
-      `select user_id, expires_at < now() + make_interval(secs => $2) as renew
+      `select user_id, impersonator_id, parent_sid, expires_at < now() + make_interval(secs => $2) as renew
        from sessions where id = $1 and expires_at > now()`,
       [sid, (config.sessionHours * 3600) / 2],
     );
@@ -116,7 +128,8 @@ export async function loadSession(req: Request, _res: Response, next: NextFuncti
     if (!row) return next();
     const user = await getDoc<User>('users', row.user_id);
     if (!user || !user.active) return next();
-    if (row.renew) {
+    // "View as" sessions are short and never renewed.
+    if (row.renew && !row.impersonator_id) {
       await pool.query('update sessions set expires_at = now() + make_interval(secs => $2) where id = $1', [
         sid,
         config.sessionHours * 3600,
@@ -124,7 +137,7 @@ export async function loadSession(req: Request, _res: Response, next: NextFuncti
     }
     const perms = await permissionsFor(user);
     const can = (p: string) => hasPermission(perms, p);
-    req.auth = { user, sessionId: sid, can, canAny: (...ps) => ps.some(can) };
+    req.auth = { user, sessionId: sid, impersonatorId: row.impersonator_id ?? undefined, parentSid: row.parent_sid ?? undefined, can, canAny: (...ps) => ps.some(can) };
     next();
   } catch (e) {
     next(e);

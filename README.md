@@ -66,6 +66,8 @@ Keys use the form `module.area.action` (for example `accounting.invoices.post`).
 
 A user gets the union of the permissions from all their groups.
 
+**View as another user** (permission `admin.impersonate`, eye button in *Administration → Utilisateurs*): an administrator sees the portal exactly as that person does — same modules, menus and data. It is strictly **read-only** (every change is refused), lasts 30 minutes, shows a bar with an *Exit* button, and the start and end are written to the audit log in the administrator's name. You can only view as someone who does not hold more rights than you.
+
 **Individual rights** (*Administration → Groupes d'accès → Droits individuels*): permissions given to one person directly, on top of their groups, for the exception that does not deserve a group. Needs `admin.groups.manage`; you can only give rights you hold yourself, and the change is written to the audit log. The person's groups' rights are shown locked in the editor.
 
 ## Accounting

@@ -44,6 +44,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
     } catch {
       /* no body */
     }
+    if (msg === 'read_only_impersonation') msg = 'Lecture seule : vous consultez le portail comme un autre utilisateur. / Read-only: you are viewing the portal as another user.';
     throw new ApiError(res.status, msg);
   }
   return (res.status === 204 ? undefined : await res.json()) as T;

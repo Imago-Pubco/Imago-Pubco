@@ -12,6 +12,7 @@ import {
   clearLoginFailures,
   ipBlocked,
   recordIpFailure,
+  restoreParentSession,
   createSession,
   destroySession,
   destroyUserSessions,
@@ -247,12 +248,35 @@ export function apiRouter() {
 
   r.get('/auth/me', (req, res) => {
     if (!req.auth) return res.status(401).json({ error: 'unauthenticated' });
-    res.json({ user: publicUser(req.auth.user) });
+    const by = req.auth.impersonatorId;
+    res.json({ user: publicUser(req.auth.user), impersonatedBy: by ? { id: by } : undefined });
   });
 
   /* Everything below needs a signed-in user. */
   r.use(requireAuth);
   const me = (req: Request) => req.auth!;
+
+  /* ---------- "view as": an administrator sees the portal exactly as another user does (read-only) ---------- */
+
+  const IMPERSONATION_MINUTES = 30;
+
+  /** Back to the administrator's own session. */
+  r.post('/auth/impersonate/stop', wrap(async (req, res) => {
+    const a = me(req);
+    if (!a.impersonatorId) return res.status(400).json({ error: 'not viewing as another user' });
+    await db.pool.query('delete from sessions where id = $1', [a.sessionId]);
+    await restoreParentSession(res, a.parentSid, a.impersonatorId);
+    await audit(a.impersonatorId, 'admin.impersonate.stop', a.user.username, req.ip ?? '');
+    res.json({ ok: true });
+  }));
+
+  // While viewing as someone else nothing can be changed: no actions are ever taken in another person's name.
+  r.use((req, res, next) => {
+    if (req.auth?.impersonatorId && req.method !== 'GET' && req.method !== 'HEAD') {
+      return res.status(403).json({ error: 'read_only_impersonation' });
+    }
+    next();
+  });
 
   // Automatic audit trail: every state-changing request by a signed-in user is logged
   // (successes as api.<METHOD>, refused attempts as api.denied). Bodies are never stored.
@@ -282,6 +306,20 @@ export function apiRouter() {
       },
     });
   });
+
+  r.post('/admin/impersonate/:id', wrap(async (req, res) => {
+    const a = me(req);
+    if (!a.can('admin.impersonate')) return forbid(res);
+    const target = await db.getDoc<User>('users', String(req.params.id));
+    if (!target) return res.status(404).json({ error: 'not_found' });
+    if (target.id === a.user.id) return res.status(400).json({ error: 'That is you.' });
+    if (!target.active) return res.status(400).json({ error: 'This account is disabled.' });
+    // Seeing someone with more rights than yours would be a way around the rule that you cannot give yourself more.
+    if (!canGrant(a, await userPerms(target))) return res.status(403).json({ error: 'This account has more permissions than you.' });
+    await createSession(res, req, target.id, { ttlSeconds: IMPERSONATION_MINUTES * 60, impersonatorId: a.user.id, parentSid: a.sessionId });
+    await audit(a.user.id, 'admin.impersonate.start', `${target.username} (read-only, ${IMPERSONATION_MINUTES} min)`, req.ip ?? '');
+    res.json({ ok: true });
+  }));
 
   /* ---------- users (hashes never leave the server) ---------- */
 
