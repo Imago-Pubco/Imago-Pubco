@@ -9,6 +9,7 @@
  */
 import { API_MODE, api, uid } from '@/data/db';
 import type { BcPurchaseOrder, BcPurchaseInvoice, BcVendor, Invoice, MailMessage } from './types';
+import type { PoRecord } from './orders';
 import { bcPurchaseInvoices, bcPurchaseOrders, bcVendors, mailbox } from './stores';
 import { mailTemplates } from './seed';
 
@@ -118,3 +119,22 @@ const apiBusinessCentral: BusinessCentral = {
 
 export const mailboxConnector: MailboxConnector = API_MODE ? apiMailbox : mockMailbox;
 export const businessCentral: BusinessCentral = API_MODE ? apiBusinessCentral : mockBusinessCentral;
+
+/* ---------- purchase orders received by e-mail + Business Central sync (server only) ---------- */
+
+const needsServer = () => Promise.reject(new Error('Disponible avec le serveur Imago (non simulé en mode navigateur).'));
+
+export const poFlow = {
+  /** Creates the record for a PO document and matches it with Business Central. */
+  process: (mailId: string, attIndex: number): Promise<PoRecord> => (API_MODE ? api('/pos/process', { method: 'POST', body: { mailId, attIndex } }) : needsServer()),
+  rematch: (id: string): Promise<PoRecord> => (API_MODE ? api(`/pos/${encodeURIComponent(id)}/match`, { method: 'POST' }) : needsServer()),
+  approve: (id: string, overrideNote?: string): Promise<PoRecord> =>
+    API_MODE ? api(`/pos/${encodeURIComponent(id)}/approve`, { method: 'POST', body: { overrideNote } }) : needsServer(),
+  reject: (id: string, reason: string): Promise<PoRecord> => (API_MODE ? api(`/pos/${encodeURIComponent(id)}/reject`, { method: 'POST', body: { reason } }) : needsServer()),
+  reopen: (id: string): Promise<PoRecord> => (API_MODE ? api(`/pos/${encodeURIComponent(id)}/reopen`, { method: 'POST' }) : needsServer()),
+};
+
+export const bcSync = {
+  run: (): Promise<{ salesOrders: number; invoices: number }> => (API_MODE ? api('/bc/sync', { method: 'POST' }) : needsServer()),
+  status: (): Promise<{ enabled: boolean; lastSync: string | null }> => (API_MODE ? api('/bc/status') : Promise.resolve({ enabled: false, lastSync: null })),
+};

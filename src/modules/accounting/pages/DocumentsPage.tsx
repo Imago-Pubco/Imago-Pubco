@@ -8,8 +8,10 @@ import { useI18n } from '@/i18n';
 import { Page } from '@/components/Page';
 import { Can, Empty, PageHeader, useToast } from '@/components/ui';
 import { classifyAttachment } from '../classify';
+import { poFlow } from '../integrations';
 import { importFromMail } from '../service';
-import { mailbox } from '../stores';
+import { mailbox, poRecords } from '../stores';
+import { PoStageBadge } from '../ui';
 import type { DocType, MailAttachment, MailMessage, PoDirection } from '../types';
 
 export type DocKind = 'all' | DocType;
@@ -35,6 +37,7 @@ export function DocumentsPage({ kind }: { kind: DocKind }) {
   const toast = useToast();
   const nav = useNavigate();
   const { rows: messages } = useCollection(mailbox);
+  const { rows: pos } = useCollection(poRecords);
   const [q, setQ] = useState('');
   const [importing, setImporting] = useState('');
 
@@ -57,6 +60,21 @@ export function DocumentsPage({ kind }: { kind: DocKind }) {
       .filter((r) => kind === 'all' || r.docType === kind)
       .filter((r) => !s || [r.att.name, r.msg.subject, r.msg.fromName, r.msg.from, r.att.extracted?.invoiceNo ?? '', r.att.extracted?.poNo ?? ''].some((v) => v.toLowerCase().includes(s)));
   }, [all, kind, q]);
+
+  const poOf = (r: DocRow) => pos.find((p) => p.mailId === r.msg.id && p.attIndex === r.index);
+
+  const processPo = async (r: DocRow) => {
+    setImporting(r.key);
+    try {
+      const rec = await poFlow.process(r.msg.id, r.index);
+      toast(t('Bon de commande rapproché avec Business Central', 'Purchase order matched with Business Central'));
+      nav(`/accounting/po/${rec.id}`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'err');
+    } finally {
+      setImporting('');
+    }
+  };
 
   const count = (k: DocType) => all.filter((r) => r.docType === k).length;
 
@@ -202,12 +220,24 @@ export function DocumentsPage({ kind }: { kind: DocKind }) {
                             <span className="badge badge-accent">{t('À traiter', 'To process')}</span>
                           )
                         ) : r.docType === 'po' ? (
-                          <span className="badge badge-accent">{t('Reçu', 'Received')}</span>
+                          poOf(r) ? <PoStageBadge stage={poOf(r)!.stage} /> : <span className="badge badge-accent">{t('Reçu', 'Received')}</span>
                         ) : (
                           <span className="faint small">—</span>
                         )}
                       </td>
                       <td style={{ textAlign: 'right' }}>
+                        {r.docType === 'po' &&
+                          (poOf(r) ? (
+                            <Link to={`/accounting/po/${poOf(r)!.id}`} className="btn btn-sm">
+                              {t('Ouvrir', 'Open')}
+                            </Link>
+                          ) : (
+                            <Can permission="accounting.po.process">
+                              <button className="btn btn-sm btn-primary" disabled={importing === r.key} onClick={() => processPo(r)}>
+                                {importing === r.key ? t('Rapprochement…', 'Matching…') : t('Traiter', 'Process')}
+                              </button>
+                            </Can>
+                          ))}
                         {r.docType === 'invoice' && !r.msg.invoiceId && (
                           <Can permission="accounting.invoices.import">
                             <button className="btn btn-sm btn-primary" disabled={importing === r.key} onClick={() => doImport(r)}>

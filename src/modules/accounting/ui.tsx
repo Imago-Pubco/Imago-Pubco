@@ -1,6 +1,7 @@
 import { CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { METAMORPHOSIS, type StageDef } from '@/components/Stages';
 import { useI18n, type L } from '@/i18n';
+import type { PoStage } from './orders';
 import type { CheckLevel, InvoiceStage } from './types';
 
 export const INVOICE_STAGES: StageDef[] = [
@@ -53,4 +54,27 @@ export function LevelBadge({ level }: { level: CheckLevel }) {
       {map[level][1]}
     </span>
   );
+}
+
+export const PO_STAGE_LABEL: Record<PoStage, L> = {
+  received: { fr: 'Reçu', en: 'Received' },
+  matched: { fr: 'Rapproché', en: 'Matched' },
+  mismatch: { fr: 'À corriger', en: 'Needs attention' },
+  invoiced: { fr: 'Facturé', en: 'Invoiced' },
+  confirmed: { fr: 'Confirmé', en: 'Confirmed' },
+  rejected: { fr: 'Rejeté', en: 'Rejected' },
+};
+
+const PO_STAGE_BADGE: Record<PoStage, string> = {
+  received: '',
+  matched: 'badge-info',
+  mismatch: 'badge-warn',
+  invoiced: 'badge-ok',
+  confirmed: 'badge-ok',
+  rejected: 'badge-err',
+};
+
+export function PoStageBadge({ stage }: { stage: PoStage }) {
+  const { t } = useI18n();
+  return <span className={`badge ${PO_STAGE_BADGE[stage]}`}>{t(PO_STAGE_LABEL[stage])}</span>;
 }

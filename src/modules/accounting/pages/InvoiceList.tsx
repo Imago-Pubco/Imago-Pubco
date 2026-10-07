@@ -7,6 +7,8 @@ import { Page } from '@/components/Page';
 import { Empty, PageHeader } from '@/components/ui';
 import { Stages } from '@/components/Stages';
 import { invoices } from '../stores';
+import { BcInvoicesTable } from './BcInvoicesPage';
+import { BcSyncButton } from './PoWorkspace';
 import { INVOICE_STAGES, LevelBadge, STAGE_LABEL, StageBadge, stageIndex } from '../ui';
 import type { InvoiceStage } from '../types';
 
@@ -17,6 +19,7 @@ export function InvoiceList() {
   const nav = useNavigate();
   const [params, setParams] = useSearchParams();
   const stage = (params.get('stage') as InvoiceStage | null) ?? 'all';
+  const view = params.get('view') === 'bc' ? 'bc' : 'imago';
   const [q, setQ] = useState('');
   const { rows } = useCollection(invoices);
 
@@ -30,7 +33,25 @@ export function InvoiceList() {
 
   return (
     <Page>
-      <PageHeader eyebrow={t('Comptabilité', 'Accounting')} title={t('Factures fournisseurs', 'Vendor invoices')} />
+      <PageHeader
+        eyebrow={t('Sortant — Fournisseurs', 'Outgoing — Vendors')}
+        title={t('Factures fournisseurs', 'Vendor invoices')}
+        actions={view === 'bc' ? <BcSyncButton /> : undefined}
+      />
+      <div className="tabs" style={{ marginBottom: 16 }}>
+        <button className={`tab ${view === 'imago' ? 'active' : ''}`} onClick={() => setParams({})}>
+          {t('À traiter', 'To process')}
+        </button>
+        <button className={`tab ${view === 'bc' ? 'active' : ''}`} onClick={() => setParams({ view: 'bc' })}>
+          {t('Business Central (synchronisées)', 'Business Central (synced)')}
+        </button>
+      </div>
+      {view === 'bc' ? (
+        <div className="card">
+          <BcInvoicesTable kind="purchase" />
+        </div>
+      ) : (
+      <>
       <div className="row row-wrap" style={{ marginBottom: 16 }}>
         <div className="tabs" style={{ marginBottom: 0, borderBottom: 'none' }}>
           {FILTERS.map((f) => (
@@ -103,6 +124,8 @@ export function InvoiceList() {
           </Empty>
         )}
       </div>
+      </>
+      )}
     </Page>
   );
 }

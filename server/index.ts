@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { apiRouter } from './api.ts';
 import { loadSession, purgeExpiredSessions } from './auth.ts';
+import { syncBc } from './pipeline.ts';
 import { config } from './config.ts';
 import { migrate, pool } from './db.ts';
 import { broadcast } from './events.ts';
@@ -45,6 +46,12 @@ async function start() {
   await initialise();
   await purgeExpiredSessions();
   setInterval(() => purgeExpiredSessions().catch((e) => console.error('[sessions]', e)), 3600_000);
+
+  if (config.bc.enabled && config.bc.syncMinutes > 0) {
+    setInterval(() => {
+      syncBc().catch((e) => console.error('[bc] sync failed:', e.message));
+    }, config.bc.syncMinutes * 60_000);
+  }
 
   if (config.graph.enabled && config.graph.syncMinutes > 0) {
     setInterval(() => {

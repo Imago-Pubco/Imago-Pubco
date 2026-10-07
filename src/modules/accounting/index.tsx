@@ -1,5 +1,5 @@
-import { Route, Routes } from 'react-router-dom';
-import { Calculator, LayoutDashboard, Inbox, FileStack, ClipboardList, Settings as SettingsIcon, Mail, FolderOpen, Receipt, ShoppingCart } from 'lucide-react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { Calculator, LayoutDashboard, Inbox, FileStack, ClipboardList, Settings as SettingsIcon, Mail, FolderOpen, Receipt, ShoppingCart, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { RequirePermission } from '@/components/ui';
 import type { ModuleDef } from '../types';
 import { AccountingKpis, InvoicePipeline, InvoicesTodo, Overview } from './pages/Overview';
@@ -7,7 +7,9 @@ import { InboxPage } from './pages/InboxPage';
 import { DocumentsPage } from './pages/DocumentsPage';
 import { InvoiceList } from './pages/InvoiceList';
 import { InvoiceDetail } from './pages/InvoiceDetail';
-import { PurchaseOrders } from './pages/PurchaseOrders';
+import { PoWorkspace } from './pages/PoWorkspace';
+import { PoDetail } from './pages/PoDetail';
+import { CustomerInvoicesPage } from './pages/BcInvoicesPage';
 import { Settings } from './pages/Settings';
 import './accounting.css';
 
@@ -21,7 +23,12 @@ function AccountingRoutes() {
       <Route path="inbox/documents/purchase-orders" element={<RequirePermission permission="accounting.inbox.view"><DocumentsPage kind="po" /></RequirePermission>} />
       <Route path="invoices" element={<InvoiceList />} />
       <Route path="invoices/:id" element={<InvoiceDetail />} />
-      <Route path="purchase-orders" element={<RequirePermission permission="accounting.po.view"><PurchaseOrders /></RequirePermission>} />
+      <Route path="customers" element={<Navigate to="purchase-orders" replace />} />
+      <Route path="customers/purchase-orders" element={<RequirePermission permission="accounting.po.view"><PoWorkspace direction="customer" /></RequirePermission>} />
+      <Route path="customers/invoices" element={<RequirePermission permission="accounting.po.view"><CustomerInvoicesPage /></RequirePermission>} />
+      <Route path="vendors" element={<Navigate to="/accounting/invoices" replace />} />
+      <Route path="purchase-orders" element={<RequirePermission permission="accounting.po.view"><PoWorkspace direction="vendor" /></RequirePermission>} />
+      <Route path="po/:id" element={<RequirePermission permission="accounting.po.view"><PoDetail /></RequirePermission>} />
       <Route path="settings" element={<RequirePermission permission="accounting.settings"><Settings /></RequirePermission>} />
     </Routes>
   );
@@ -50,6 +57,8 @@ export const accountingModule: ModuleDef = {
       description: { fr: 'Comptabiliser malgré des écarts', en: 'Post despite mismatches' },
     },
     { key: 'accounting.po.view', label: { fr: 'Voir les bons de commande', en: 'View purchase orders' } },
+    { key: 'accounting.po.process', label: { fr: 'Traiter les bons de commande reçus', en: 'Process received purchase orders' } },
+    { key: 'accounting.po.approve', label: { fr: 'Approuver / rejeter les bons de commande', en: 'Approve / reject purchase orders' } },
     { key: 'accounting.settings', label: { fr: 'Gérer les paramètres', en: 'Manage settings' } },
   ],
   nav: [
@@ -72,8 +81,25 @@ export const accountingModule: ModuleDef = {
         },
       ],
     },
-    { path: 'invoices', label: { fr: 'Factures', en: 'Invoices' }, icon: FileStack },
-    { path: 'purchase-orders', label: { fr: 'Bons de commande', en: 'Purchase orders' }, icon: ClipboardList, permission: 'accounting.po.view' },
+    {
+      path: 'customers',
+      label: { fr: 'Entrant', en: 'Incoming' },
+      icon: ArrowDownToLine,
+      permission: 'accounting.po.view',
+      children: [
+        { path: 'customers/purchase-orders', label: { fr: 'BC clients', en: 'Customer POs' }, icon: ClipboardList },
+        { path: 'customers/invoices', label: { fr: 'Factures clients', en: 'Customer invoices' }, icon: FileStack },
+      ],
+    },
+    {
+      path: 'vendors',
+      label: { fr: 'Sortant', en: 'Outgoing' },
+      icon: ArrowUpFromLine,
+      children: [
+        { path: 'purchase-orders', label: { fr: 'BC fournisseurs', en: 'Vendor POs' }, icon: ClipboardList, permission: 'accounting.po.view' },
+        { path: 'invoices', label: { fr: 'Factures fournisseurs', en: 'Vendor invoices' }, icon: FileStack },
+      ],
+    },
     { path: 'settings', label: { fr: 'Paramètres', en: 'Settings' }, icon: SettingsIcon, permission: 'accounting.settings' },
   ],
   component: AccountingRoutes,

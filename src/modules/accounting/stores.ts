@@ -8,6 +8,7 @@ import type {
   MailMessage,
 } from './types';
 import { DEFAULT_SETTINGS } from './defaults';
+import type { BcInvoiceRow, BcSalesOrder, PoRecord } from './orders';
 
 export { DEFAULT_SETTINGS };
 
@@ -26,3 +27,9 @@ export const bcPurchaseInvoices = collection<BcPurchaseInvoice>(API_MODE ? 'bc.p
 export async function getSettings(): Promise<AccountingSettings> {
   return (await accSettings.get('settings')) ?? DEFAULT_SETTINGS;
 }
+
+/** Purchase orders received by e-mail (customer POs and vendor confirmations) and their BC match. */
+export const poRecords = collection<PoRecord>(API_MODE ? 'acc.pos' : 'mock.pos');
+/** Local copy of Business Central sales orders and of sales/purchase invoices (refreshed by "Sync BC"). */
+export const bcSalesOrders = collection<BcSalesOrder>(API_MODE ? 'bc.salesOrders' : 'mock.bc.salesOrders');
+export const bcInvoices = collection<BcInvoiceRow>(API_MODE ? 'bc.invoices' : 'mock.bc.invoices');

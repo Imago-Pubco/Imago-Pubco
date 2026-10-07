@@ -26,6 +26,7 @@ import { config } from './config.ts';
 import * as db from './db.ts';
 import { broadcast, eventsHandler } from './events.ts';
 import { syncMailbox, testMailbox } from './mailbox.ts';
+import * as pipeline from './pipeline.ts';
 import { HttpError } from './ms.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
@@ -49,6 +50,10 @@ const RULES: Record<string, Rule> = {
     read: any('accounting.access'),
     write: any('accounting.invoices.import', 'accounting.invoices.edit', 'accounting.invoices.validate', 'accounting.invoices.approve', 'accounting.invoices.post'),
   },
+  'acc.pos': { read: any('accounting.access'), write: any('accounting.po.process') },
+  /** Local copy of Business Central data, written only by the server's sync. */
+  'bc.salesOrders': { read: any('accounting.access'), write: () => false },
+  'bc.invoices': { read: any('accounting.access'), write: () => false },
   'acc.settings': { read: any('accounting.access'), write: any('accounting.settings') },
   'acc.mailbox': { read: any('accounting.access'), write: any('accounting.inbox.view', 'accounting.invoices.import') },
 
@@ -312,6 +317,42 @@ export function apiRouter() {
     if (!me(req).canAny('admin.system', 'accounting.settings')) return forbid(res);
     bc.assertBc();
     res.json(await bc.testConnection());
+  }));
+
+  r.post('/bc/sync', wrap(async (req, res) => {
+    if (!bcRead(me(req))) return forbid(res);
+    res.json(await pipeline.syncBc());
+  }));
+  r.get('/bc/status', wrap(async (req, res) => {
+    if (!bcRead(me(req))) return forbid(res);
+    res.json({ enabled: config.bc.enabled, lastSync: (await db.getMeta<string>('bc.lastSync')) ?? null });
+  }));
+
+  /* ---------- purchase orders received by e-mail ---------- */
+
+  r.post('/pos/process', wrap(async (req, res) => {
+    if (!me(req).can('accounting.po.process')) return forbid(res);
+    res.json(await pipeline.processPo(String(req.body?.mailId ?? ''), Number(req.body?.attIndex ?? 0), me(req).user.id));
+  }));
+  r.post('/pos/:id/match', wrap(async (req, res) => {
+    if (!me(req).can('accounting.po.process')) return forbid(res);
+    res.json(await pipeline.rematchPo(String(req.params.id), me(req).user.id));
+  }));
+  r.post('/pos/:id/approve', wrap(async (req, res) => {
+    const a = me(req);
+    if (!a.can('accounting.po.approve')) return forbid(res);
+    const note = req.body?.overrideNote ? String(req.body.overrideNote) : undefined;
+    // Approving despite a failed match is an override.
+    if (note && !a.can('accounting.invoices.override')) return forbid(res);
+    res.json(await pipeline.approvePo(String(req.params.id), a.user.id, note));
+  }));
+  r.post('/pos/:id/reject', wrap(async (req, res) => {
+    if (!me(req).can('accounting.po.approve')) return forbid(res);
+    res.json(await pipeline.rejectPo(String(req.params.id), me(req).user.id, String(req.body?.reason ?? '')));
+  }));
+  r.post('/pos/:id/reopen', wrap(async (req, res) => {
+    if (!me(req).can('accounting.po.approve')) return forbid(res);
+    res.json(await pipeline.reopenPo(String(req.params.id), me(req).user.id));
   }));
 
   /* ---------- mailbox ---------- */

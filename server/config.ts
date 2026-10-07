@@ -53,6 +53,8 @@ export const config = {
     postMode: str('BC_POST_MODE', 'draft') === 'post' ? ('post' as const) : ('draft' as const),
     /** Currency code BC uses for local-currency documents (BC returns an empty code for LCY). */
     localCurrency: str('BC_LOCAL_CURRENCY', 'CAD'),
+    /** Automatic refresh of the local copy of BC data, in minutes (0 = only when someone clicks Sync). */
+    syncMinutes: Number(str('BC_SYNC_MINUTES', '0')) || 0,
   },
 
   graph: {

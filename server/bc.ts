@@ -2,6 +2,7 @@
  * Business Central connector (API v2.0), mapped to the shapes the front end already uses
  * (`BcVendor`, `BcPurchaseOrder`, `BcPurchaseInvoice`).
  */
+import type { BcInvoiceRow, BcSalesOrder, PoRecord } from '../src/modules/accounting/orders.ts';
 import type { BcPurchaseInvoice, BcPurchaseOrder, BcVendor, Invoice } from '../src/modules/accounting/types.ts';
 import { config } from './config.ts';
 import { HttpError, msFetch } from './ms.ts';
@@ -184,4 +185,176 @@ export async function createPurchaseInvoice(inv: Invoice): Promise<BcPurchaseInv
     amount: inv.total,
     imagoInvoiceId: inv.id,
   };
+}
+
+/* ---------- sales side: customer orders and invoices ---------- */
+
+interface RawSalesLine {
+  sequence: number;
+  lineType: string;
+  lineObjectNumber: string;
+  description: string;
+  unitOfMeasureCode: string;
+  quantity: number;
+  shippedQuantity: number;
+  invoicedQuantity: number;
+  unitPrice: number;
+}
+interface RawSalesOrder {
+  id: string;
+  number: string;
+  externalDocumentNumber: string;
+  customerNumber: string;
+  customerName: string;
+  orderDate: string;
+  status: string;
+  currencyCode: string;
+  salesOrderLines?: RawSalesLine[];
+}
+
+const mapSalesOrder = (o: RawSalesOrder): BcSalesOrder => ({
+  id: o.id,
+  no: o.number,
+  externalDocNo: o.externalDocumentNumber ?? '',
+  customerNo: o.customerNumber,
+  customerName: o.customerName,
+  orderDate: o.orderDate,
+  status: o.status,
+  currency: currency(o.currencyCode),
+  lines: (o.salesOrderLines ?? [])
+    .filter((l) => l.lineType === 'Item' || l.lineType === 'Resource' || l.lineType === 'Charge (Item)')
+    .map((l) => ({
+      lineNo: l.sequence,
+      itemNo: l.lineObjectNumber,
+      description: l.description,
+      uom: l.unitOfMeasureCode,
+      quantity: l.quantity,
+      quantityShipped: l.shippedQuantity,
+      quantityInvoiced: l.invoicedQuantity,
+      unitPrice: l.unitPrice,
+    })),
+});
+
+/** Follows OData paging so large lists are complete. */
+async function getAll<T>(url: string, max = 5000): Promise<T[]> {
+  const out: T[] = [];
+  let next: string | undefined = url;
+  while (next && out.length < max) {
+    const page: { value: T[]; '@odata.nextLink'?: string } = await get(next);
+    out.push(...page.value);
+    next = page['@odata.nextLink'];
+  }
+  return out;
+}
+
+export async function listSalesOrders(): Promise<BcSalesOrder[]> {
+  assertBc();
+  const rows = await getAll<RawSalesOrder>(`${company()}/salesOrders?$orderby=orderDate desc&$expand=salesOrderLines`, 1000);
+  return rows.map(mapSalesOrder);
+}
+
+/** The BC sales order whose "External Document No." is the customer's PO number (or whose own number matches). */
+export async function findSalesOrderByCustomerPo(poNo: string): Promise<BcSalesOrder | undefined> {
+  assertBc();
+  const no = poNo.trim();
+  if (!no) return undefined;
+  for (const field of ['externalDocumentNumber', 'number']) {
+    const r = await get<{ value: RawSalesOrder[] }>(`${company()}/salesOrders?$filter=${encodeURIComponent(`${field} eq ${lit(no)}`)}&$expand=salesOrderLines`);
+    if (r.value[0]) return mapSalesOrder(r.value[0]);
+  }
+  return undefined;
+}
+
+/** Customer PO to sales invoice: creates the invoice (and its lines) in BC; posts it when BC_POST_MODE=post. */
+export async function createSalesInvoice(po: PoRecord, order: BcSalesOrder): Promise<{ id: string; no: string }> {
+  assertBc();
+  const header = {
+    customerNumber: order.customerNo,
+    externalDocumentNumber: po.poNo,
+    invoiceDate: new Date().toISOString().slice(0, 10),
+    ...(order.currency && order.currency !== config.bc.localCurrency ? { currencyCode: order.currency } : {}),
+  };
+  const created = (await (await msFetch(SCOPE, `${company()}/salesInvoices`, { method: 'POST', body: JSON.stringify(header) })).json()) as { id: string; number: string };
+  for (const l of po.lines) {
+    await msFetch(SCOPE, `${company()}/salesInvoices(${created.id})/salesInvoiceLines`, {
+      method: 'POST',
+      body: JSON.stringify({
+        lineType: 'Item',
+        lineObjectNumber: l.itemNo,
+        description: l.description,
+        quantity: l.quantity,
+        unitPrice: l.unitPrice,
+        ...(l.uom ? { unitOfMeasureCode: l.uom } : {}),
+      }),
+    });
+  }
+  let number = created.number;
+  if (config.bc.postMode === 'post') {
+    await msFetch(SCOPE, `${company()}/salesInvoices(${created.id})/Microsoft.NAV.post`, { method: 'POST' });
+    const posted = await get<{ value: { number: string }[] }>(
+      `${company()}/salesInvoices?$top=1&$filter=${encodeURIComponent(`externalDocumentNumber eq ${lit(po.poNo)} and customerNumber eq ${lit(order.customerNo)}`)}&$orderby=invoiceDate desc`,
+    );
+    number = posted.value[0]?.number ?? number;
+  }
+  return { id: created.id, no: number };
+}
+
+/* ---------- invoices kept in sync (sales and purchase) ---------- */
+
+interface RawInvoice {
+  id: string;
+  number: string;
+  externalDocumentNumber?: string;
+  vendorInvoiceNumber?: string;
+  customerNumber?: string;
+  customerName?: string;
+  vendorNumber?: string;
+  vendorName?: string;
+  invoiceDate: string;
+  dueDate: string;
+  status: string;
+  currencyCode: string;
+  totalAmountIncludingTax: number;
+  remainingAmount?: number;
+}
+
+export async function listBcInvoices(): Promise<BcInvoiceRow[]> {
+  assertBc();
+  const at = new Date().toISOString();
+  const [sales, purchase] = await Promise.all([
+    getAll<RawInvoice>(`${company()}/salesInvoices?$orderby=invoiceDate desc`, 2000),
+    getAll<RawInvoice>(`${company()}/purchaseInvoices?$orderby=invoiceDate desc`, 2000),
+  ]);
+  return [
+    ...sales.map((i): BcInvoiceRow => ({
+      id: i.id,
+      kind: 'sales',
+      no: i.number,
+      externalDocNo: i.externalDocumentNumber ?? '',
+      partyNo: i.customerNumber ?? '',
+      partyName: i.customerName ?? '',
+      invoiceDate: i.invoiceDate,
+      dueDate: i.dueDate,
+      status: i.status,
+      currency: currency(i.currencyCode),
+      total: i.totalAmountIncludingTax,
+      remaining: i.remainingAmount,
+      syncedAt: at,
+    })),
+    ...purchase.map((i): BcInvoiceRow => ({
+      id: i.id,
+      kind: 'purchase',
+      no: i.number,
+      externalDocNo: i.vendorInvoiceNumber ?? '',
+      partyNo: i.vendorNumber ?? '',
+      partyName: i.vendorName ?? '',
+      invoiceDate: i.invoiceDate,
+      dueDate: i.dueDate,
+      status: i.status,
+      currency: currency(i.currencyCode),
+      total: i.totalAmountIncludingTax,
+      remaining: i.remainingAmount,
+      syncedAt: at,
+    })),
+  ];
 }

@@ -30,6 +30,8 @@ export const seedGroups: Group[] = [
       'accounting.invoices.approve',
       'accounting.invoices.post',
       'accounting.po.view',
+      'accounting.po.process',
+      'accounting.po.approve',
     ],
     color: '#e07a10',
   },
