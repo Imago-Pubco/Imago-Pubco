@@ -27,6 +27,7 @@ import * as db from './db.ts';
 import { broadcast, eventsHandler } from './events.ts';
 import { syncMailbox, testMailbox } from './mailbox.ts';
 import * as pipeline from './pipeline.ts';
+import { runAutomation } from './automation.ts';
 import { HttpError } from './ms.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
@@ -321,11 +322,19 @@ export function apiRouter() {
 
   r.post('/bc/sync', wrap(async (req, res) => {
     if (!bcRead(me(req))) return forbid(res);
-    res.json(await pipeline.syncBc());
+    const result = await pipeline.syncBc();
+    runAutomation().catch((e) => console.error('[automation]', e.message));
+    res.json(result);
   }));
   r.get('/bc/status', wrap(async (req, res) => {
     if (!bcRead(me(req))) return forbid(res);
     res.json({ enabled: config.bc.enabled, lastSync: (await db.getMeta<string>('bc.lastSync')) ?? null });
+  }));
+
+  /** Runs the automation now (what happens depends on the mode chosen in Comptabilité → Paramètres). */
+  r.post('/accounting/automation/run', wrap(async (req, res) => {
+    if (!me(req).can('accounting.settings')) return forbid(res);
+    res.json(await runAutomation());
   }));
 
   /* ---------- purchase orders received by e-mail ---------- */
@@ -361,6 +370,8 @@ export function apiRouter() {
     if (!me(req).canAny('accounting.inbox.view', 'accounting.invoices.import')) return forbid(res);
     const added = await syncMailbox();
     if (added) broadcast('acc.mailbox');
+    // New mail may be processed automatically (depending on the mode); never make the person wait for it.
+    runAutomation().catch((e) => console.error('[automation]', e.message));
     res.json({ added });
   }));
   r.post('/mailbox/test', wrap(async (req, res) => {

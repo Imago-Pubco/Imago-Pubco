@@ -167,8 +167,14 @@ export interface Invoice {
   createdAt: string;
 }
 
+/** manual: people do every step. assisted: documents are read and matched automatically, a person approves. auto: clean matches are also approved and created in BC. */
+export type AutomationMode = 'manual' | 'assisted' | 'auto';
+
 export interface AccountingSettings {
   id: 'settings';
+  mode: AutomationMode;
+  /** In automatic mode, documents above this amount always wait for a person (0 = no limit). */
+  autoMaxAmount: number;
   mailbox: string;
   qtyTolerance: number;
   priceTolerancePct: number;

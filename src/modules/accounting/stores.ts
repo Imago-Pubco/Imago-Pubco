@@ -25,7 +25,7 @@ export const bcPurchaseOrders = collection<BcPurchaseOrder>(API_MODE ? 'bc.purch
 export const bcPurchaseInvoices = collection<BcPurchaseInvoice>(API_MODE ? 'bc.purchaseInvoices' : 'mock.bc.purchaseInvoices');
 
 export async function getSettings(): Promise<AccountingSettings> {
-  return (await accSettings.get('settings')) ?? DEFAULT_SETTINGS;
+  return { ...DEFAULT_SETTINGS, ...(await accSettings.get('settings')) };
 }
 
 /** Purchase orders received by e-mail (customer POs and vendor confirmations) and their BC match. */

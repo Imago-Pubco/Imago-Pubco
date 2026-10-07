@@ -8,6 +8,7 @@ import express from 'express';
 import { apiRouter } from './api.ts';
 import { loadSession, purgeExpiredSessions } from './auth.ts';
 import { syncBc } from './pipeline.ts';
+import { runAutomation } from './automation.ts';
 import { config } from './config.ts';
 import { migrate, pool } from './db.ts';
 import { broadcast } from './events.ts';
@@ -49,7 +50,9 @@ async function start() {
 
   if (config.bc.enabled && config.bc.syncMinutes > 0) {
     setInterval(() => {
-      syncBc().catch((e) => console.error('[bc] sync failed:', e.message));
+      syncBc()
+        .then(() => runAutomation())
+        .catch((e) => console.error('[bc] sync failed:', e.message));
     }, config.bc.syncMinutes * 60_000);
   }
 
@@ -57,6 +60,7 @@ async function start() {
     setInterval(() => {
       syncMailbox()
         .then((n) => n && broadcast('acc.mailbox'))
+        .then(() => runAutomation())
         .catch((e) => console.error('[mailbox] sync failed:', e.message));
     }, config.graph.syncMinutes * 60_000);
   }

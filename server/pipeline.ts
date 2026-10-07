@@ -24,7 +24,7 @@ async function audit(userId: string, action: string, detail: string) {
 }
 
 export async function getSettings(): Promise<AccountingSettings> {
-  return (await db.getDoc<AccountingSettings & { id: string }>('acc.settings', 'settings')) ?? DEFAULT_SETTINGS;
+  return { ...DEFAULT_SETTINGS, ...(await db.getDoc<AccountingSettings & { id: string }>('acc.settings', 'settings')) };
 }
 
 /* ---------- Business Central sync ---------- */
