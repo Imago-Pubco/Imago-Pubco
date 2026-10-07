@@ -9,6 +9,8 @@ import type { ExtractedInvoice } from '../src/modules/accounting/types.ts';
 import { config } from './config.ts';
 
 const InvoiceSchema = z.object({
+  docType: z.enum(['invoice', 'po', 'other']),
+  poDirection: z.enum(['customer', 'vendor', '']),
   vendorName: z.string(),
   vendorEmail: z.string(),
   invoiceNo: z.string(),
@@ -30,8 +32,12 @@ const InvoiceSchema = z.object({
   total: z.number(),
 });
 
-const PROMPT = `This PDF is a vendor invoice received by Pubco, a Canadian packaging company.
-Extract the invoice fields.
+const PROMPT = `This PDF was received by e-mail by Pubco, a Canadian packaging company.
+First classify it in docType:
+- "invoice": a vendor invoice, statement or credit note asking Pubco to pay.
+- "po": a purchase order / bon de commande. poDirection = "customer" when a customer orders products from Pubco; "vendor" when it is Pubco's own purchase order or a vendor's confirmation of one.
+- "other": anything else (quote, delivery slip, newsletter...). poDirection is "" unless docType is "po".
+Then extract the fields. For a purchase order, vendorName is the company that issued the document, poNo is the PO number, invoiceNo is "", and lines are the ordered items (unitPrice is the price per unit when printed, otherwise 0).
 - Dates as YYYY-MM-DD. If the due date is missing, compute it from the payment terms; if there are no terms, use the invoice date.
 - poNo is Pubco's purchase order number as printed on the invoice (often labelled PO, P.O., Bon de commande, Votre commande). Empty string if absent.
 - itemNo is Pubco's item number when printed, otherwise the vendor's item or product code.

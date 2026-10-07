@@ -41,7 +41,15 @@ export interface BcPurchaseInvoice {
 }
 
 /* ---------- Mailbox ---------- */
+/** What a received PDF is: a vendor invoice, a purchase order (bon de commande) or something else. */
+export type DocType = 'invoice' | 'po' | 'other';
+/** customer = a customer ordering from Pubco (sales side); vendor = a PO of ours confirmed by a vendor. */
+export type PoDirection = 'customer' | 'vendor';
+
 export interface ExtractedInvoice {
+  /** Set by the AI when it classified the document. */
+  docType?: DocType;
+  poDirection?: PoDirection | '';
   vendorName: string;
   vendorEmail: string;
   invoiceNo: string;
@@ -62,6 +70,10 @@ export interface MailAttachment {
   fileId?: string;
   /** Extraction result (dev: canned; server: AI extraction of the PDF, when configured). */
   extracted?: ExtractedInvoice;
+  /** Classification: AI or rules at sync time, or a person's correction (`classifiedBy: 'user'`). */
+  docType?: DocType;
+  poDirection?: PoDirection;
+  classifiedBy?: 'ai' | 'rules' | 'user';
 }
 
 export interface MailMessage {

@@ -4,6 +4,7 @@
  * extraction is configured, read into invoice fields.
  */
 import { createHash } from 'node:crypto';
+import { classifyAttachment } from '../src/modules/accounting/classify.ts';
 import type { MailAttachment, MailMessage } from '../src/modules/accounting/types.ts';
 import { config } from './config.ts';
 import { getDoc, getMeta, insertDoc, saveFile, setMeta } from './db.ts';
@@ -77,7 +78,7 @@ async function doSync(): Promise<number> {
       const id = hashId('mail_', m.id);
       if (await getDoc('acc.mailbox', id)) continue;
       const fromEmail = m.from?.emailAddress?.address ?? '';
-      const attachments = await loadAttachments(m.id, fromEmail);
+      const attachments = await loadAttachments(m.id, fromEmail, m.subject ?? '', m.body?.content ?? '');
       if (!attachments.length) continue;
       const msg: MailMessage = {
         id,
@@ -105,7 +106,7 @@ async function doSync(): Promise<number> {
   return added;
 }
 
-async function loadAttachments(messageId: string, fromEmail: string): Promise<MailAttachment[]> {
+async function loadAttachments(messageId: string, fromEmail: string, subject: string, body: string): Promise<MailAttachment[]> {
   const r = await msFetch(SCOPE, `${mailboxUrl()}/messages/${encodeURIComponent(messageId)}/attachments`);
   const list = ((await r.json()) as { value: GraphAttachment[] }).value;
   const out: MailAttachment[] = [];
@@ -116,7 +117,10 @@ async function loadAttachments(messageId: string, fromEmail: string): Promise<Ma
     const data = Buffer.from(a.contentBytes, 'base64');
     const fileId = hashId('f_', messageId + a.id);
     await saveFile(fileId, a.name, 'application/pdf', data);
-    out.push({ name: a.name, sizeKb: Math.round(a.size / 1024), fileId, extracted: await extractInvoice(data, fromEmail) });
+    const att: MailAttachment = { name: a.name, sizeKb: Math.round(a.size / 1024), fileId, extracted: await extractInvoice(data, fromEmail) };
+    // The AI's classification wins; otherwise keyword rules on the file name, subject and message.
+    const c = classifyAttachment(att, { subject, body });
+    out.push({ ...att, docType: c.docType, poDirection: c.poDirection, classifiedBy: c.by });
   }
   return out;
 }

@@ -10,6 +10,7 @@ import { Butterfly } from '@/components/Butterfly';
 import { getSettings, mailbox } from '../stores';
 import { mailboxConnector } from '../integrations';
 import { importFromMail } from '../service';
+import { classifyAttachment } from '../classify';
 
 export function InboxPage() {
   const { t, fmtDate, fmtMoney } = useI18n();
@@ -95,6 +96,7 @@ export function InboxPage() {
                   </span>
                 )}
                 <span className="spacer" />
+                {m.attachments[0] && classifyAttachment(m.attachments[0], m).docType === 'po' && <span className="badge">{t('Bon de commande', 'Purchase order')}</span>}
                 {m.invoiceId ? (
                   <span className="badge badge-ok">{t('Importée', 'Imported')}</span>
                 ) : (

@@ -1,9 +1,10 @@
 import { Route, Routes } from 'react-router-dom';
-import { Calculator, LayoutDashboard, Inbox, FileStack, ClipboardList, Settings as SettingsIcon } from 'lucide-react';
+import { Calculator, LayoutDashboard, Inbox, FileStack, ClipboardList, Settings as SettingsIcon, Mail, FolderOpen, Receipt, ShoppingCart } from 'lucide-react';
 import { RequirePermission } from '@/components/ui';
 import type { ModuleDef } from '../types';
 import { AccountingKpis, InvoicePipeline, InvoicesTodo, Overview } from './pages/Overview';
 import { InboxPage } from './pages/InboxPage';
+import { DocumentsPage } from './pages/DocumentsPage';
 import { InvoiceList } from './pages/InvoiceList';
 import { InvoiceDetail } from './pages/InvoiceDetail';
 import { PurchaseOrders } from './pages/PurchaseOrders';
@@ -15,6 +16,9 @@ function AccountingRoutes() {
     <Routes>
       <Route index element={<Overview />} />
       <Route path="inbox" element={<RequirePermission permission="accounting.inbox.view"><InboxPage /></RequirePermission>} />
+      <Route path="inbox/documents" element={<RequirePermission permission="accounting.inbox.view"><DocumentsPage kind="all" /></RequirePermission>} />
+      <Route path="inbox/documents/invoices" element={<RequirePermission permission="accounting.inbox.view"><DocumentsPage kind="invoice" /></RequirePermission>} />
+      <Route path="inbox/documents/purchase-orders" element={<RequirePermission permission="accounting.inbox.view"><DocumentsPage kind="po" /></RequirePermission>} />
       <Route path="invoices" element={<InvoiceList />} />
       <Route path="invoices/:id" element={<InvoiceDetail />} />
       <Route path="purchase-orders" element={<RequirePermission permission="accounting.po.view"><PurchaseOrders /></RequirePermission>} />
@@ -50,7 +54,24 @@ export const accountingModule: ModuleDef = {
   ],
   nav: [
     { path: '', label: { fr: 'Aperçu', en: 'Overview' }, icon: LayoutDashboard },
-    { path: 'inbox', label: { fr: 'Boîte de réception', en: 'Inbox' }, icon: Inbox, permission: 'accounting.inbox.view' },
+    {
+      path: 'inbox',
+      label: { fr: 'Boîte de réception', en: 'Inbox' },
+      icon: Inbox,
+      permission: 'accounting.inbox.view',
+      children: [
+        { path: 'inbox', label: { fr: 'Courriels', en: 'E-mail' }, icon: Mail },
+        {
+          path: 'inbox/documents',
+          label: { fr: 'Documents', en: 'Documents' },
+          icon: FolderOpen,
+          children: [
+            { path: 'inbox/documents/invoices', label: { fr: 'Factures', en: 'Invoices' }, icon: Receipt },
+            { path: 'inbox/documents/purchase-orders', label: { fr: 'Bons de commande', en: 'Purchase orders' }, icon: ShoppingCart },
+          ],
+        },
+      ],
+    },
     { path: 'invoices', label: { fr: 'Factures', en: 'Invoices' }, icon: FileStack },
     { path: 'purchase-orders', label: { fr: 'Bons de commande', en: 'Purchase orders' }, icon: ClipboardList, permission: 'accounting.po.view' },
     { path: 'settings', label: { fr: 'Paramètres', en: 'Settings' }, icon: SettingsIcon, permission: 'accounting.settings' },

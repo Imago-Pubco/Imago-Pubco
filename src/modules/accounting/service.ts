@@ -1,5 +1,6 @@
 import { uid } from '@/data/db';
 import { logAudit } from '@/data/stores';
+import { classifyAttachment } from './classify';
 import { businessCentral, mailboxConnector } from './integrations';
 import { matchInvoice } from './matching';
 import { getSettings, invoices, mailbox } from './stores';
@@ -16,8 +17,9 @@ export async function importFromMail(mailId: string, userId: string): Promise<In
     const existing = await invoices.get(msg.invoiceId);
     if (existing) return existing;
   }
-  // Prefer an attachment that was read automatically; otherwise open the first PDF for manual entry.
-  const att = msg.attachments.find((a) => a.extracted) ?? msg.attachments[0];
+  // Prefer an attachment classified as an invoice, then one that was read automatically; otherwise open the first PDF for manual entry.
+  const isInvoice = (a: (typeof msg.attachments)[number]) => classifyAttachment(a, msg).docType === 'invoice';
+  const att = msg.attachments.find((a) => isInvoice(a) && a.extracted) ?? msg.attachments.find(isInvoice) ?? msg.attachments.find((a) => a.extracted) ?? msg.attachments[0];
   if (!att) throw new Error('No invoice attachment found');
   const ex: ExtractedInvoice = att.extracted ?? {
     vendorName: msg.fromName,
