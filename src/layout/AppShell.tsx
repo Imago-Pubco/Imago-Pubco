@@ -164,6 +164,10 @@ export function AppShell() {
             <span className="side-text">{t('Tableau de bord', 'Dashboard')}</span>
           </NavLink>
 
+          <button type="button" className="side-link" title="Test Button" aria-label="Test Button" style={{ ['--m' as string]: HOME_ACCENT, width: '100%', border: 0, background: 'transparent', font: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
+            <span className="side-icon"><span aria-hidden="true">T</span></span>
+            <span className="side-text">Test Button</span>
+          </button>
           {sidebarModules.length > 0 && <div className="side-section">{t('Modules', 'Modules')}</div>}
           <SideModules
             modules={sidebarModules}
