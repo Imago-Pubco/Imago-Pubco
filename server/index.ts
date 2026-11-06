@@ -32,6 +32,7 @@ const CSP = [
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob:",
   "connect-src 'self'",
+  "frame-src 'self' https://portail.akab.ca https://akab.ca",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

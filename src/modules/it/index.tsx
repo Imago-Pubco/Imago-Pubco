@@ -12,7 +12,7 @@ import './it.css';
 const URL_KEY = 'it.supportUrl';
 const EV_RELOAD = 'imago:it-reload';
 const EV_SETTINGS = 'imago:it-settings';
-export const DEFAULT_SUPPORT_URL = 'https://akab.ca';
+export const DEFAULT_SUPPORT_URL = 'https://portail.akab.ca';
 
 function useSupportUrl() {
   const [url, setUrl] = useState(DEFAULT_SUPPORT_URL);
