@@ -49,11 +49,30 @@ const nameKey = (s: string) => fold(s).split(' ').filter(Boolean).sort().join(' 
 /** Metrics whose NAME STARTS with a cost-type word are "lower is better" (a name that merely mentions a cost, e.g. "Projets terminés avec coût et marge validés", is not). */
 const DOWN = /^\s*(co[uû]ts?|[ée]carts?|taux de rejets?|rejets?|retards?|d[ée]passements?|mod r[ée]elle|defects?|scrap|waste|overtime)\b/i;
 
-export function buildKpiData(archive: AlignArchive, users: ImportUser[], actingUserId: string): { data: KpiData; report: ImportReport } {
-  const data = emptyData();
-  const report: ImportReport = { counts: {}, unmatchedPeople: [], invalid: {}, notes: [] };
-  const unmatched = new Set<string>();
+/** Every person name the archive refers to (the people list and every owner, member, task owner and check-in author). */
+export function referencedNames(archive: AlignArchive): string[] {
+  const names = new Set<string>(archive.people.map((p) => p.name));
+  const add = (n: string | null | undefined) => n && names.add(n);
+  for (const t of archive.teams) {
+    add(t.owner);
+    t.members.forEach(add);
+  }
+  for (const m of archive.metrics) add(m.owner);
+  for (const p of archive.priorities) {
+    add(p.owner);
+    p.tasks.forEach((t) => add(t.owner));
+  }
+  for (const h of archive.huddles) {
+    add(h.owner);
+    h.members.forEach(add);
+    h.entries.forEach((e) => add(e.person));
+    h.tasks.forEach((t) => add(t.owner));
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
+}
 
+/** Automatic matching of archived names to Imago users: by display name (accents, case and word order ignored), then by e-mail. */
+export function makeMatcher(archive: AlignArchive, users: ImportUser[]): (name: string) => string | null {
   const byName = new Map<string, string>();
   const byEmail = new Map<string, string>();
   for (const u of users.filter((x) => x.active)) {
@@ -61,9 +80,28 @@ export function buildKpiData(archive: AlignArchive, users: ImportUser[], actingU
     if (u.email) byEmail.set(u.email.toLowerCase(), u.id);
   }
   const emailOf = new Map(archive.people.filter((p) => p.email).map((p) => [nameKey(p.name), p.email!.toLowerCase()]));
+  return (name) => byName.get(nameKey(name)) ?? (emailOf.get(nameKey(name)) ? byEmail.get(emailOf.get(nameKey(name))!) : undefined) ?? null;
+}
+
+/**
+ * `overrides` are the administrator's explicit choices (name -> Imago user id, or null = "no account / ignore");
+ * a name absent from it is matched automatically.
+ */
+export function buildKpiData(
+  archive: AlignArchive,
+  users: ImportUser[],
+  actingUserId: string,
+  overrides: Record<string, string | null> = {},
+): { data: KpiData; report: ImportReport } {
+  const data = emptyData();
+  const report: ImportReport = { counts: {}, unmatchedPeople: [], invalid: {}, notes: [] };
+  const unmatched = new Set<string>();
+
+  const matcher = makeMatcher(archive, users);
   const userOf = (name: string | null | undefined): string | null => {
     if (!name) return null;
-    const id = byName.get(nameKey(name)) ?? (emailOf.get(nameKey(name)) ? byEmail.get(emailOf.get(nameKey(name))!) : undefined) ?? null;
+    if (Object.prototype.hasOwnProperty.call(overrides, name)) return overrides[name]; // explicit choice (even "no account")
+    const id = matcher(name);
     if (!id) unmatched.add(name);
     return id;
   };

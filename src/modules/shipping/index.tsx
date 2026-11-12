@@ -42,6 +42,7 @@ export const shippingModule: ModuleDef = {
     { path: 'settings', label: { fr: 'Paramètres', en: 'Settings' }, icon: SettingsIcon, permission: 'shipping.settings' },
   ],
   component: ShippingRoutes,
+  settings: { permission: 'shipping.settings', component: ShipSettings, summary: { fr: 'Paramètres d’expédition', en: 'Shipping settings' } },
   widgets: [
     { id: 'shipping.kpis', title: { fr: 'Expédition', en: 'Shipping' }, permission: 'shipping.access', size: 2, component: ShippingKpis },
     { id: 'shipping.todo', title: { fr: 'Étiquettes à compléter', en: 'Labels to finish' }, permission: 'shipping.access', size: 1, component: LabelsTodo },

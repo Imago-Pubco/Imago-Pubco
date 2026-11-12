@@ -58,4 +58,9 @@ export interface ModuleDef {
   /** Renders the module's nested <Routes>. */
   component: ComponentType;
   widgets?: WidgetDef[];
+  /**
+   * The module's settings screen. It is opened from Administration → Modules (one card per module), only for people
+   * who hold `permission`. Modules without settings are still listed there, marked "No settings yet".
+   */
+  settings?: { permission: string; component: ComponentType; summary?: L };
 }

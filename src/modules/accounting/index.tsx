@@ -109,6 +109,7 @@ export const accountingModule: ModuleDef = {
     { path: 'settings', label: { fr: 'Paramètres', en: 'Settings' }, icon: SettingsIcon, permission: 'accounting.settings' },
   ],
   component: AccountingRoutes,
+  settings: { permission: 'accounting.settings', component: Settings, summary: { fr: 'Mode d’approbation, tolérances de rapprochement, boîte de factures', en: 'Approval mode, matching tolerances, invoice mailbox' } },
   widgets: [
     { id: 'accounting.kpis', title: { fr: 'Comptes fournisseurs', en: 'Accounts payable' }, permission: 'accounting.access', size: 2, component: AccountingKpis },
     { id: 'accounting.pipeline', title: { fr: 'Métamorphose des factures', en: 'Invoice metamorphosis' }, permission: 'accounting.access', size: 2, component: InvoicePipeline },

@@ -15,7 +15,7 @@ import { TOOLS_SCHEMAS } from '../src/modules/tools/schemas.ts';
 import type { User } from '../src/data/types.ts';
 import * as db from './db.ts';
 import { broadcast } from './events.ts';
-import { buildKpiData, emptyData, KPI_COLLECTIONS, type ImportReport, type KpiData } from './kpiImport.ts';
+import { buildKpiData, emptyData, KPI_COLLECTIONS, makeMatcher, referencedNames, type ImportReport, type KpiData } from './kpiImport.ts';
 import { HttpError } from './ms.ts';
 import { withLock } from './pipeline.ts';
 
@@ -112,6 +112,161 @@ const TZ = process.env.APP_TIMEZONE || 'America/Toronto';
 const stamp = (d: Date) => d.toLocaleString('sv-SE', { timeZone: TZ });
 const meta = (s: Snapshot) => ({ slot: s.slot, name: s.name, takenAt: s.takenAt, takenBy: s.takenBy, counts: s.counts });
 
+/* ---------- people: archived names <-> Imago users ---------- */
+
+const PEOPLE_MAP_KEY = 'kpi.people-map';
+const PEOPLE_SYNCED_KEY = 'kpi.people-synced';
+type Choices = Record<string, string | null>;
+interface PeopleMapRecord {
+  map: Choices;
+  savedAt: string;
+}
+interface SyncedRecord {
+  map: Choices;
+  at: string;
+}
+const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
+
+const savedChoices = async (): Promise<Choices> => (await db.getMeta<PeopleMapRecord>(PEOPLE_MAP_KEY))?.map ?? {};
+
+/** name -> Imago user id (or null) for every name the archive mentions: explicit choices first, then automatic matching. */
+function effectiveMap(archive: AlignArchive, users: User[], choices: Choices): Choices {
+  const match = makeMatcher(archive, users);
+  return Object.fromEntries(referencedNames(archive).map((n) => [n, has(choices, n) ? choices[n] : match(n)]));
+}
+
+/** What the last import / restore / sync applied, so a later sync only has to apply what changed since. */
+const rememberSynced = (map: Choices) => db.setMeta(PEOPLE_SYNCED_KEY, { map, at: new Date().toISOString() } satisfies SyncedRecord);
+
+export async function getPeople() {
+  const rec = await getArchive();
+  if (!rec) return { people: [], lastSyncedAt: null as string | null, pending: 0 };
+  const archive = rec.archive;
+  const [users, choices, synced] = await Promise.all([db.listDocs<User>('users'), savedChoices(), db.getMeta<SyncedRecord>(PEOPLE_SYNCED_KEY)]);
+  const eff = effectiveMap(archive, users, choices);
+  const match = makeMatcher(archive, users);
+  const who = (id: string | null) => {
+    const u = id ? users.find((x) => x.id === id) : undefined;
+    return u ? { id: u.id, displayName: u.displayName } : null;
+  };
+  const info = new Map(archive.people.map((p) => [p.name, p]));
+  const count = {
+    kpis: (n: string) => archive.metrics.filter((m) => m.owner === n).length,
+    priorities: (n: string) => archive.priorities.filter((p) => p.owner === n).length,
+    tasks: (n: string) => archive.priorities.reduce((c, p) => c + p.tasks.filter((t) => t.owner === n).length, 0) + archive.huddles.reduce((c, h) => c + h.tasks.filter((t) => t.owner === n).length, 0),
+    huddles: (n: string) => archive.huddles.filter((h) => h.owner === n || h.members.includes(n)).length,
+    checkins: (n: string) => archive.huddles.reduce((c, h) => c + h.entries.filter((e) => e.person === n).length, 0),
+  };
+  const people = referencedNames(archive).map((name) => {
+    const p = info.get(name);
+    return {
+      name,
+      email: p?.email ?? '',
+      title: p?.title ?? '',
+      choice: (has(choices, name) ? (choices[name] === null ? 'none' : 'user') : 'auto') as 'auto' | 'none' | 'user',
+      userId: has(choices, name) ? choices[name] : null,
+      suggested: who(match(name)),
+      effective: who(eff[name]),
+      counts: { kpis: count.kpis(name), priorities: count.priorities(name), tasks: count.tasks(name), huddles: count.huddles(name), checkins: count.checkins(name) },
+      pending: (synced?.map[name] ?? null) !== (eff[name] ?? null),
+    };
+  });
+  return { people, lastSyncedAt: synced?.at ?? null, pending: people.filter((p) => p.pending).length };
+}
+
+/** Saves the administrator's explicit choices (absent = automatic, null = no account, string = an active Imago user). */
+export function setPeopleChoices(actorId: string, map: unknown) {
+  return withLock('kpi-data', async () => {
+    const rec = await getArchive();
+    if (!rec) throw new HttpError(404, 'There is no archived data.');
+    if (!map || typeof map !== 'object' || Array.isArray(map)) throw new HttpError(400, 'Invalid matching.');
+    const known = new Set(referencedNames(rec.archive));
+    const users = await db.listDocs<User>('users');
+    const clean: Choices = {};
+    for (const [name, v] of Object.entries(map as Record<string, unknown>)) {
+      if (!known.has(name)) throw new HttpError(400, `Unknown person: ${name}`);
+      if (v === null) clean[name] = null;
+      else if (typeof v === 'string' && users.some((u) => u.id === v && u.active)) clean[name] = v;
+      else throw new HttpError(400, `Not an active Imago user: ${name}`);
+    }
+    await db.setMeta(PEOPLE_MAP_KEY, { map: clean, savedAt: new Date().toISOString() } satisfies PeopleMapRecord);
+    await audit(actorId, 'tools.kpi.data.people-map', `${Object.values(clean).filter(Boolean).length} explicit link(s), ${Object.values(clean).filter((v) => v === null).length} marked "no account"`);
+  }).then(() => getPeople());
+}
+
+/**
+ * Applies the links of the people whose association changed since the last import / restore / sync, WITHOUT re-importing.
+ * The archive is built twice, with the previous and the current associations: the difference is exactly what the new links
+ * change. It is applied to the live documents only where the field still has the value it had before (so nothing edited in
+ * the app is overwritten), members are added, and the check-ins of the newly linked people are inserted.
+ */
+export function syncPeople(actorId: string) {
+  return withLock('kpi-data', async () => {
+    const rec = await getArchive();
+    if (!rec) throw new HttpError(404, 'There is no archived data.');
+    const users = await db.listDocs<User>('users');
+    const choices = await savedChoices();
+    const synced = await db.getMeta<SyncedRecord>(PEOPLE_SYNCED_KEY);
+    const now = effectiveMap(rec.archive, users, choices);
+    const before = buildKpiData(rec.archive, users, actorId, synced?.map ?? Object.fromEntries(Object.keys(now).map((n) => [n, null]))).data;
+    const after = buildKpiData(rec.archive, users, actorId, now).data;
+
+    const updated: Record<string, number> = {};
+    const inserted: Record<string, number> = {};
+    const client: PoolClient = await db.pool.connect();
+    try {
+      await client.query('begin');
+      for (const c of KPI_COLLECTIONS) {
+        const prev = new Map(before[c].map((d) => [String(d.id), d]));
+        for (const doc of after[c]) {
+          const id = String(doc.id);
+          const was = prev.get(id);
+          const liveRow = await client.query('select data from docs where collection = $1 and id = $2', [c, id]);
+          const live = liveRow.rows[0]?.data as Record<string, unknown> | undefined;
+          if (!was) {
+            // Only check-ins appear because of a link (their author needs an account); anything else the person deleted stays deleted.
+            if (!live && c === 'tools.huddleEntries') {
+              await client.query('insert into docs (collection, id, data) values ($1, $2, $3)', [c, id, doc]);
+              inserted[c] = (inserted[c] ?? 0) + 1;
+            }
+            continue;
+          }
+          if (!live) continue;
+          const patch: Record<string, unknown> = {};
+          for (const key of Object.keys(doc)) {
+            if (JSON.stringify(doc[key]) === JSON.stringify(was[key])) continue;
+            if (Array.isArray(doc[key]) && Array.isArray(was[key])) {
+              // members: add the newly linked people, never remove anyone
+              const added = (doc[key] as unknown[]).filter((x) => !(was[key] as unknown[]).includes(x));
+              const merged = [...new Set([...((live[key] as unknown[]) ?? []), ...added])];
+              if (merged.length !== ((live[key] as unknown[]) ?? []).length) patch[key] = merged;
+            } else if (JSON.stringify(live[key]) === JSON.stringify(was[key])) {
+              patch[key] = doc[key]; // still what the import wrote: safe to update
+            }
+          }
+          if (Object.keys(patch).length) {
+            patch.updatedBy = actorId;
+            patch.updatedAt = new Date().toISOString();
+            await client.query('update docs set data = data || $3::jsonb, updated_at = now() where collection = $1 and id = $2', [c, id, JSON.stringify(patch)]);
+            updated[c] = (updated[c] ?? 0) + 1;
+          }
+        }
+      }
+      await client.query('commit');
+    } catch (e) {
+      await client.query('rollback').catch(() => undefined);
+      throw e;
+    } finally {
+      client.release();
+    }
+    const people = Object.keys(now).filter((n) => (synced?.map[n] ?? null) !== (now[n] ?? null)).length;
+    await rememberSynced(now);
+    for (const c of KPI_COLLECTIONS) broadcast(c);
+    await audit(actorId, 'tools.kpi.data.sync-people', `Applied the links of ${people} person(s): ${total(updated)} document(s) updated, ${total(inserted)} inserted`);
+    return { updated, inserted, people };
+  });
+}
+
 /* ---------- operations ---------- */
 
 export async function status() {
@@ -139,8 +294,10 @@ export function importArchive(actorId: string): Promise<{ report: ImportReport; 
     const rec = await getArchive();
     if (!rec) throw new HttpError(404, 'There is no archived data to import.');
     const users = await db.listDocs<User>('users');
-    const { data, report } = buildKpiData(rec.archive, users, actorId);
+    const choices = await savedChoices();
+    const { data, report } = buildKpiData(rec.archive, users, actorId, choices);
     const { skipped } = await replaceCurrent(data);
+    await rememberSynced(effectiveMap(rec.archive, users, choices));
     await audit(actorId, 'tools.kpi.data.import', `Imported the archived ${rec.archive.source} data: ${total(report.counts)} documents (${report.unmatchedPeople.length} unmatched people)`);
     return { report, skipped };
   });
@@ -179,7 +336,10 @@ export function restore(actorId: string, from: RestoreSource) {
     if (from.source === 'archive') {
       const rec = await getArchive();
       if (!rec) throw new HttpError(404, 'There is no archived data to restore.');
-      const built = buildKpiData(rec.archive, await db.listDocs<User>('users'), actorId);
+      const users = await db.listDocs<User>('users');
+      const choices = await savedChoices();
+      const built = buildKpiData(rec.archive, users, actorId, choices);
+      await rememberSynced(effectiveMap(rec.archive, users, choices));
       data = built.data;
       report = built.report;
       label = `the archived ${rec.archive.source} data`;

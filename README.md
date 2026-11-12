@@ -100,11 +100,14 @@ Sidebar module **Outils / Tools**, first tool **KPI** (working name): indicators
 
 Every write is validated by a strict schema on the server (`src/modules/tools/schemas.ts`) and stamped with who and when by the server. A check-in can only be written by its author or the huddle owner; only the owner (or a super administrator) can hand a huddle over or delete it. Everything is audited.
 
-### KPI data management (Tools → KPI → Settings, permission `tools.kpi.data`)
+### KPI data management (Administration → Modules → Outils, permission `tools.kpi.data`)
+
+Administration has a **Modules** tab with one card per module; a card opens that module's settings (a module registers its screen with `settings` in its `ModuleDef`; modules without settings are listed as "No settings yet"). KPI data management is the Tools module's settings, not a page of the KPI section.
 
 - **Old data (archive).** The data exported from Align (metrics, priorities with tasks and weekly updates, huddles with their history) is kept in a hidden store on the server (`meta` table, key `kpi.archive`): never served by the app, never included in the admin export, never erased by anything on the Settings page. It is not in the repository. An administrator loads it once:
   `docker compose cp align-archive.json app:/tmp/archive.json` then `docker compose exec app node server/scripts/load-kpi-archive.ts /tmp/archive.json` (several part files can be given; dev: `node --env-file=.env server/scripts/load-kpi-archive.ts a.json b.json`).
-- **Import old data** fills the KPI section from the archive. People are matched to Imago accounts by name (accents and word order ignored) or e-mail, so **create the accounts first**: unmatched people leave their owner/member links empty and their huddle check-ins wait in the archive for a later import.
+- **Import old data** fills the KPI section from the archive.
+- **People matching.** The archive refers to people by name. The settings screen lists them with what each owns, and an administrator associates each one with an Imago account (automatic suggestion by name or e-mail, an explicit choice, or "no account"), saves, then presses **Sync associated people**. The sync applies only the links that changed since the last import/sync and never re-imports: it fills owner and member links, adds the newly linked people's huddle check-ins, and leaves untouched anything edited in the app (a changed field, a member removed, a deleted item).
 - **Snapshots.** Up to three snapshots of the KPI data, named with their date and time. When all three are used, the oldest is overwritten after a warning that names it. Snapshots are kept apart from the app and are never erased by "Erase all".
 - **Restore** asks first where to restore from: the archive of the old data or one of the snapshots.
 - **Erase all KPI data** wipes the nine KPI collections in production (typed confirmation). The archive and the snapshots are never touched.

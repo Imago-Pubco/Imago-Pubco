@@ -46,6 +46,7 @@ export const estimatingModule: ModuleDef = {
     { path: 'settings', label: { fr: 'Paramètres', en: 'Settings' }, icon: SettingsIcon, permission: 'estimating.settings' },
   ],
   component: EstimatingRoutes,
+  settings: { permission: 'estimating.settings', component: EstSettingsPage, summary: { fr: 'Paramètres de chiffrage', en: 'Costing settings' } },
   widgets: [
     { id: 'estimating.kpis', title: { fr: 'Estimation', en: 'Estimating' }, permission: 'estimating.access', size: 2, component: EstimatingKpis },
     { id: 'estimating.todo', title: { fr: 'Estimations à chiffrer', en: 'Estimates to cost' }, permission: 'estimating.access', size: 1, component: EstimatesTodo },

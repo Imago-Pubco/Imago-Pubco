@@ -597,6 +597,20 @@ export function apiRouter() {
     res.json(await kpiData.importArchive(me(req).user.id));
   }));
 
+  // Matching of the archived people to Imago users, and the incremental sync of their links (no re-import).
+  r.get('/tools/kpi/data/people', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    res.json(await kpiData.getPeople());
+  }));
+  r.put('/tools/kpi/data/people', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    res.json(await kpiData.setPeopleChoices(me(req).user.id, req.body?.map));
+  }));
+  r.post('/tools/kpi/data/sync-people', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    res.json(await kpiData.syncPeople(me(req).user.id));
+  }));
+
   r.post('/tools/kpi/data/snapshot', wrap(async (req, res) => {
     if (!kpiAdmin(req, res)) return;
     try {

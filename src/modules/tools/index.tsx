@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Gauge, LayoutDashboard, ListChecks, Target, Users, Wrench, Presentation, Settings2 } from 'lucide-react';
+import { Gauge, LayoutDashboard, ListChecks, Target, Users, Wrench, Presentation } from 'lucide-react';
 import { RequirePermission } from '@/components/ui';
 import type { ModuleDef } from '../types';
 import { Dashboard } from './pages/Dashboard';
@@ -22,7 +22,6 @@ function ToolsRoutes() {
       <Route path="kpi/huddles" element={guard(<Huddles />)} />
       <Route path="kpi/huddles/:id" element={guard(<HuddleMeeting />)} />
       <Route path="kpi/teams" element={guard(<Teams />)} />
-      <Route path="kpi/settings" element={<RequirePermission permission="tools.kpi.data"><Settings /></RequirePermission>} />
     </Routes>
   );
 }
@@ -53,9 +52,14 @@ export const toolsModule: ModuleDef = {
         { path: 'kpi/priorities', label: { fr: 'Priorités', en: 'Priorities' }, icon: ListChecks },
         { path: 'kpi/huddles', label: { fr: 'Huddles', en: 'Huddles' }, icon: Presentation },
         { path: 'kpi/teams', label: { fr: 'Équipes', en: 'Teams' }, icon: Users },
-        { path: 'kpi/settings', label: { fr: 'Paramètres', en: 'Settings' }, icon: Settings2, permission: 'tools.kpi.data' },
       ],
     },
   ],
   component: ToolsRoutes,
+  // Opened from Administration → Modules, not from the KPI section.
+  settings: {
+    permission: 'tools.kpi.data',
+    component: Settings,
+    summary: { fr: 'Données KPI : importer, correspondance des personnes, instantanés, restaurer, effacer', en: 'KPI data: import, people matching, snapshots, restore, erase' },
+  },
 };

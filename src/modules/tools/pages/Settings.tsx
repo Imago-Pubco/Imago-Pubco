@@ -5,6 +5,7 @@ import { Page } from '@/components/Page';
 import { PageHeader, useToast } from '@/components/ui';
 import { ArchiveCard, CurrentCard, DangerCard, RestoreCard, ResultPanel, SnapshotsCard } from '../Settings.cards';
 import { EraseModal, ImportModal, RestoreModal, SnapshotWarningModal } from '../Settings.modals';
+import { PeopleMatchCard } from '../Settings.people';
 import {
   errorText,
   sumOf,
@@ -133,7 +134,7 @@ export function Settings() {
   if (!status) {
     return (
       <Page>
-        <PageHeader eyebrow={t('Outils · KPI', 'Tools · KPI')} title={t('Paramètres — données KPI', 'Settings — KPI data')} />
+        <PageHeader eyebrow={t('Administration · Outils', 'Administration · Tools')} title={t('Paramètres — données KPI', 'Settings — KPI data')} />
         {loadError ? (
           <div className="alert alert-err row-wrap" style={{ alignItems: 'center' }}>
             <span>{loadError}</span>
@@ -153,7 +154,7 @@ export function Settings() {
 
   return (
     <Page>
-      <PageHeader eyebrow={t('Outils · KPI', 'Tools · KPI')} title={t('Paramètres — données KPI', 'Settings — KPI data')} />
+      <PageHeader eyebrow={t('Administration · Outils', 'Administration · Tools')} title={t('Paramètres — données KPI', 'Settings — KPI data')} />
 
       {loadError && <div className="alert alert-err" style={{ marginBottom: 16 }}>{loadError}</div>}
       {busy && <div className="alert alert-info" style={{ marginBottom: 16 }}>{t(BUSY_TEXT[busy])}</div>}
@@ -166,6 +167,10 @@ export function Settings() {
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <CurrentCard current={status.current} />
         <ArchiveCard archive={status.archive} disabled={locked} onImport={() => setModal('import')} />
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <PeopleMatchCard onChanged={() => void load()} />
       </div>
 
       <div style={{ marginBottom: 20 }}>

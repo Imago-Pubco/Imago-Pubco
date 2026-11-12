@@ -1,5 +1,5 @@
 import { Link, NavLink, Route, Routes } from 'react-router-dom';
-import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Server, Mail as MailIcon } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Server, Mail as MailIcon, LayoutGrid } from 'lucide-react';
 import { useCollection } from '@/data/db';
 import { groups, users } from '@/data/stores';
 import { useAuth } from '@/auth/AuthContext';
@@ -13,6 +13,7 @@ import { Groups } from './pages/Groups';
 import { Audit, AuditTable } from './pages/Audit';
 import { System } from './pages/System';
 import { Mail } from './pages/Mail';
+import { ModuleSettings, Modules } from './pages/Modules';
 import './admin.css';
 
 function AdminKpis() {
@@ -77,6 +78,8 @@ function AdminRoutes() {
       <Route path="users" element={<RequirePermission permission="admin.users.manage"><Users /></RequirePermission>} />
       <Route path="groups" element={<RequirePermission permission="admin.groups.manage"><Groups /></RequirePermission>} />
       <Route path="audit" element={<RequirePermission permission="admin.audit.view"><Audit /></RequirePermission>} />
+      <Route path="modules" element={<Modules />} />
+      <Route path="modules/:id" element={<ModuleSettings />} />
       <Route path="mail" element={<RequirePermission permission="admin.mail"><Mail /></RequirePermission>} />
       <Route path="system" element={<RequirePermission permission="admin.system"><System /></RequirePermission>} />
     </Routes>
@@ -108,6 +111,7 @@ export const adminModule: ModuleDef = {
     { path: 'users', label: { fr: 'Utilisateurs', en: 'Users' }, icon: UsersIcon, permission: 'admin.users.manage' },
     { path: 'groups', label: { fr: 'Groupes d’accès', en: 'Access groups' }, icon: KeyRound, permission: 'admin.groups.manage' },
     { path: 'audit', label: { fr: 'Journal d’audit', en: 'Audit log' }, icon: ScrollText, permission: 'admin.audit.view' },
+    { path: 'modules', label: { fr: 'Modules', en: 'Modules' }, icon: LayoutGrid },
     { path: 'mail', label: { fr: 'Courriels', en: 'E-mail' }, icon: MailIcon, permission: 'admin.mail' },
     { path: 'system', label: { fr: 'Système', en: 'System' }, icon: Server, permission: 'admin.system' },
   ],
