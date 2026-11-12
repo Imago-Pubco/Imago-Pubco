@@ -7,6 +7,8 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import type { ZodObject } from 'zod';
 import { effectivePermissions } from '../src/auth/permissions.ts';
 import { TOOLS_SCHEMAS } from '../src/modules/tools/schemas.ts';
+import { PM_SCHEMAS } from '../src/modules/tools/pm/schemas.ts';
+import { guardPm, guardPmDelete, isPmCollection } from './pmGuard.ts';
 import type { Group, User } from '../src/data/types.ts';
 import type { Invoice } from '../src/modules/accounting/types.ts';
 import {
@@ -86,6 +88,15 @@ const RULES: Record<string, Rule> = {
   // Tools -> KPI: one permission for now (the module and the tool); every write is validated and stamped below.
   ...Object.fromEntries(Object.keys(TOOLS_SCHEMAS).map((k) => [k, { read: any('tools.kpi.access'), write: any('tools.kpi.access') } as Rule])),
 
+  // Tools -> Gestion de projet. Reads need tools.pm.access; the guard in pmGuard.ts decides what each write may do.
+  ...Object.fromEntries(Object.keys(PM_SCHEMAS).map((k) => [k, { read: any('tools.pm.access'), write: any('tools.pm.access') } as Rule])),
+  'pm.clients': { read: any('tools.pm.access'), write: any('tools.pm.manage') },
+  'pm.projects': { read: any('tools.pm.access'), write: any('tools.pm.manage') },
+  'pm.expenses': { read: any('tools.pm.access'), write: any('tools.pm.manage') },
+  'pm.staff': { read: any('tools.pm.access'), write: any('tools.pm.manage') },
+  // Cost rates are confidential.
+  'pm.rates': { read: any('tools.pm.reports', 'tools.pm.manage'), write: any('tools.pm.manage') },
+
   'mail.templates': { read: any('admin.mail'), write: any('admin.mail') },
 };
 
@@ -153,6 +164,9 @@ async function guardTools(c: string, body: Record<string, unknown>, a: AuthInfo,
   doc.updatedAt = stamp;
   return { doc };
 }
+
+/** Validation + stamping for the collections that have a guard (Tools KPI and Project management). */
+const guardAny = (c: string, body: Record<string, unknown>, a: AuthInfo, existing?: Record<string, unknown>) => (isPmCollection(c) ? guardPm(c, body, a, existing) : guardTools(c, body, a, existing));
 
 /** The permissions a set of groups would give. */
 async function groupPerms(groupIds: unknown): Promise<Set<string>> {
@@ -917,7 +931,7 @@ export function apiRouter() {
     for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete body[f];
     if (RESERVED_IDS.has(String(body.id ?? '').toLowerCase())) return res.status(400).json({ error: 'reserved id' });
     body.id = body.id ?? uid('');
-    const guarded = await guardTools(String(req.params.c), body, me(req));
+    const guarded = await guardAny(String(req.params.c), body, me(req));
     if ('status' in guarded) return res.status(guarded.status).json({ error: guarded.error });
     const doc = { ...guarded.doc, id: body.id } as db.Doc;
     try {
@@ -938,10 +952,10 @@ export function apiRouter() {
     delete patch.id; // the document's identity never changes
     for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete patch[f];
     let toApply = patch;
-    if (String(req.params.c) in TOOLS_SCHEMAS) {
+    if (String(req.params.c) in TOOLS_SCHEMAS || isPmCollection(String(req.params.c))) {
       const existing = await db.getDoc<Record<string, unknown> & db.Doc>(String(req.params.c), String(req.params.id));
       if (!existing) return res.status(404).json({ error: 'not_found' });
-      const guarded = await guardTools(String(req.params.c), patch, me(req), existing);
+      const guarded = await guardAny(String(req.params.c), patch, me(req), existing);
       if ('status' in guarded) return res.status(guarded.status).json({ error: guarded.error });
       toApply = guarded.doc;
     }
@@ -955,6 +969,10 @@ export function apiRouter() {
     const rl = rule(req, res);
     if (!rl) return;
     if (!rl.write(me(req))) return forbid(res);
+    if (isPmCollection(String(req.params.c))) {
+      const refused = await guardPmDelete(String(req.params.c), String(req.params.id), me(req));
+      if (refused) return res.status(refused.status).json({ error: refused.error });
+    }
     if (String(req.params.c) === 'tools.huddleEntries') {
       const existing = await db.getDoc<Record<string, unknown> & db.Doc>('tools.huddleEntries', String(req.params.id));
       if (existing) {

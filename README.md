@@ -113,6 +113,21 @@ Administration has a **Modules** tab with one card per module; a card opens that
 - **Erase all KPI data** wipes the nine KPI collections in production (typed confirmation). The archive and the snapshots are never touched.
 - Every operation runs in a single database transaction and is written to the audit log.
 
+## Tools → Gestion de projet (project management)
+
+Inspired by FunctionFox: client → project → task, time booked on tasks, budgets against actuals, availability, reports.
+Screens (`/tools/pm`): dashboard, projects (+ detail with budget, tasks, time, expenses, team), tasks (list and Kanban),
+timesheet (weekly grid, timer, copy last week, submit), approvals, schedule (Gantt-style), availability (capacity vs planned,
+time off), clients, reports (6 reports, CSV), team and rates.
+
+- Permissions: `tools.pm.access` (use), `tools.pm.manage` (clients, projects, expenses, billing rates, team),
+  `tools.pm.approve` (approve timesheets), `tools.pm.reports` (reports, profitability, cost rates).
+- Rules enforced by the server (`server/pmGuard.ts`): billable and rate of a time entry are computed from the task and frozen on the
+  entry (a later rate change never reprices old time); approved time is locked; nobody approves their own time; time only on
+  open projects where one is a member; projects, tasks and clients with history are archived, not deleted; cost rates
+  (`pm.rates`) are readable only with `tools.pm.reports` or `tools.pm.manage`.
+- Later phases: invoices and estimates, retainers, recurring entries, notifications, integrations.
+
 ## Gestion O365
 
 Manage several Microsoft 365 tenants from one place: tenant overview (domains, user count, license usage), users (create, edit, block/allow sign-in, reset password, delete, assign licenses), mail contacts (add/delete), distribution groups (members add/remove) and licenses (click a license to see who holds it). Choose the tenant in the top bar.
