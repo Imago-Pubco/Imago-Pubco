@@ -100,6 +100,16 @@ Sidebar module **Outils / Tools**, first tool **KPI** (working name): indicators
 
 Every write is validated by a strict schema on the server (`src/modules/tools/schemas.ts`) and stamped with who and when by the server. A check-in can only be written by its author or the huddle owner; only the owner (or a super administrator) can hand a huddle over or delete it. Everything is audited.
 
+### KPI data management (Tools → KPI → Settings, permission `tools.kpi.data`)
+
+- **Old data (archive).** The data exported from Align (metrics, priorities with tasks and weekly updates, huddles with their history) is kept in a hidden store on the server (`meta` table, key `kpi.archive`): never served by the app, never included in the admin export, never erased by anything on the Settings page. It is not in the repository. An administrator loads it once:
+  `docker compose cp align-archive.json app:/tmp/archive.json` then `docker compose exec app node server/scripts/load-kpi-archive.ts /tmp/archive.json` (several part files can be given; dev: `node --env-file=.env server/scripts/load-kpi-archive.ts a.json b.json`).
+- **Import old data** fills the KPI section from the archive. People are matched to Imago accounts by name (accents and word order ignored) or e-mail, so **create the accounts first**: unmatched people leave their owner/member links empty and their huddle check-ins wait in the archive for a later import.
+- **Snapshots.** Up to three snapshots of the KPI data, named with their date and time. When all three are used, the oldest is overwritten after a warning that names it. Snapshots are kept apart from the app and are never erased by "Erase all".
+- **Restore** asks first where to restore from: the archive of the old data or one of the snapshots.
+- **Erase all KPI data** wipes the nine KPI collections in production (typed confirmation). The archive and the snapshots are never touched.
+- Every operation runs in a single database transaction and is written to the audit log.
+
 ## Gestion O365
 
 Manage several Microsoft 365 tenants from one place: tenant overview (domains, user count, license usage), users (create, edit, block/allow sign-in, reset password, delete, assign licenses), mail contacts (add/delete), distribution groups (members add/remove) and licenses (click a license to see who holds it). Choose the tenant in the top bar.

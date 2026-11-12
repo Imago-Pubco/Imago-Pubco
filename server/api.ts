@@ -37,6 +37,7 @@ import * as pipeline from './pipeline.ts';
 import { matchInvoiceRecord, runAutomation } from './automation.ts';
 import { assertMail, defaultTemplate, getTemplate, renderTemplate, sampleVars, sendMail, sendTemplate, verifySmtp, type MailTemplate } from './mail.ts';
 import { consumeToken, createToken, deleteUserTokens, humanDuration, peekToken } from './tokens.ts';
+import * as kpiData from './kpiData.ts';
 import { HttpError } from './ms.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
@@ -572,6 +573,54 @@ export function apiRouter() {
     if (!sent) return res.status(409).json({ error: 'The welcome template is disabled (Administration → Courriels).' });
     await audit(a.user.id, 'mail.welcome', `${user.username} <${user.email}>`, req.ip ?? '');
     res.json({ ok: true, to: user.email });
+  }));
+
+  /* ---------- Tools -> KPI data management: import old data, snapshots, restore, erase ---------- */
+  // Permission tools.kpi.data. The archive of the old data and the snapshots live in the meta table: they are never
+  // served by the generic collection API and "erase" cannot reach them.
+
+  const kpiAdmin = (req: Request, res: Response) => {
+    if (!me(req).can('tools.kpi.data')) {
+      forbid(res);
+      return false;
+    }
+    return true;
+  };
+
+  r.get('/tools/kpi/data/status', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    res.json(await kpiData.status());
+  }));
+
+  r.post('/tools/kpi/data/import', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    res.json(await kpiData.importArchive(me(req).user.id));
+  }));
+
+  r.post('/tools/kpi/data/snapshot', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    try {
+      res.json(await kpiData.takeSnapshot(me(req).user.id, req.body?.overwriteSlot === undefined ? undefined : Number(req.body.overwriteSlot)));
+    } catch (e) {
+      // The screen asks the person to confirm overwriting the oldest snapshot (named in the answer), then asks again.
+      if (e instanceof HttpError && e.status === 409) return res.status(409).json({ error: e.message, overwrite: (e as HttpError & { overwrite?: unknown }).overwrite });
+      throw e;
+    }
+  }));
+
+  r.post('/tools/kpi/data/restore', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    const b = req.body ?? {};
+    if (b.source === 'archive') return res.json(await kpiData.restore(me(req).user.id, { source: 'archive' }));
+    if (b.source === 'snapshot' && Number.isInteger(b.slot)) return res.json(await kpiData.restore(me(req).user.id, { source: 'snapshot', slot: b.slot }));
+    res.status(400).json({ error: 'Choose what to restore from: the archive or a snapshot.' });
+  }));
+
+  r.post('/tools/kpi/data/erase', wrap(async (req, res) => {
+    if (!kpiAdmin(req, res)) return;
+    // A typed phrase, checked here as well as in the screen: a stray request cannot wipe the data.
+    if (!['EFFACER', 'ERASE'].includes(String(req.body?.confirm ?? ''))) return res.status(400).json({ error: 'Type EFFACER (or ERASE) to confirm.' });
+    res.json(await kpiData.eraseAll(me(req).user.id));
   }));
 
   /* ---------- audit log (append-only) ---------- */
