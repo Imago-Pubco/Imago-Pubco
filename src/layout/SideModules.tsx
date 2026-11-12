@@ -112,7 +112,7 @@ function SubSection({ id, header, children }: { id: string; header: ReactNode; c
     }
   };
   return (
-    <div className={`side-subsection ${open ? 'open' : ''}`}>
+    <div className={`side-subsection ${open ? 'open' : ''}`} data-nav={id}>
       <div className="side-subsection-row">
         {header}
         <button className="side-toggle side-subsection-toggle" onClick={toggle} aria-expanded={open} aria-label={open ? t('Réduire la section', 'Collapse section') : t('Développer la section', 'Expand section')}>

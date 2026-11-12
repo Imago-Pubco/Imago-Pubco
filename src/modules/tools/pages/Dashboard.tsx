@@ -50,7 +50,7 @@ export function Dashboard() {
         )}
       />
 
-      <div className="stack">
+      <div className="stack" data-tour="kpi-dashboard">
         <CriticalNumbers kpis={critical} index={index} />
         <MissingEntries kpis={active} index={index} />
         <div className="grid-2">

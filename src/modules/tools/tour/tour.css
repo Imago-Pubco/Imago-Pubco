@@ -1,0 +1,118 @@
+/* KPI guided tour. Colours come from the theme tokens, so light and dark modes both work. */
+
+.tour-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+/* Full-screen click shield. Transparent unless no target is highlighted. */
+.tour-blocker {
+  position: fixed;
+  inset: 0;
+}
+.tour-blocker.dim {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* The hole: the huge shadow dims everything outside the highlighted element. */
+.tour-spot {
+  position: fixed;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  pointer-events: none;
+}
+
+.tour-card {
+  position: fixed;
+  width: min(340px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 16px 18px 14px;
+  background: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: tour-in 0.2s ease-out;
+}
+
+@keyframes tour-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tour-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tour-count {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.tour-title {
+  margin: 6px 0 6px;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.tour-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-2, var(--text));
+}
+
+.tour-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.tour-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.tour-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .tour-btn-label {
+    display: none;
+  }
+}
+
+.tour-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+.tour-link:hover {
+  text-decoration: underline;
+}

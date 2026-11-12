@@ -40,7 +40,7 @@ export function Teams() {
         title={t('Équipes', 'Teams')}
         subtitle={t('Groupes de personnes qui travaillent ensemble, avec leurs indicateurs, priorités et huddles.', 'Groups of people who work together, with their KPIs, priorities and huddles.')}
         actions={
-          <button className="btn btn-primary" onClick={openNew}>
+          <button className="btn btn-primary" onClick={openNew} data-tour="teams-new">
             <Plus size={16} /> {t('Équipe', 'Team')}
           </button>
         }
@@ -51,6 +51,7 @@ export function Teams() {
         {t('Afficher les archivées', 'Show archived')}
       </label>
 
+      <div data-tour="teams-list">
       {!rows.length ? (
         <div className="card">
           <Empty icon={<Users size={36} />} title={t('Aucune équipe', 'No teams yet')}>
@@ -70,6 +71,7 @@ export function Teams() {
           ))}
         </div>
       )}
+      </div>
 
       {editing && <TeamModal key={editing.team.id} team={editing.team} existing={editing.existing} onClose={() => setEditing(null)} />}
     </Page>

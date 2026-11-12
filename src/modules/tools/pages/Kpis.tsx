@@ -70,13 +70,13 @@ export function Kpis() {
         eyebrow={t('Outils · KPI', 'Tools · KPI')}
         title={t('Indicateurs', 'Indicators')}
         actions={
-          <button className="btn btn-primary" onClick={() => setKpiModal({ kpi: null })}>
+          <button className="btn btn-primary" onClick={() => setKpiModal({ kpi: null })} data-tour="kpis-new">
             <Plus size={16} /> {t('Indicateur', 'Indicator')}
           </button>
         }
       />
 
-      <div className="card card-pad" style={{ marginBottom: 16 }}>
+      <div className="card card-pad" style={{ marginBottom: 16 }} data-tour="kpis-filters">
         <div className="row row-wrap" style={{ alignItems: 'flex-end', gap: 12 }}>
           <label className="field" style={{ flex: '1 1 220px' }}>
             <span>{t('Recherche', 'Search')}</span>
@@ -129,6 +129,7 @@ export function Kpis() {
         )}
       </div>
 
+      <div data-tour="kpis-table">
       {loading && all.length === 0 && <p className="muted">{t('Chargement…', 'Loading…')}</p>}
 
       {!loading && all.length === 0 && (
@@ -168,6 +169,7 @@ export function Kpis() {
           onEnterValue={(kpi, period) => setValueTarget({ kpi, period })}
         />
       )}
+      </div>
 
       {kpiModal && (
         <KpiFormModal

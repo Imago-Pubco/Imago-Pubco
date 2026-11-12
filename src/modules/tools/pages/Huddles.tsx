@@ -44,7 +44,7 @@ export function Huddles() {
   };
 
   const createButton = (
-    <button className="btn btn-primary" onClick={() => open()}>
+    <button className="btn btn-primary" onClick={() => open()} data-tour="huddles-new">
       <Plus size={16} /> {t('Huddle', 'Huddle')}
     </button>
   );
@@ -53,6 +53,7 @@ export function Huddles() {
     <Page>
       <PageHeader eyebrow={t('Outils · KPI', 'Tools · KPI')} title={t('Huddles', 'Huddles')} actions={createButton} />
 
+      <div data-tour="huddles-list">
       {huddleRows.length === 0 ? (
         <Empty icon={<Presentation size={40} />} title={t('Aucun huddle pour l’instant', 'No huddles yet')}>
           <p style={{ margin: '0 0 12px' }}>
@@ -89,6 +90,7 @@ export function Huddles() {
           )}
         </>
       )}
+      </div>
 
       <HuddleModal draft={draft} setDraft={setDraft} err={err} setErr={setErr} />
     </Page>

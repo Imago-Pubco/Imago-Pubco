@@ -65,7 +65,7 @@ export function Priorities() {
             <button className="btn" onClick={() => setWeekly(true)}>
               <ClipboardList size={16} /> {t('Mise à jour de la semaine', 'Weekly update')}
             </button>
-            <button className="btn btn-primary" onClick={() => openNew()}>
+            <button className="btn btn-primary" onClick={() => openNew()} data-tour="priorities-new">
               <Plus size={16} /> {t('Priorité', 'Priority')}
             </button>
           </>
@@ -122,6 +122,7 @@ export function Priorities() {
         </label>
       </div>
 
+      <div data-tour="priorities-list">
       {!periodRows.length ? (
         <div className="card">
           <Empty icon={<ListChecks size={36} />} title={t('Aucune priorité pour ce trimestre', 'No priorities for this quarter')}>
@@ -153,6 +154,7 @@ export function Priorities() {
           ))}
         </div>
       )}
+      </div>
 
       {editing && (
         <PriorityModal key={editing.priority.id} quarter={quarter} priority={editing.priority} existing={editing.existing} onClose={() => setEditing(null)} />
