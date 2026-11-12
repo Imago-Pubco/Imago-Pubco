@@ -88,6 +88,18 @@ Invoice stages: 🥚 Received → 🐛 Extracted → ⏳ BC validated → 🦋 P
 
 Tolerances are configurable. Posting despite exceptions requires `accounting.invoices.override` and a written justification. Other permissions: `accounting.po.process`, `accounting.po.approve`, `accounting.payables.view`.
 
+## Tools → KPI
+
+Sidebar module **Outils / Tools**, first tool **KPI** (working name): indicators, priorities and weekly huddles per team. Permissions: `tools.access` (the module) and `tools.kpi.access` (the tool); fine-grained rights inside the tool can be added later.
+
+- **Dashboard**: critical numbers with status colour, trend and sparkline; missing entries; my priorities and actions; next huddles.
+- **Indicators**: weekly / monthly scorecard (last periods, coloured against the target); click a cell to enter a value and a note; definition, unit, direction (higher or lower is better), target, owner, team.
+- **Priorities**: per quarter, company or team, sub-priorities, tasks, weekly progress grid and a "weekly update" form.
+- **Huddles**: recurring team meetings (day, time, members, ordered sections). The meeting page runs one week at a time: agenda, critical numbers, team scorecard (enter this week's numbers), priorities, Who-What-When (open tasks carry over), parking lot, issues, then a round table where each member fills their own card (what's up, feedback, priority progress, need help, stuck points).
+- **Teams**: the groups of people the KPIs, priorities and huddles belong to.
+
+Every write is validated by a strict schema on the server (`src/modules/tools/schemas.ts`) and stamped with who and when by the server. A check-in can only be written by its author or the huddle owner; only the owner (or a super administrator) can hand a huddle over or delete it. Everything is audited.
+
 ## Gestion O365
 
 Manage several Microsoft 365 tenants from one place: tenant overview (domains, user count, license usage), users (create, edit, block/allow sign-in, reset password, delete, assign licenses), mail contacts (add/delete), distribution groups (members add/remove) and licenses (click a license to see who holds it). Choose the tenant in the top bar.

@@ -4,7 +4,9 @@
  */
 import { randomBytes } from 'node:crypto';
 import express, { type NextFunction, type Request, type Response } from 'express';
+import type { ZodObject } from 'zod';
 import { effectivePermissions } from '../src/auth/permissions.ts';
+import { TOOLS_SCHEMAS } from '../src/modules/tools/schemas.ts';
 import type { Group, User } from '../src/data/types.ts';
 import type { Invoice } from '../src/modules/accounting/types.ts';
 import {
@@ -80,6 +82,9 @@ const RULES: Record<string, Rule> = {
 
   'o365.tenants': { read: any('o365.access'), write: any('o365.tenants.manage') },
 
+  // Tools -> KPI: one permission for now (the module and the tool); every write is validated and stamped below.
+  ...Object.fromEntries(Object.keys(TOOLS_SCHEMAS).map((k) => [k, { read: any('tools.kpi.access'), write: any('tools.kpi.access') } as Rule])),
+
   'mail.templates': { read: any('admin.mail'), write: any('admin.mail') },
 };
 
@@ -96,6 +101,57 @@ const SERVER_OWNED: Record<string, string[]> = {
 };
 /** Ids the system uses for itself (the automation signs its actions as "system"). */
 const RESERVED_IDS = new Set(['system']);
+
+const STAMP_FIELDS = ['createdBy', 'createdAt', 'updatedBy', 'updatedAt'] as const;
+/** Fields that name a document in the Tools collections: they never change after creation. */
+const TOOLS_KEYS: Record<string, string[]> = {
+  'tools.kpiValues': ['kpiId', 'period'],
+  'tools.priorityUpdates': ['priorityId', 'week'],
+  'tools.huddleEntries': ['huddleId', 'week', 'userId'],
+};
+
+/**
+ * Tools collections: strict validation of the shape, ids that match the document's key (one value per period, one
+ * check-in per person and week), a check-in only for oneself (or for the huddle's owner), and server-written stamps.
+ */
+async function guardTools(c: string, body: Record<string, unknown>, a: AuthInfo, existing?: Record<string, unknown>): Promise<{ doc: Record<string, unknown> } | { status: number; error: string }> {
+  const schema = (TOOLS_SCHEMAS as Record<string, ZodObject>)[c];
+  if (!schema) return { doc: body };
+  const input = { ...body };
+  for (const f of STAMP_FIELDS) delete input[f];
+  if (existing) delete input.id;
+  const parsed = (existing ? schema.partial() : schema).safeParse(input);
+  if (!parsed.success) return { status: 400, error: `invalid data: ${parsed.error.issues.slice(0, 3).map((i) => `${i.path.join('.') || 'body'} ${i.message}`).join('; ')}` };
+  const doc: Record<string, unknown> = { ...parsed.data };
+  const keys = TOOLS_KEYS[c];
+  if (existing) {
+    for (const k of keys ?? []) if (k in doc && doc[k] !== existing[k]) return { status: 400, error: `${k} cannot be changed` };
+  } else {
+    doc.id = body.id;
+    if (c === 'tools.kpiValues' && doc.id !== `${doc.kpiId}_${doc.period}`) return { status: 400, error: 'invalid id' };
+    if (c === 'tools.priorityUpdates' && doc.id !== `${doc.priorityId}_${doc.week}`) return { status: 400, error: 'invalid id' };
+    if (c === 'tools.huddleEntries' && doc.id !== `${doc.huddleId}_${doc.week}_${doc.userId}`) return { status: 400, error: 'invalid id' };
+  }
+  if (c === 'tools.huddles' && existing) {
+    // Without this, anyone could make themselves owner of someone else's huddle and then write everybody's check-ins.
+    const owner = (existing.ownerId as string | null | undefined) ?? null;
+    if ('ownerId' in doc && doc.ownerId !== owner && owner && owner !== a.user.id && !a.can('*')) return { status: 403, error: 'Only the huddle owner can hand the huddle over.' };
+  }
+  if (c === 'tools.huddleEntries') {
+    // Nobody writes another person's check-in, except the huddle's owner and super administrators.
+    const owner = String((existing ?? doc).userId);
+    const huddle = await db.getDoc<{ ownerId?: string | null }>('tools.huddles', String((existing ?? doc).huddleId));
+    if (owner !== a.user.id && huddle?.ownerId !== a.user.id && !a.can('*')) return { status: 403, error: 'You can only write your own check-in.' };
+  }
+  const stamp = now();
+  if (!existing) {
+    doc.createdBy = a.user.id;
+    doc.createdAt = stamp;
+  }
+  doc.updatedBy = a.user.id;
+  doc.updatedAt = stamp;
+  return { doc };
+}
 
 /** The permissions a set of groups would give. */
 async function groupPerms(groupIds: unknown): Promise<Set<string>> {
@@ -797,7 +853,10 @@ export function apiRouter() {
     const body = { ...(req.body ?? {}) } as Record<string, unknown>;
     for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete body[f];
     if (RESERVED_IDS.has(String(body.id ?? '').toLowerCase())) return res.status(400).json({ error: 'reserved id' });
-    const doc = { ...body, id: body.id ?? uid('') } as db.Doc;
+    body.id = body.id ?? uid('');
+    const guarded = await guardTools(String(req.params.c), body, me(req));
+    if ('status' in guarded) return res.status(guarded.status).json({ error: guarded.error });
+    const doc = { ...guarded.doc, id: body.id } as db.Doc;
     try {
       await db.insertDoc(String(req.params.c), doc);
     } catch (e) {
@@ -815,7 +874,15 @@ export function apiRouter() {
     const patch = { ...(req.body ?? {}) } as Record<string, unknown>;
     delete patch.id; // the document's identity never changes
     for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete patch[f];
-    const doc = await db.updateDoc(String(req.params.c), String(req.params.id), patch);
+    let toApply = patch;
+    if (String(req.params.c) in TOOLS_SCHEMAS) {
+      const existing = await db.getDoc<Record<string, unknown> & db.Doc>(String(req.params.c), String(req.params.id));
+      if (!existing) return res.status(404).json({ error: 'not_found' });
+      const guarded = await guardTools(String(req.params.c), patch, me(req), existing);
+      if ('status' in guarded) return res.status(guarded.status).json({ error: guarded.error });
+      toApply = guarded.doc;
+    }
+    const doc = await db.updateDoc(String(req.params.c), String(req.params.id), toApply);
     if (!doc) return res.status(404).json({ error: 'not_found' });
     broadcast(String(req.params.c));
     res.json(doc);
@@ -825,6 +892,23 @@ export function apiRouter() {
     const rl = rule(req, res);
     if (!rl) return;
     if (!rl.write(me(req))) return forbid(res);
+    if (String(req.params.c) === 'tools.huddleEntries') {
+      const existing = await db.getDoc<Record<string, unknown> & db.Doc>('tools.huddleEntries', String(req.params.id));
+      if (existing) {
+        const guarded = await guardTools('tools.huddleEntries', {}, me(req), existing);
+        if ('status' in guarded) return res.status(guarded.status).json({ error: guarded.error });
+      }
+    }
+    if (String(req.params.c) === 'tools.huddles') {
+      const h = await db.getDoc<{ ownerId?: string | null }>('tools.huddles', String(req.params.id));
+      if (h?.ownerId && h.ownerId !== me(req).user.id && !me(req).can('*')) return res.status(403).json({ error: 'Only the huddle owner can delete the huddle.' });
+      // The history goes with it, in one place: a person who may not delete the huddle cannot half-delete it either.
+      const hid = String(req.params.id);
+      for (const [col, key] of [['tools.huddleItems', 'huddleId'], ['tools.huddleEntries', 'huddleId'], ['tools.tasks', 'huddleId']] as const) {
+        for (const d of await db.listDocs<db.Doc & Record<string, unknown>>(col)) if (d[key] === hid) await db.removeDoc(col, d.id);
+        broadcast(col);
+      }
+    }
     await db.removeDoc(String(req.params.c), String(req.params.id));
     broadcast(String(req.params.c));
     res.status(204).end();

@@ -10,9 +10,10 @@ import { itModule } from './it';
 import { rhModule } from './rh';
 import { productionModule } from './production';
 import { o365Module } from './o365';
+import { toolsModule } from './tools';
 import { adminModule } from './admin';
 
-export const modules: ModuleDef[] = [accountingModule, shippingModule, estimatingModule, productionModule, rhModule, o365Module, itModule, adminModule];
+export const modules: ModuleDef[] = [accountingModule, shippingModule, estimatingModule, productionModule, rhModule, o365Module, toolsModule, itModule, adminModule];
 
 /** Nav items with nested sections expanded (parents first). */
 export function flatNav(nav: NavItem[]): NavItem[] {
