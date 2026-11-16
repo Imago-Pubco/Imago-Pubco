@@ -7,7 +7,7 @@ import { useCollection } from '@/data/db';
 import { audit } from '@/data/stores';
 import { useI18n } from '@/i18n';
 import { Butterfly } from '@/components/Butterfly';
-import { modules, orderModules } from '@/modules/registry';
+import { menuModules, pinnedBottomModules, resolveSections, useMenuLayout } from '@/layout/menuLayout';
 import type { WidgetDef } from '@/modules/types';
 
 function Welcome() {
@@ -42,8 +42,10 @@ function Welcome() {
 
 function ModuleShortcuts() {
   const { t } = useI18n();
-  const { can, user } = useAuth();
-  const mine = orderModules(modules.filter((m) => m.placement !== 'userMenu' && can(m.entryPermission)), user?.prefs?.menuOrder);
+  const { can } = useAuth();
+  // Same order and names as the sidebar (Administration → Menu).
+  const { layout } = useMenuLayout();
+  const mine = [...resolveSections(layout, menuModules().filter((m) => can(m.entryPermission))).flatMap((s) => s.modules), ...pinnedBottomModules(can)];
   if (!mine.length)
     return <div className="muted small">{t('Aucun module ne vous est attribué.', 'No modules assigned to you.')}</div>;
   return (

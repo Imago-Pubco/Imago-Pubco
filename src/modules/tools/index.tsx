@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Gauge, LayoutDashboard, ListChecks, Presentation, Target, Users, Wrench } from 'lucide-react';
+import { Gauge, LayoutDashboard, ListChecks, Presentation, Target, Users } from 'lucide-react';
 import { RequirePermission } from '@/components/ui';
 import type { ModuleDef } from '../types';
 import { Dashboard } from './pages/Dashboard';
@@ -28,15 +28,15 @@ function ToolsRoutes() {
 }
 
 /**
- * Tools: small internal tools that do not belong to a department module. The first one is "KPI" (working name).
- * Gestion de projet lives under /tools/pm but is its own module (src/modules/tools/pm/index.tsx).
+ * KPI tool (sidebar section "Archive temporaire"): indicators, priorities, huddles, teams. Module id "tools" is kept for its data and rights.
+ * Function Fox (project management) lives under /tools/pm but is its own module (src/modules/tools/pm/index.tsx).
  */
 export const toolsModule: ModuleDef = {
   id: 'tools',
   path: '/tools',
-  name: { fr: 'Outils', en: 'Tools' },
+  name: { fr: 'KPI', en: 'KPI' },
   tagline: { fr: 'Indicateurs, priorités et huddles', en: 'KPIs, priorities and huddles' },
-  icon: Wrench,
+  icon: Gauge,
   accent: '#0d9488',
   entryPermission: 'tools.access',
   permissions: [
@@ -44,20 +44,13 @@ export const toolsModule: ModuleDef = {
     { key: 'tools.kpi.access', label: { fr: 'Outils : utiliser l’outil KPI (indicateurs, priorités, huddles)', en: 'Tools: use the KPI tool (indicators, priorities, huddles)' } },
     { key: 'tools.kpi.data', label: { fr: 'Outils : gérer les données KPI (importer, instantanés, restaurer, tout effacer)', en: 'Tools: manage KPI data (import, snapshots, restore, erase all)' } },
   ],
+  // The module is the KPI tool itself (sidebar: Archive temporaire): its screens are listed directly.
   nav: [
-    {
-      path: 'kpi',
-      label: { fr: 'KPI', en: 'KPI' },
-      icon: Gauge,
-      permission: 'tools.kpi.access',
-      children: [
-        { path: 'kpi', label: { fr: 'Tableau de bord', en: 'Dashboard' }, icon: LayoutDashboard },
-        { path: 'kpi/indicators', label: { fr: 'Indicateurs', en: 'Indicators' }, icon: Target },
-        { path: 'kpi/priorities', label: { fr: 'Priorités', en: 'Priorities' }, icon: ListChecks },
-        { path: 'kpi/huddles', label: { fr: 'Huddles', en: 'Huddles' }, icon: Presentation },
-        { path: 'kpi/teams', label: { fr: 'Équipes', en: 'Teams' }, icon: Users },
-      ],
-    },
+    { path: 'kpi', label: { fr: 'Tableau de bord', en: 'Dashboard' }, icon: LayoutDashboard, permission: 'tools.kpi.access' },
+    { path: 'kpi/indicators', label: { fr: 'Indicateurs', en: 'Indicators' }, icon: Target, permission: 'tools.kpi.access' },
+    { path: 'kpi/priorities', label: { fr: 'Priorités', en: 'Priorities' }, icon: ListChecks, permission: 'tools.kpi.access' },
+    { path: 'kpi/huddles', label: { fr: 'Huddles', en: 'Huddles' }, icon: Presentation, permission: 'tools.kpi.access' },
+    { path: 'kpi/teams', label: { fr: 'Équipes', en: 'Teams' }, icon: Users, permission: 'tools.kpi.access' },
   ],
   // Guided tour button, shown only on the KPI pages.
   topbarActions: TourButton,

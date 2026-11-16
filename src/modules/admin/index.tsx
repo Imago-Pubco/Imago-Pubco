@@ -1,5 +1,5 @@
 import { Link, NavLink, Route, Routes } from 'react-router-dom';
-import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Server, Mail as MailIcon, LayoutGrid } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Server, Mail as MailIcon, LayoutGrid, PanelsTopLeft } from 'lucide-react';
 import { useCollection } from '@/data/db';
 import { groups, users } from '@/data/stores';
 import { useAuth } from '@/auth/AuthContext';
@@ -14,6 +14,7 @@ import { Audit, AuditTable } from './pages/Audit';
 import { System } from './pages/System';
 import { Mail } from './pages/Mail';
 import { ModuleSettings, Modules } from './pages/Modules';
+import { MenuEditor } from './pages/MenuEditor';
 import './admin.css';
 
 function AdminKpis() {
@@ -81,6 +82,7 @@ function AdminRoutes() {
       <Route path="modules" element={<Modules />} />
       <Route path="modules/:id" element={<ModuleSettings />} />
       <Route path="mail" element={<RequirePermission permission="admin.mail"><Mail /></RequirePermission>} />
+      <Route path="menu" element={<RequirePermission permission="admin.menu"><MenuEditor /></RequirePermission>} />
       <Route path="system" element={<RequirePermission permission="admin.system"><System /></RequirePermission>} />
     </Routes>
     </>
@@ -104,6 +106,7 @@ export const adminModule: ModuleDef = {
     { key: 'admin.audit.view', label: { fr: 'Consulter le journal d’audit', en: 'View audit log' } },
     { key: 'admin.impersonate', label: { fr: 'Voir le portail comme un autre utilisateur (lecture seule)', en: 'View the portal as another user (read-only)' } },
     { key: 'admin.mail', label: { fr: 'Courriels : serveur d’envoi et modèles', en: 'E-mail: sending server and templates' } },
+    { key: 'admin.menu', label: { fr: 'Modifier le menu (noms, ordre, sections)', en: 'Edit the menu (names, order, sections)' } },
     { key: 'admin.system', label: { fr: 'Paramètres système', en: 'System settings' } },
   ],
   nav: [
@@ -113,6 +116,7 @@ export const adminModule: ModuleDef = {
     { path: 'audit', label: { fr: 'Journal d’audit', en: 'Audit log' }, icon: ScrollText, permission: 'admin.audit.view' },
     { path: 'modules', label: { fr: 'Modules', en: 'Modules' }, icon: LayoutGrid },
     { path: 'mail', label: { fr: 'Courriels', en: 'E-mail' }, icon: MailIcon, permission: 'admin.mail' },
+    { path: 'menu', label: { fr: 'Menu', en: 'Menu' }, icon: PanelsTopLeft, permission: 'admin.menu' },
     { path: 'system', label: { fr: 'Système', en: 'System' }, icon: Server, permission: 'admin.system' },
   ],
   component: AdminRoutes,

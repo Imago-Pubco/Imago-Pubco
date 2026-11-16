@@ -35,14 +35,14 @@ function PmRoutes() {
 }
 
 /**
- * Gestion de projet: its own module (sidebar entry and block in the rights screens).
+ * Function Fox (project management): its own module (sidebar section "Outils studio", own block in the rights screens).
  * The id `tools.pm` keeps the existing permission keys (`tools.pm.*`) and URLs (`/tools/pm/...`), so
  * "Entire module" in the rights screens grants exactly `tools.pm.*` and existing grants keep working.
  */
 export const pmModule: ModuleDef = {
   id: 'tools.pm',
   path: '/tools/pm',
-  name: { fr: 'Gestion de projet', en: 'Project management' },
+  name: { fr: 'Function Fox', en: 'Function Fox' },
   tagline: { fr: 'Projets, tâches, feuilles de temps, budgets et rapports', en: 'Projects, tasks, timesheets, budgets and reports' },
   icon: Briefcase,
   accent: '#2563eb',

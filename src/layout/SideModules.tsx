@@ -15,12 +15,14 @@ interface Props {
   can: (p: string) => boolean;
   /** Called once a drag ends with the new module order. */
   onReorder: (ids: string[]) => void;
+  /** Show the drag handles (menu administrators only). */
+  reorderable?: boolean;
 }
 
 const subPath = (m: ModuleDef, path: string) => `${m.path}${path ? '/' + path : ''}`;
 
 /** Sidebar module list — each user can drag modules (by the grip) into their preferred order. */
-export function SideModules({ modules, currentId, collapsed, isOpen, setOpen, onModuleClick, can, onReorder }: Props) {
+export function SideModules({ modules, currentId, collapsed, isOpen, setOpen, onModuleClick, can, onReorder, reorderable = false }: Props) {
   const incoming = modules.map((m) => m.id).join();
   const [order, setOrder] = useState(() => modules.map((m) => m.id));
   useEffect(() => setOrder(modules.map((m) => m.id)), [incoming]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -45,6 +47,7 @@ export function SideModules({ modules, currentId, collapsed, isOpen, setOpen, on
             onModuleClick={onModuleClick}
             can={can}
             onDragEnd={() => onReorder(orderRef.current)}
+            reorderable={reorderable}
           />
         ) : null;
       })}
@@ -62,7 +65,9 @@ function SubLinks({ m, items, can, parent, depth = 0 }: { m: ModuleDef; items: N
         .map((n) => {
           const SubIcon = n.icon;
           // A section header stays highlighted anywhere in the section; its landing item (same path) matches exactly.
-          const end = !n.children && (!n.path || n.path === 'new' || n.path === parent);
+          // A sibling under the same path (kpi → kpi/indicators) means this link is a landing page: match it exactly.
+          const end =
+            !n.children && (!n.path || n.path === 'new' || n.path === parent || items.some((o) => o !== n && o.path.startsWith(n.path + '/')));
           const link = (
             <NavLink
               to={subPath(m, n.path)}
@@ -137,7 +142,7 @@ function SubSection({ id, header, children }: { id: string; header: ReactNode; c
 }
 
 function SideModule({
-  m, active, open, collapsed, onToggle, onModuleClick, can, onDragEnd,
+  m, active, open, collapsed, onToggle, onModuleClick, can, onDragEnd, reorderable,
 }: {
   m: ModuleDef;
   active: boolean;
@@ -147,6 +152,7 @@ function SideModule({
   onModuleClick: (e: MouseEvent, m: ModuleDef) => void;
   can: (p: string) => boolean;
   onDragEnd: () => void;
+  reorderable: boolean;
 }) {
   const { t } = useI18n();
   const controls = useDragControls();
@@ -154,6 +160,7 @@ function SideModule({
   return (
     <Reorder.Item
       value={m.id}
+      data-module={m.id}
       as="div"
       dragListener={false}
       dragControls={controls}
@@ -163,7 +170,7 @@ function SideModule({
       whileDrag={{ scale: 1.03, zIndex: 5, boxShadow: '0 10px 30px rgba(0,0,0,.45)' }}
     >
       <div className="side-row">
-        {!collapsed && (
+        {!collapsed && reorderable && (
           <span
             className="side-grip"
             onPointerDown={(e) => {

@@ -8,6 +8,11 @@ import type { ZodObject } from 'zod';
 import { effectivePermissions } from '../src/auth/permissions.ts';
 import { TOOLS_SCHEMAS } from '../src/modules/tools/schemas.ts';
 import { PM_SCHEMAS } from '../src/modules/tools/pm/schemas.ts';
+import { ALIGN_SCHEMAS } from '../src/modules/align/schemas.ts';
+import { MENU_LAYOUT_ID, MenuLayoutSchema } from '../src/layout/menuSchema.ts';
+import { deleteAlign, guardAlign, guardAlignDelete, isAlignCollection } from './alignGuard.ts';
+import { importAlignFromKpi } from './alignImport.ts';
+import { alignDataStatus, eraseAlign, reloadAlignArchive, restoreAlign, takeAlignSnapshot } from './alignData.ts';
 import { guardPm, guardPmDelete, isPmCollection } from './pmGuard.ts';
 import type { Group, User } from '../src/data/types.ts';
 import type { Invoice } from '../src/modules/accounting/types.ts';
@@ -98,7 +103,22 @@ const RULES: Record<string, Rule> = {
   'pm.rates': { read: any('tools.pm.reports', 'tools.pm.manage'), write: any('tools.pm.manage') },
 
   'mail.templates': { read: any('admin.mail'), write: any('admin.mail') },
+
+  // Align (company goals). Reads need align.access; alignGuard.ts decides what each write may do.
+  ...Object.fromEntries(Object.keys(ALIGN_SCHEMAS).map((k) => [k, { read: any('align.access'), write: any('align.access') } as Rule])),
 };
+
+/**
+ * The sidebar menu (app.settings 'sidebar.layout') is organisation-wide: only admin.menu may save, change or delete it,
+ * and its value must match the schema. `body` is null for a delete. Returns a refusal, or null.
+ */
+function guardMenuLayout(c: string, id: string, body: Record<string, unknown> | null, a: AuthInfo): { status: number; error: string } | null {
+  if (c !== 'app.settings' || id !== MENU_LAYOUT_ID) return null;
+  if (!a.can('admin.menu')) return { status: 403, error: 'Editing the menu requires the right to edit the menu.' };
+  if (body && Object.keys(body).some((k) => k !== 'id' && k !== 'value')) return { status: 400, error: 'invalid data' };
+  if (body && !MenuLayoutSchema.safeParse(body.value).success) return { status: 400, error: 'invalid menu' };
+  return null;
+}
 
 /** Fields the generic API never accepts from the browser on users. */
 const PROTECTED_USER_FIELDS = ['passwordHash', 'salt', 'lastLoginAt', 'createdAt'] as const;
@@ -166,7 +186,12 @@ async function guardTools(c: string, body: Record<string, unknown>, a: AuthInfo,
 }
 
 /** Validation + stamping for the collections that have a guard (Tools KPI and Project management). */
-const guardAny = (c: string, body: Record<string, unknown>, a: AuthInfo, existing?: Record<string, unknown>) => (isPmCollection(c) ? guardPm(c, body, a, existing) : guardTools(c, body, a, existing));
+const guardAny = (c: string, body: Record<string, unknown>, a: AuthInfo, existing?: Record<string, unknown>) =>
+  isAlignCollection(c)
+    ? guardAlign(c, body, a, existing as (Record<string, unknown> & db.Doc) | undefined)
+    : isPmCollection(c)
+      ? guardPm(c, body, a, existing)
+      : guardTools(c, body, a, existing);
 
 /** The permissions a set of groups would give. */
 async function groupPerms(groupIds: unknown): Promise<Set<string>> {
@@ -589,6 +614,68 @@ export function apiRouter() {
     res.json({ ok: true, to: user.email });
   }));
 
+  /* ---------- Align: fill rocks, priorities, notes and huddles from the KPI tool (replaces them) ---------- */
+  r.post('/align/import-kpi', wrap(async (req, res) => {
+    // The import replaces rocks, priorities, notes and huddles, and copies KPI data: it needs every right it overrides.
+    const a = me(req);
+    if (!['align.data', 'align.rocks.manage', 'align.priorities.manage', 'align.huddles.manage', 'tools.kpi.access'].every((p) => a.can(p))) return forbid(res);
+    if (req.body?.confirm !== 'REMPLACER' && req.body?.confirm !== 'REPLACE') return res.status(400).json({ error: 'confirmation required' });
+    const result = await importAlignFromKpi(me(req).user.id);
+    await audit(me(req).user.id, 'align.import.kpi', JSON.stringify(result.written), req.ip ?? '');
+    res.json(result);
+  }));
+
+  /* ---------- Align data management: status, snapshots, restore, archive reload, erase ---------- */
+  // Reading the status and taking a snapshot need align.data; anything that replaces data also needs every
+  // manage right it overrides.
+  const ALIGN_REPLACE = ['align.data', 'align.rocks.manage', 'align.priorities.manage', 'align.huddles.manage', 'align.strategy.manage'];
+  const alignAdmin = (req: Request, res: Response, replace = false) => {
+    const a = me(req);
+    if (!(replace ? ALIGN_REPLACE : ['align.data']).every((p) => a.can(p))) {
+      forbid(res);
+      return false;
+    }
+    return true;
+  };
+  r.get('/align/data', wrap(async (req, res) => {
+    if (!alignAdmin(req, res)) return;
+    res.json(await alignDataStatus());
+  }));
+  r.post('/align/snapshot', wrap(async (req, res) => {
+    if (!alignAdmin(req, res)) return;
+    try {
+      const out = await takeAlignSnapshot(me(req).user.id, req.body?.overwrite === true);
+      await audit(me(req).user.id, 'align.snapshot', out.name, req.ip ?? '');
+      res.json(out);
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 409) return res.status(409).json({ error: e.message, overwrite: (e as HttpError & { overwrite?: unknown }).overwrite });
+      throw e;
+    }
+  }));
+  r.post('/align/restore', wrap(async (req, res) => {
+    if (!alignAdmin(req, res, true)) return;
+    if (req.body?.confirm !== 'REMPLACER' && req.body?.confirm !== 'REPLACE') return res.status(400).json({ error: 'confirmation required' });
+    const source = req.body?.source === 'backup' ? ({ kind: 'backup' } as const) : ({ kind: 'snapshot', slot: Number(req.body?.slot) } as const);
+    if (source.kind === 'snapshot' && ![1, 2, 3].includes(source.slot)) return res.status(400).json({ error: 'invalid slot' });
+    const counts = await restoreAlign(source);
+    await audit(me(req).user.id, 'align.restore', source.kind === 'backup' ? 'backup' : `snapshot ${source.slot}`, req.ip ?? '');
+    res.json({ counts });
+  }));
+  r.post('/align/archive', wrap(async (req, res) => {
+    if (!alignAdmin(req, res, true)) return;
+    const parts = { strategy: req.body?.strategy === true, checklist: req.body?.checklist === true, rocks: req.body?.rocks === true };
+    const result = await reloadAlignArchive(me(req).user.id, parts);
+    await audit(me(req).user.id, 'align.archive.reload', JSON.stringify(result), req.ip ?? '');
+    res.json(result);
+  }));
+  r.post('/align/erase', wrap(async (req, res) => {
+    if (!alignAdmin(req, res, true)) return;
+    if (req.body?.confirm !== 'EFFACER' && req.body?.confirm !== 'ERASE') return res.status(400).json({ error: 'confirmation required' });
+    await eraseAlign();
+    await audit(me(req).user.id, 'align.erase', '', req.ip ?? '');
+    res.json({ ok: true });
+  }));
+
   /* ---------- Tools -> KPI data management: import old data, snapshots, restore, erase ---------- */
   // Permission tools.kpi.data. The archive of the old data and the snapshots live in the meta table: they are never
   // served by the generic collection API and "erase" cannot reach them.
@@ -931,6 +1018,8 @@ export function apiRouter() {
     for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete body[f];
     if (RESERVED_IDS.has(String(body.id ?? '').toLowerCase())) return res.status(400).json({ error: 'reserved id' });
     body.id = body.id ?? uid('');
+    const menuRefusal = guardMenuLayout(String(req.params.c), String(body.id), body, me(req));
+    if (menuRefusal) return res.status(menuRefusal.status).json({ error: menuRefusal.error });
     const guarded = await guardAny(String(req.params.c), body, me(req));
     if ('status' in guarded) return res.status(guarded.status).json({ error: guarded.error });
     const doc = { ...guarded.doc, id: body.id } as db.Doc;
@@ -950,9 +1039,11 @@ export function apiRouter() {
     if (!rl.write(me(req))) return forbid(res);
     const patch = { ...(req.body ?? {}) } as Record<string, unknown>;
     delete patch.id; // the document's identity never changes
+    const menuRefusal = guardMenuLayout(String(req.params.c), String(req.params.id), patch, me(req));
+    if (menuRefusal) return res.status(menuRefusal.status).json({ error: menuRefusal.error });
     for (const f of SERVER_OWNED[String(req.params.c)] ?? []) delete patch[f];
     let toApply = patch;
-    if (String(req.params.c) in TOOLS_SCHEMAS || isPmCollection(String(req.params.c))) {
+    if (String(req.params.c) in TOOLS_SCHEMAS || isPmCollection(String(req.params.c)) || isAlignCollection(String(req.params.c))) {
       const existing = await db.getDoc<Record<string, unknown> & db.Doc>(String(req.params.c), String(req.params.id));
       if (!existing) return res.status(404).json({ error: 'not_found' });
       const guarded = await guardAny(String(req.params.c), patch, me(req), existing);
@@ -969,9 +1060,18 @@ export function apiRouter() {
     const rl = rule(req, res);
     if (!rl) return;
     if (!rl.write(me(req))) return forbid(res);
+    const menuRefusal = guardMenuLayout(String(req.params.c), String(req.params.id), null, me(req));
+    if (menuRefusal) return res.status(menuRefusal.status).json({ error: menuRefusal.error });
     if (isPmCollection(String(req.params.c))) {
       const refused = await guardPmDelete(String(req.params.c), String(req.params.id), me(req));
       if (refused) return res.status(refused.status).json({ error: refused.error });
+    }
+    if (isAlignCollection(String(req.params.c))) {
+      const refused = await guardAlignDelete(String(req.params.c), String(req.params.id), me(req));
+      if (refused) return res.status(refused.status).json({ error: refused.error });
+      // The document and its links go together (one transaction).
+      for (const col of await deleteAlign(String(req.params.c), String(req.params.id))) broadcast(col);
+      return res.status(204).end();
     }
     if (String(req.params.c) === 'tools.huddleEntries') {
       const existing = await db.getDoc<Record<string, unknown> & db.Doc>('tools.huddleEntries', String(req.params.id));
@@ -1000,6 +1100,8 @@ export function apiRouter() {
     const rl = rule(req, res);
     if (!rl) return;
     if (!me(req).can('*') || !Array.isArray(req.body)) return forbid(res);
+    // Align data is validated document by document; its bulk path is the KPI import (/align/import-kpi).
+    if (isAlignCollection(String(req.params.c))) return forbid(res);
     await db.replaceAll(String(req.params.c), req.body as db.Doc[]);
     broadcast(String(req.params.c));
     res.status(204).end();

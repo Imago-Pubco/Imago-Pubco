@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { NavLink, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Home as HomeIcon, PanelLeftClose, PanelLeftOpen, Moon, Sun, LogOut, Menu, ChevronDown, ArrowDownUp } from 'lucide-react';
+import { Home as HomeIcon, PanelLeftClose, PanelLeftOpen, Moon, Sun, LogOut, Menu, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { useI18n } from '@/i18n';
 import { COMPLIANCE_SEGMENT } from '@/modules/compliance';
-import { flatNav, modules, moduleForPath, orderModules, HOME_ACCENT } from '@/modules/registry';
+import { flatNav, modules, moduleForPath, HOME_ACCENT } from '@/modules/registry';
 import type { ModuleDef } from '@/modules/types';
 import { Butterfly, Wordmark } from '@/components/Butterfly';
 import { RequirePermission } from '@/components/ui';
@@ -13,6 +13,7 @@ import { Avatar } from '@/modules/admin/pages/Users';
 import { Home } from '@/pages/Home';
 import { WingTransition } from './WingTransition';
 import { SideModules } from './SideModules';
+import { menuModules, pinnedBottomModules, resolveSections, saveMenuLayout, useMenuLayout } from './menuLayout';
 import { applyTheme, useTheme } from './theme';
 import './shell.css';
 
@@ -33,11 +34,34 @@ export function AppShell() {
   const { theme, toggle: toggleTheme } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Sidebar modules in the user's saved order (drag and drop in the sidebar).
-  const sidebarModules = orderModules(
-    modules.filter((m) => m.placement !== 'userMenu' && can(m.entryPermission)),
-    user?.prefs?.menuOrder,
-  );
+  // Sidebar: the organisation's menu (sections, order, names) set by an administrator in Administration → Menu.
+  const { layout } = useMenuLayout();
+  const sections = [
+    ...resolveSections(layout, menuModules().filter((m) => can(m.entryPermission))),
+    // Support TI: always last, never in the editable menu.
+    { id: 'pinned-bottom', label: null, moduleIds: [] as string[], modules: pinnedBottomModules(can) },
+  ].filter((s) => s.modules.length);
+  const sidebarModules = sections.flatMap((s) => s.modules);
+  const canEditMenu = can('admin.menu');
+  const currentName = current ? (layout.names[current.id] ?? current.name) : null;
+  // Sections folded by this person (remembered in this browser).
+  const [closedGroups, setClosedGroups] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('imago:nav:closed-groups') ?? '[]') as string[];
+    } catch {
+      return [];
+    }
+  });
+  const toggleGroup = (id: string) =>
+    setClosedGroups((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      try {
+        localStorage.setItem('imago:nav:closed-groups', JSON.stringify(next));
+      } catch {
+        /* storage unavailable: this session only */
+      }
+      return next;
+    });
 
   /* ----- module menus: open on entering a module, close on leaving it (accordion) ----- */
   // `manual` holds explicit toggles made while inside the current module; it resets on every module change.
@@ -164,17 +188,45 @@ export function AppShell() {
             <span className="side-text">{t('Tableau de bord', 'Dashboard')}</span>
           </NavLink>
 
-          {sidebarModules.length > 0 && <div className="side-section">{t('Modules', 'Modules')}</div>}
-          <SideModules
-            modules={sidebarModules}
-            currentId={current?.id}
-            collapsed={collapsed}
-            isOpen={isOpen}
-            setOpen={setOpen}
-            onModuleClick={onModuleClick}
-            can={can}
-            onReorder={(ids) => updatePrefs({ menuOrder: ids })}
-          />
+          {sections.map((s) => {
+            // A folded section still shows when the sidebar is reduced to icons.
+            const folded = !collapsed && !!s.label && closedGroups.includes(s.id);
+            return (
+              <div key={s.id} className={`side-group ${folded ? 'folded' : ''}`}>
+                {s.label ? (
+                  <button className="side-section side-section-toggle" onClick={() => toggleGroup(s.id)} aria-expanded={!folded} title={folded ? t('Développer', 'Expand') : t('Réduire', 'Collapse')}>
+                    <span>{t(s.label)}</span>
+                    <ChevronDown size={13} className="side-section-chevron" />
+                  </button>
+                ) : (
+                  <div className="side-group-gap" />
+                )}
+                {!folded && (
+                  <SideModules
+                    modules={s.modules}
+                    currentId={current?.id}
+                    collapsed={collapsed}
+                    isOpen={isOpen}
+                    setOpen={setOpen}
+                    onModuleClick={onModuleClick}
+                    can={can}
+                    // Only menu administrators reorder, for everyone; modules this person cannot see keep their place.
+                    reorderable={canEditMenu && s.id !== 'pinned-bottom'}
+                    onReorder={(ids) => {
+                      const next = layout.sections.map((sec) => {
+                        if (sec.id !== s.id) return sec;
+                        const order = [...sec.moduleIds];
+                        const slots = order.map((id, i) => (ids.includes(id) ? i : -1)).filter((i) => i >= 0);
+                        slots.forEach((slot, k) => (order[slot] = ids[k]));
+                        return { ...sec, moduleIds: order };
+                      });
+                      saveMenuLayout({ ...layout, sections: next }).catch(() => undefined);
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <button
@@ -196,7 +248,7 @@ export function AppShell() {
           <div className="crumbs">
             <motion.span key={moduleKey} className="crumb-module" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
               <span className="crumb-dot" />
-              {current ? t(current.name) : t('Tableau de bord', 'Dashboard')}
+              {currentName ? t(currentName) : t('Tableau de bord', 'Dashboard')}
             </motion.span>
             {pageLabel && pageLabel.path && <span className="crumb-page">/ {t(pageLabel.label)}</span>}
           </div>
@@ -224,10 +276,10 @@ export function AppShell() {
   );
 }
 
-/** Avatar button + dropdown (admin settings, menu order reset, sign-out). */
+/** Avatar button + dropdown (admin settings, sign-out). */
 function UserMenu({ compact }: { compact?: boolean }) {
   const { t } = useI18n();
-  const { user, can, logout, updatePrefs } = useAuth();
+  const { user, can, logout } = useAuth();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -279,15 +331,6 @@ function UserMenu({ compact }: { compact?: boolean }) {
                 </NavLink>
               );
             })}
-
-            {user.prefs?.menuOrder && (
-              <button className="user-pop-item user-pop-admin" onClick={() => updatePrefs({ menuOrder: undefined })}>
-                <span className="user-pop-admin-icon" style={{ ['--m' as string]: 'var(--text-3)' }}>
-                  <ArrowDownUp size={16} />
-                </span>
-                {t('Rétablir l’ordre du menu', 'Reset menu order')}
-              </button>
-            )}
 
             <hr className="divider" />
             <button className="user-pop-item" onClick={logout}>

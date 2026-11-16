@@ -23,11 +23,11 @@ export const KPI_TOUR_STEPS: TourStep[] = [
     },
   },
   {
-    target: '[data-nav="tools:kpi"]',
+    target: '[data-module="tools"]',
     title: { fr: 'Le menu KPI', en: 'The KPI menu' },
     body: {
-      fr: 'La section KPI de la barre latérale donne accès aux cinq écrans : tableau de bord, indicateurs, priorités, huddles et équipes. La flèche de la section permet de la replier.',
-      en: 'The KPI section of the sidebar opens the five screens: dashboard, indicators, priorities, huddles and teams. The arrow on the section folds it away.',
+      fr: 'Le module KPI, dans la section « Archive temporaire » de la barre latérale, donne accès aux cinq écrans : tableau de bord, indicateurs, priorités, huddles et équipes. Sa flèche permet de replier le menu.',
+      en: 'The KPI module, in the “Archive (temporary)” section of the sidebar, opens the five screens: dashboard, indicators, priorities, huddles and teams. Its arrow folds the menu away.',
     },
   },
   {

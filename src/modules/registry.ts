@@ -1,6 +1,7 @@
 /**
  * Module registry — the single place where modules are plugged into Imago.
- * To add a module: create src/modules/<name>/index.tsx exporting a ModuleDef, then add it here.
+ * To add a module: create src/modules/<name>/index.tsx exporting a ModuleDef, then add it here
+ * and give it a sidebar section in src/layout/menuDefaults.ts.
  */
 import type { ModuleDef, NavItem } from './types';
 import { accountingModule } from './accounting';
@@ -8,13 +9,13 @@ import { shippingModule } from './shipping';
 import { estimatingModule } from './estimating';
 import { itModule } from './it';
 import { rhModule } from './rh';
-import { productionModule } from './production';
 import { o365Module } from './o365';
+import { alignModule } from './align';
 import { toolsModule } from './tools';
 import { pmModule } from './tools/pm';
 import { adminModule } from './admin';
 
-export const modules: ModuleDef[] = [accountingModule, shippingModule, estimatingModule, productionModule, rhModule, o365Module, toolsModule, pmModule, itModule, adminModule];
+export const modules: ModuleDef[] = [alignModule, o365Module, rhModule, accountingModule, estimatingModule, shippingModule, pmModule, toolsModule, itModule, adminModule];
 
 /** Nav items with nested sections expanded (parents first). */
 export function flatNav(nav: NavItem[]): NavItem[] {
@@ -23,7 +24,7 @@ export function flatNav(nav: NavItem[]): NavItem[] {
 
 export const HOME_ACCENT = '#da291c';
 
-/** The module owning a path; the most specific path wins (e.g. /tools/pm is Gestion de projet, not Outils). */
+/** The module owning a path; the most specific path wins (e.g. /tools/pm is Function Fox, not KPI). */
 export function moduleForPath(pathname: string): ModuleDef | undefined {
   return modules
     .filter((m) => pathname === m.path || pathname.startsWith(m.path + '/'))
