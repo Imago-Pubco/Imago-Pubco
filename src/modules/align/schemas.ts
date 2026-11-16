@@ -193,6 +193,10 @@ export const TaskSchema = z.strictObject({
   /** The huddle where it was added, if any. */
   huddleId: ref,
   order: z.number().int().min(0).max(100000),
+  /** The day the action was first created; kept when it is carried over to another week (staleness warning). */
+  since: date.optional(),
+  /** How many times it was carried over to a later week. */
+  postponed: z.number().int().min(0).max(1000).optional(),
   ...stamps,
 });
 

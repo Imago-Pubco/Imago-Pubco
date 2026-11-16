@@ -2,12 +2,12 @@
  * Demo data for the browser dev backend only (never used by the API server): the quarter's company priorities from
  * Pubco's 4D Vision summary as Rocks, with a few priorities assigned to the demo accounts.
  */
-import { quarterOf, quarterRange } from './lib';
+import { quarterOf, quarterRange, todayIso } from './lib';
 import { checkinId, huddleWeekId, shiftWeek, thisWeek } from './week';
 import type { AlignHuddle, AlignNote, AlignPriority, AlignTask, Checkin, HuddleWeek, Rock } from './schemas';
 import { alignHuddles, alignPriorities, checkins, huddleWeeks, notes, rocks, tasks } from './stores';
 
-const KEY = 'imago:seed:align:v3';
+const KEY = 'imago:seed:align:v4';
 
 export async function ensureAlignSeeded(force = false) {
   if (!force && localStorage.getItem(KEY) === '1') return;
@@ -59,14 +59,16 @@ export async function ensureAlignSeeded(force = false) {
   const task = (ownerId: string, weekStart: string, title: string, rockId: string | null, done = false, priorityId: string | null = null): AlignTask => ({
     id: `t_demo${++t}`, title, ownerId, weekStart, kind: rockId ? 'rock' : 'weekly', rockId, priorityId, done, huddleId: 'hud_demo1', order: t,
   });
+  // Older open actions, to show the staleness warning (2 weeks: orange, 3 weeks: red).
+  const daysAgo = (n: number) => { const d = new Date(); d.setDate(d.getDate() - n); return todayIso(d); };
   const T: AlignTask[] = [
     task('u_compta', prev, 'Envoyer le rapport de marge de la semaine', 'rock_demo1', true, 'prio_demo2'),
     task('u_compta', prev, 'Relancer les comptes à recevoir de plus de 60 jours', null),
     task('u_compta', wk, 'Comparer 3 projets terminés : soumis vs réel', 'rock_demo1', false, 'prio_demo2'),
     task('u_compta', wk, 'Préparer la paie de jeudi', null, true),
-    task('u_prod', wk, 'Bloquer la rencontre de planification avec Montech', 'rock_demo3', false, 'prio_demo6'),
+    { ...task('u_prod', wk, 'Bloquer la rencontre de planification avec Montech', 'rock_demo3', false, 'prio_demo6'), since: daysAgo(15), postponed: 2 },
     task('u_prod', wk, 'Former 2 chargés de projet à la liste de démarrage', 'rock_demo2', false, 'prio_demo5'),
-    task('u_prod', wk, 'Inventaire des panneaux en cour', null),
+    { ...task('u_prod', wk, 'Inventaire des panneaux en cour', null), since: daysAgo(24), postponed: 3 },
     task('u_admin', wk, 'Valider le gabarit de tableau de bord avec chaque département', 'rock_demo4'),
     task('u_admin', wk, 'Ordre du jour du huddle de direction', null, true),
   ];

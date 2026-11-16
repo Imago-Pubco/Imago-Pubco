@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ListTodo } from 'lucide-react';
 import type { User } from '@/data/types';
@@ -10,6 +10,9 @@ import type { AlignPriority, AlignTask, Rock } from '../schemas';
 import { tasks } from '../stores';
 import { TaskList } from '../tasks/TaskList';
 import { TaskComposer } from '../tasks/TaskComposer';
+import { dragging, endOrder, moveTask } from '../tasks/taskDnd';
+import { canEditTask, postponeFields } from '../tasks/taskLib';
+import { useAuth } from '@/auth/AuthContext';
 import { groupBy } from './huddleLib';
 import { memberPath } from './HuddleMembers';
 import { PastActions } from './PastActions';
@@ -56,6 +59,12 @@ export function HuddleTasks({
   const [hideDone, setHideDone] = useState(false);
   const [dragged, setDragged] = useState<AlignTask | null>(null);
   const [overOwner, setOverOwner] = useState<string | null>(null);
+  // An action of this week being dragged (reorder / reassign, see tasks/taskDnd.ts).
+  const [moving, setMoving] = useState<AlignTask | null>(null);
+  useEffect(() => dragging.subscribe((x) => { setMoving(x); if (!x) setOverOwner(null); }), []);
+  const { can } = useAuth();
+  const canManage = can('align.priorities.manage');
+  const active = dragged ?? moving;
   const [folded, setFolded] = useState<string[]>(() => {
     try {
       const v = JSON.parse(localStorage.getItem(FOLDED_KEY) ?? '[]');
@@ -80,19 +89,17 @@ export function HuddleTasks({
   const groups = useMemo(() => {
     const byOwner = groupBy(memberTasks.filter((x) => !hideDone || !x.done), (x) => x.ownerId);
     // While an action is dragged, every member is a target, even without an action yet.
-    if (dragged) for (const m of memberSet) if (!byOwner.has(m)) byOwner.set(m, []);
+    if (active) for (const m of memberSet) if (!byOwner.has(m)) byOwner.set(m, []);
     return [...byOwner.entries()].sort(([a], [b]) => userName(a).localeCompare(userName(b), lang));
-  }, [memberTasks, hideDone, dragged, memberSet, userName, lang]);
-  const nextOrder = useMemo(
-    () => weekTasks.filter((x) => x.ownerId === me).reduce((max, x) => Math.max(max, x.order + 1), 0),
-    [weekTasks, me],
-  );
+  }, [memberTasks, hideDone, active, memberSet, userName, lang]);
+  const nextOrder = useMemo(() => endOrder(weekTasks.filter((x) => x.ownerId === me)), [weekTasks, me]);
 
   /** Bring an earlier open action into the selected week, for its owner or for the person it is dropped on. */
   async function bringHere(task: AlignTask, ownerId: string = task.ownerId) {
-    const order = weekTasks.filter((x) => x.ownerId === ownerId).reduce((max, x) => Math.max(max, x.order + 1), 0);
+    const order = endOrder(weekTasks.filter((x) => x.ownerId === ownerId));
     try {
-      await tasks.update(task.id, { weekStart: week, ownerId, order });
+      // Moving an unfinished action to a later week is a postponement: its start day is kept, the count goes up.
+      await tasks.update(task.id, { weekStart: week, ownerId, order, ...(task.weekStart < week ? postponeFields(task) : {}) });
       toast(t('Action ajoutée à cette semaine', 'Action moved to this week'));
     } catch (err) {
       toast(errorText(err), 'err');
@@ -139,9 +146,9 @@ export function HuddleTasks({
           return (
             <div
               key={ownerId}
-              className={`align-task-group${dragged ? ' is-target' : ''}${dragged && overOwner === ownerId ? ' is-drop' : ''}`}
+              className={`align-task-group${active ? ' is-target' : ''}${active && overOwner === ownerId ? ' is-drop' : ''}`}
               onDragOver={(e) => {
-                if (!dragged) return;
+                if (!active) return;
                 e.preventDefault();
                 setOverOwner(ownerId);
               }}
@@ -151,7 +158,16 @@ export function HuddleTasks({
                 const task = dragged;
                 setDragged(null);
                 setOverOwner(null);
-                if (task) void bringHere(task, ownerId);
+                if (task) return void bringHere(task, ownerId);
+                // An action of this week dropped on the person (header, folded or empty group): to the end of their list.
+                const cur = dragging.get();
+                dragging.set(null);
+                if (cur && cur.ownerId !== ownerId) {
+                  const target = weekTasks.filter((x) => x.ownerId === ownerId);
+                  moveTask(cur, ownerId, null, target, (x) => canEditTask(x, me, canManage))
+                    .then(() => toast(t('Action réassignée', 'Action reassigned')))
+                    .catch((err) => toast(errorText(err), 'err'));
+                }
               }}
             >
               <div className="align-task-group-head">
@@ -176,7 +192,8 @@ export function HuddleTasks({
                   rockById={rockById}
                   priorityById={prioById}
                   showOwner={false}
-                  emptyText={dragged ? t('Déposez l’action ici', 'Drop the action here') : t('Aucune tâche', 'No task')}
+                  emptyText={active ? t('Déposez l’action ici', 'Drop the action here') : t('Aucune tâche', 'No task')}
+                  dropOwnerId={ownerId}
                 />
               )}
             </div>

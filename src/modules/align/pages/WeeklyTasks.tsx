@@ -16,6 +16,7 @@ import { quarterOfWeek } from '../week';
 import { groupBy } from '../huddles/huddleLib';
 import { TaskComposer } from '../tasks/TaskComposer';
 import { TaskList } from '../tasks/TaskList';
+import { endOrder } from '../tasks/taskDnd';
 import { sortTasks } from '../tasks/taskLib';
 
 type View = 'mine' | 'all';
@@ -25,7 +26,7 @@ type KindFilter = 'all' | TaskKind;
 const matches = (x: AlignTask, kind: KindFilter, hideDone: boolean) => (kind === 'all' || x.kind === kind) && !(hideDone && x.done);
 
 /** Order for a new task: after the last one of the plan. */
-const nextOrderFor = (list: AlignTask[]) => list.reduce((m, x) => Math.max(m, x.order), -1) + 1;
+const nextOrderFor = (list: AlignTask[]) => endOrder(list);
 
 /** Weekly tasks: each person's action plan for the week, with Rock actions and weekly actions. */
 export function WeeklyTasks() {
@@ -148,7 +149,7 @@ export function WeeklyTasks() {
                 {mineAll.length === 0 && t('Ajoutez votre première action ci-dessus.', 'Add your first action above.')}
               </Empty>
             ) : (
-              <TaskList tasks={mineShown} rockById={rockById} priorityById={priorityById} />
+              <TaskList tasks={mineShown} rockById={rockById} priorityById={priorityById} dropOwnerId={me} />
             )}
           </div>
         </Collapsible>
@@ -205,7 +206,7 @@ export function WeeklyTasks() {
                     </Link>
                   }
                 >
-                  <TaskList tasks={g.shown} rockById={rockById} priorityById={priorityById} emptyText={t('Aucune action ne correspond aux filtres.', 'No action matches the filters.')} />
+                  <TaskList tasks={g.shown} rockById={rockById} priorityById={priorityById} dropOwnerId={g.id} emptyText={t('Aucune action ne correspond aux filtres.', 'No action matches the filters.')} />
                 </Collapsible>
               ))
             )}

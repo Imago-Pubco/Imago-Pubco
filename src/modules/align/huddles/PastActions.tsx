@@ -5,7 +5,8 @@ import { useAuth } from '@/auth/AuthContext';
 import { useI18n } from '@/i18n';
 import { MemberAvatar } from '../components/WeekKit';
 import type { AlignTask } from '../schemas';
-import { canEditTask } from '../tasks/taskLib';
+import { canEditTask, taskStaleness } from '../tasks/taskLib';
+import { ElectricFx, StaleBadge } from '../tasks/TaskList';
 import { weekLabel } from '../week';
 
 const OPEN_KEY = 'imago:align:past-actions-open';
@@ -69,10 +70,11 @@ export function PastActions({
             <ul className="align-task-list">
               {tasks.map((task) => {
                 const editable = canEditTask(task, user!.id, canManage);
+                const stale = taskStaleness(task);
                 return (
                   <li
                     key={task.id}
-                    className="align-task-row align-past-row"
+                    className={`align-task-row align-past-row${stale !== 'none' ? ` is-stale-${stale}` : ''}`}
                     draggable={editable}
                     onDragStart={(e) => {
                       e.dataTransfer.setData('text/plain', task.id);
@@ -85,6 +87,8 @@ export function PastActions({
                     <span className="align-task-title" title={task.title}>
                       {task.title}
                     </span>
+                    {stale === 'alert' && <ElectricFx />}
+                    {stale !== 'none' && <StaleBadge task={task} level={stale} />}
                     <span className="small muted align-nowrap">{weekLabel(task.weekStart, lang)}</span>
                     <span className="align-task-owner" title={userById.get(task.ownerId)?.displayName ?? task.ownerId}>
                       <MemberAvatar user={userById.get(task.ownerId)} name={task.ownerId} size={20} />

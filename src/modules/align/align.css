@@ -1963,3 +1963,232 @@ a.align-dash-title:hover {
 .align-rockprio-empty {
   padding: 6px 0 0 14px;
 }
+
+/* ---------- drag and drop of actions ---------- */
+.align-task-grip {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  color: var(--text-3, var(--muted, inherit));
+  cursor: grab;
+  opacity: 0.35;
+  flex-shrink: 0;
+}
+.align-task-row:hover .align-task-grip {
+  opacity: 1;
+}
+.align-task-grip.is-off {
+  visibility: hidden;
+}
+.align-task-row[draggable='true'] {
+  cursor: grab;
+}
+.align-task-row[draggable='true']:active {
+  cursor: grabbing;
+}
+.align-task-row.is-over {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.align-task-list.is-over-end {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.align-task-list.is-dropping {
+  min-height: 30px;
+}
+.align-task-dropzone {
+  padding: 8px;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 12px;
+  text-align: center;
+}
+.align-task-dropzone.is-over {
+  background: var(--accent-soft);
+}
+
+/* ---------- stale actions: 2 weeks (orange pulse), 3+ weeks (red lightning flash) ---------- */
+.align-stale {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: help;
+}
+.align-stale.is-warn {
+  background: color-mix(in srgb, var(--warn) 18%, transparent);
+  color: var(--warn);
+}
+.align-stale.is-alert {
+  background: var(--err);
+  color: #fff;
+  animation: align-bolt 2.4s infinite;
+}
+.align-stale-n {
+  font-weight: 600;
+  opacity: 0.85;
+}
+.align-task-row.is-stale-warn {
+  box-shadow: inset 3px 0 0 var(--warn);
+  animation: align-glow-warn 2.6s ease-in-out infinite;
+}
+.align-task-row.is-stale-alert {
+  box-shadow: inset 3px 0 0 var(--err);
+  animation: align-flash-alert 2.4s infinite;
+}
+@keyframes align-glow-warn {
+  0%,
+  100% {
+    background: transparent;
+  }
+  50% {
+    background: color-mix(in srgb, var(--warn) 14%, transparent);
+  }
+}
+/* A lightning strike: two quick bright flashes, then a fading afterglow. */
+@keyframes align-flash-alert {
+  0%,
+  100% {
+    background: color-mix(in srgb, var(--err) 6%, transparent);
+  }
+  4% {
+    background: color-mix(in srgb, var(--err) 38%, transparent);
+  }
+  8% {
+    background: color-mix(in srgb, var(--err) 8%, transparent);
+  }
+  12% {
+    background: color-mix(in srgb, var(--err) 45%, transparent);
+  }
+  30% {
+    background: color-mix(in srgb, var(--err) 16%, transparent);
+  }
+}
+@keyframes align-bolt {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    filter: none;
+  }
+  4%,
+  12% {
+    box-shadow: 0 0 10px 2px color-mix(in srgb, var(--err) 70%, transparent);
+    filter: brightness(1.35);
+  }
+  8% {
+    filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .align-task-row.is-stale-warn,
+  .align-task-row.is-stale-alert,
+  .align-stale.is-alert {
+    animation: none;
+  }
+  .align-task-row.is-stale-warn {
+    background: color-mix(in srgb, var(--warn) 10%, transparent);
+  }
+  .align-task-row.is-stale-alert {
+    background: color-mix(in srgb, var(--err) 14%, transparent);
+  }
+}
+
+/* ---------- electric arcs on actions 3+ weeks old ---------- */
+.align-task-row.is-stale-alert {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.align-task-row.is-stale-alert > *:not(.align-electric) {
+  position: relative;
+  z-index: 1;
+}
+.align-electric {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.align-electric svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.align-electric .arc {
+  fill: none;
+  stroke-linejoin: miter;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 60 340;
+  opacity: 0;
+}
+.align-electric .arc-1 {
+  stroke: #ff3b3b;
+  stroke-width: 1.6;
+  filter: drop-shadow(0 0 3px #ff2020) drop-shadow(0 0 6px rgba(255, 60, 60, 0.8));
+  animation: align-arc 2.4s linear infinite, align-arc-flicker 2.4s steps(1) infinite;
+}
+.align-electric .arc-2 {
+  stroke: #ffd6d6;
+  stroke-width: 1;
+  filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 5px #ff3b3b);
+  animation: align-arc 1.7s linear infinite reverse, align-arc-flicker 2.4s steps(1) infinite 0.12s;
+}
+.align-electric .arc-3 {
+  stroke: #ff7a7a;
+  stroke-width: 0.8;
+  filter: drop-shadow(0 0 4px #ff2020);
+  animation: align-arc 3.1s linear infinite, align-arc-flicker 2.4s steps(1) infinite 0.3s;
+}
+/* The spark runs along the arc… */
+@keyframes align-arc {
+  from {
+    stroke-dashoffset: 400;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* …and the current crackles: on with the lightning strike, a few flickers, then off until the next one. */
+@keyframes align-arc-flicker {
+  0% {
+    opacity: 0.95;
+  }
+  3% {
+    opacity: 0.2;
+  }
+  5% {
+    opacity: 1;
+  }
+  9% {
+    opacity: 0.35;
+  }
+  12% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 0.6;
+  }
+  24% {
+    opacity: 0.9;
+  }
+  32% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .align-electric {
+    display: none;
+  }
+}

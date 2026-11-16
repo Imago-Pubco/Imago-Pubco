@@ -18,6 +18,8 @@ import { groupBy, byDue } from '../huddles/huddleLib';
 import { PriorityRow } from '../huddles/PriorityRow';
 import { TaskComposer } from '../tasks/TaskComposer';
 import { TaskList } from '../tasks/TaskList';
+import { endOrder } from '../tasks/taskDnd';
+import { postponeFields } from '../tasks/taskLib';
 import { checkinId, quarterOfWeek, shiftWeek } from '../week';
 import { useMemberNav } from '../team/useMemberNav';
 import { RichTextEditor } from '@/components/richtext/RichTextEditor';
@@ -222,7 +224,7 @@ export function MemberWeek() {
     [allTasks, userId, prevWeek],
   );
   const openTaskCount = weekTasks.filter((x) => !x.done).length;
-  const nextOrder = weekTasks.reduce((m, x) => Math.max(m, x.order + 1), 0);
+  const nextOrder = endOrder(weekTasks);
   const activePriorities = useMemo(() => allPriorities.filter((p) => !p.archived), [allPriorities]);
   const quarterRocks = useMemo(
     () => allRocks.filter((r) => r.quarter === quarter && !r.archived).sort((a, b) => a.order - b.order),
@@ -257,7 +259,8 @@ export function MemberWeek() {
           priorityId: x.priorityId && prioById.has(x.priorityId) ? x.priorityId : null,
           done: false,
           huddleId,
-          order: order++,
+          order: Math.min(100000, (order += 1000) - 1000),
+          ...postponeFields(x),
         });
       }
       toast(t(`${copy.length} tâche(s) reportée(s)`, `${copy.length} task(s) carried over`));
@@ -429,7 +432,7 @@ export function MemberWeek() {
               )}
             </div>
           )}
-          <TaskList tasks={weekTasks} rockById={rockById} priorityById={prioById} emptyText={t('Aucune action pour cette semaine', 'No action for this week')} />
+          <TaskList tasks={weekTasks} rockById={rockById} priorityById={prioById} dropOwnerId={userId} emptyText={t('Aucune action pour cette semaine', 'No action for this week')} />
         </Collapsible>
       </div>
     </Page>

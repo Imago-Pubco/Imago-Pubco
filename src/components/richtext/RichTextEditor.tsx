@@ -12,8 +12,9 @@ import { TextStyleKit } from '@tiptap/extension-text-style';
 import Highlight from '@tiptap/extension-highlight';
 import { TaskItem, TaskList } from '@tiptap/extension-list';
 import { Placeholder } from '@tiptap/extensions';
+import { Indent, indent, outdent } from './indent';
 import {
-  Bold, Columns3, Highlighter, ImagePlus, Italic, Link2, List, ListChecks, ListOrdered, Minus, Palette, Quote, Redo2, Rows3,
+  Bold, Columns3, Highlighter, ImagePlus, IndentDecrease, IndentIncrease, Italic, Link2, List, ListChecks, ListOrdered, Minus, Palette, Quote, Redo2, Rows3,
   Strikethrough, Table2, Trash2, Underline, Undo2, Unlink,
 } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -76,6 +77,7 @@ export function RichTextEditor({ value, onChange, onBlur, placeholder, disabled,
       Image.configure({ allowBase64: true }),
       TableKit.configure({ table: { resizable: true } }),
       Placeholder.configure({ placeholder: placeholder ?? '' }),
+      Indent,
     ],
     content: textToHtml(value),
     editable: !disabled,
@@ -220,6 +222,8 @@ function Toolbar({ editor, onFiles, t }: { editor: Editor; onFiles: (f: File[]) 
       <B on={s.bullet} title={t('Liste à puces', 'Bulleted list')} onClick={() => c().toggleBulletList().run()}><List size={15} /></B>
       <B on={s.ordered} title={t('Liste numérotée', 'Numbered list')} onClick={() => c().toggleOrderedList().run()}><ListOrdered size={15} /></B>
       <B on={s.task} title={t('Liste de cases à cocher', 'Checklist')} onClick={() => c().toggleTaskList().run()}><ListChecks size={15} /></B>
+      <B title={t('Retrait (Tab)', 'Indent (Tab)')} onClick={() => indent(editor)}><IndentIncrease size={15} /></B>
+      <B title={t('Réduire le retrait (Maj+Tab)', 'Outdent (Shift+Tab)')} onClick={() => outdent(editor)}><IndentDecrease size={15} /></B>
       <B on={s.quote} title={t('Citation', 'Quote')} onClick={() => c().toggleBlockquote().run()}><Quote size={15} /></B>
       <B title={t('Ligne de séparation', 'Divider')} onClick={() => c().setHorizontalRule().run()}><Minus size={15} /></B>
       <span className="rt-sep" />

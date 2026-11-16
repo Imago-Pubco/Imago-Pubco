@@ -53,7 +53,7 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
           description: draft,
         });
       setEditing(false);
-      toast(t('Description enregistrée', 'Description saved'));
+      toast(t('Ordre du jour enregistré', 'Agenda saved'));
     } catch (err) {
       toast(errorText(err), 'err');
     } finally {
@@ -63,8 +63,8 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
 
   return (
     <Collapsible
-      id="huddle.description" info={{ what: t("Le sujet ou le focus du huddle pour la semaine choisie. Chaque semaine peut avoir le sien ; sinon la dernière description écrite est reprise.", "The huddle's topic or focus for the selected week. Each week can have its own; otherwise the last one written is carried over."), source: t("descriptions hebdomadaires du huddle (écrites par l'animateur ou un gestionnaire des huddles).", "the huddle's weekly descriptions (written by the host or a huddle manager).") }}
-      title={t('Description de la semaine', 'This week’s description')}
+      id="huddle.description" info={{ what: t("L’ordre du jour du huddle pour la semaine choisie. Chaque semaine peut avoir le sien ; sinon le dernier ordre du jour écrit est repris.", "The huddle's agenda for the selected week. Each week can have its own; otherwise the last one written is carried over."), source: t("ordres du jour hebdomadaires du huddle (écrites par l'animateur ou un gestionnaire des huddles).", "the huddle's weekly agendas (written by the host or a huddle manager).") }}
+      title={t('Ordre du jour', 'Agenda')}
       icon={<FileText size={18} />}
       actions={
         canEdit && !editing ? (
@@ -80,7 +80,7 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
             value={draft}
             onChange={setDraft}
             disabled={busy}
-            ariaLabel={t('Description de la semaine', 'This week’s description')}
+            ariaLabel={t('Ordre du jour', 'Agenda')}
             minHeight={140}
           />
           <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>
@@ -93,7 +93,7 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
           </div>
         </div>
       ) : shown.source === 'none' ? (
-        <div className="small muted">{t('Aucune description', 'No description')}</div>
+        <div className="small muted">{t('Aucun ordre du jour', 'No agenda')}</div>
       ) : (
         <>
           {shown.source === 'carried' && shown.from && (

@@ -161,6 +161,17 @@ export async function guardAlign(c: string, body: Record<string, unknown>, a: Au
     if (fin.huddleId != null && !(await db.getDoc('align.huddles', String(fin.huddleId)))) {
       return { status: 400, error: 'The huddle does not exist.' };
     }
+    // Staleness: the first day of the action cannot be in the future, nor moved later once set (that would hide the
+    // warning); the postponement count only goes up.
+    const today = new Date().toISOString().slice(0, 10);
+    if (!existing && !doc.since) doc.since = today;
+    if (typeof doc.since === 'string' && doc.since > today) doc.since = today;
+    if (existing && typeof existing.since === 'string' && typeof doc.since === 'string' && doc.since > existing.since) {
+      return { status: 400, error: 'The start date of an action cannot be moved later.' };
+    }
+    if (existing && typeof doc.postponed === 'number' && doc.postponed < Number(existing.postponed ?? 0)) {
+      return { status: 400, error: 'The postponement count cannot go down.' };
+    }
   }
   if (c === 'align.checkins') {
     if (!existing && doc.id !== `${doc.userId}_${doc.weekStart}`) return { status: 400, error: 'invalid id' };

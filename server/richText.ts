@@ -39,6 +39,7 @@ const OPTIONS: sanitizeHtml.IOptions = {
       'font-family': [/^[\w\s,'"-]{1,80}$/],
       'font-size': [/^\d{1,2}(\.\d)?(px|pt|em|rem)$/],
       'text-align': [/^(left|right|center|justify)$/],
+      'margin-left': [/^\d{1,2}em$/],
       width: [/^\d{1,4}px$/],
       'min-width': [/^\d{1,4}px$/],
     },

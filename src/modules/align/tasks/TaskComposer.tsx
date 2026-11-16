@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui';
 import type { AlignPriority, Rock, TaskKind } from '../schemas';
 import { tasks } from '../stores';
 import { errorText } from '../components/RockShared';
+import { todayIso } from '../lib';
 
 export interface TaskComposerProps {
   /** Who it is assigned to by default (the person creating it, or the member whose plan is open). */
@@ -65,6 +66,8 @@ export function TaskComposer({ ownerId, week, huddleId, rocks, priorities = [], 
         done: false,
         huddleId: huddleId ?? null,
         order: nextOrder,
+        since: todayIso(),
+        postponed: 0,
       });
       setTitle('');
       setPriorityId('');
