@@ -5,6 +5,7 @@ import { Empty } from '@/components/ui';
 import { isBlocked, isOverdue, priorityPct } from '../lib';
 import type { AlignPriority, Rock } from '../schemas';
 import { HealthDot, ProgressBar } from '../components/RockShared';
+import { InfoTip } from '../components/Insight';
 
 /** The signed-in user's open priorities; a click opens the Rock of the priority. */
 export function MyPriorities({
@@ -22,7 +23,7 @@ export function MyPriorities({
   return (
     <section className="card align-dash-card">
       <div className="card-head">
-        <h3>{t('Mes priorités', 'My priorities')}</h3>
+        <h3 className="align-dash-h">{t('Mes priorités', 'My priorities')} <InfoTip what={t("Vos priorités non terminées, toutes périodes, la plus urgente en premier.", "Your priorities not completed yet, all periods, most urgent first.")} source={t("Align › Rocks (priorités qui vous sont assignées).", "Align › Rocks (priorities assigned to you).")} /></h3>
         <span className="small muted">{items.length}</span>
       </div>
       {items.length === 0 ? (

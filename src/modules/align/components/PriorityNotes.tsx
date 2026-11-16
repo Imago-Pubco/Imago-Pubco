@@ -33,7 +33,7 @@ export function PriorityNotes({ priority, people }: { priority: AlignPriority; p
 
   const [kind, setKind] = useState<AlignNote['kind']>('note');
   const [text, setText] = useState('');
-  const [assigneeId, setAssigneeId] = useState(priority.ownerId ?? me);
+  const [assigneeId, setAssigneeId] = useState(me); // the person writing it, by default
   const [dueDate, setDueDate] = useState('');
   const [busy, setBusy] = useState(false);
   const assignees = userOptions(people, assigneeId);

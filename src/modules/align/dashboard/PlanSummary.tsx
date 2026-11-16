@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Compass } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import type { Strategy } from '../schemas';
+import { InfoTip } from '../components/Insight';
 
 /** Reference card of the strategic plan on one page (BHAG, purpose, core values, key thrusts). */
 export function PlanSummary({ plan }: { plan: Strategy }) {
@@ -12,6 +13,7 @@ export function PlanSummary({ plan }: { plan: Strategy }) {
         <h3 className="row" style={{ gap: 8 }}>
           <Compass size={15} />
           {t('Plan stratégique sur une page', 'Strategic plan on one page')}
+          <InfoTip what={t("Le résumé du plan stratégique : raison d'être, BHAG, promesse de marque, axes stratégiques et thème de l'année.", "Summary of the strategic plan: purpose, BHAG, brand promise, key thrusts and the year's theme.")} source={t("Align › Stratégie (plan stratégique d'une page).", "Align › Strategy (one-page strategic plan).")} />
         </h3>
       </div>
       <div className="card-pad" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

@@ -4,14 +4,31 @@ import { useI18n } from '@/i18n';
 import { Empty } from '@/components/ui';
 import type { RockRow } from './model';
 import { HealthDot, ProgressBar } from '../components/RockShared';
+import { HoverList, InfoTip } from '../components/Insight';
+import { HEALTH_COLOR, STATUS_LABEL } from '../lib';
+import type { AlignPriority } from '../schemas';
 
 /** One row per Rock of the quarter: progress (completed priorities / total) and the health of its priorities. */
-export function RocksProgress({ rows, nameOf }: { rows: RockRow[]; nameOf: (id?: string | null) => string }) {
+export function RocksProgress({
+  rows,
+  nameOf,
+  onOpen,
+}: {
+  rows: RockRow[];
+  nameOf: (id?: string | null) => string;
+  onOpen: (title: string, items: AlignPriority[], subtitle?: string) => void;
+}) {
   const { t } = useI18n();
   return (
     <section className="card align-dash-card">
       <div className="card-head">
-        <h3>{t('Progression des Rocks', 'Rocks progress')}</h3>
+        <h3 className="align-dash-h">
+          {t('Progression des Rocks', 'Rocks progress')}
+          <InfoTip
+            what={t('Chaque Rock du trimestre : % = priorités terminées ÷ priorités du Rock. Survolez une barre pour voir ses priorités ; cliquez pour le détail.', 'Each Rock of the quarter: % = completed priorities ÷ the Rock’s priorities. Hover a bar to see its priorities; click for details.')}
+            source={t('Align › Rocks (Rocks du trimestre et leurs priorités).', 'Align › Rocks (the quarter’s Rocks and their priorities).')}
+          />
+        </h3>
         <Link to="/align/rocks" className="small">
           {t('Tous les Rocks', 'All Rocks')}
         </Link>
@@ -34,7 +51,12 @@ export function RocksProgress({ rows, nameOf }: { rows: RockRow[]; nameOf: (id?:
                 </Link>
                 <span className="small muted">{nameOf(rock.ownerId)}</span>
               </div>
-              <div className="row">
+              <HoverList
+                className="row align-dash-rockbar"
+                title={`${rock.title} · ${done} / ${total}`}
+                items={priorities.map((p) => ({ key: p.id, label: p.title, meta: `${t(STATUS_LABEL[p.status])} · ${nameOf(p.ownerId)}`, dot: HEALTH_COLOR[p.health] }))}
+                onOpen={() => onOpen(rock.title, priorities, t(`Progression : ${pct} % (${done} / ${total} priorités terminées)`, `Progress: ${pct}% (${done} / ${total} priorities completed)`))}
+              >
                 <ProgressBar pct={pct} className="align-dash-bar" />
                 <span className="mono small" style={{ minWidth: 40, textAlign: 'right' }}>
                   {pct}%
@@ -42,7 +64,7 @@ export function RocksProgress({ rows, nameOf }: { rows: RockRow[]; nameOf: (id?:
                 <span className="small muted" style={{ minWidth: 64, textAlign: 'right' }}>
                   {done} / {total}
                 </span>
-              </div>
+              </HoverList>
               {priorities.length > 0 && (
                 <div className="row row-wrap align-dash-dots">
                   {priorities.map((p) => (

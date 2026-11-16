@@ -8,6 +8,9 @@ import type { AlignHuddle, HuddleWeek } from '../schemas';
 import { huddleWeeks } from '../stores';
 import { huddleWeekId } from '../week';
 import { fmtDay } from './huddleLib';
+import { RichTextEditor } from '@/components/richtext/RichTextEditor';
+import { RichText } from '@/components/richtext/RichText';
+import { hasRichContent } from '@/components/richtext/sanitize';
 
 /**
  * The huddle's description for one week. Shown: this week's text; else the latest earlier week's text (carried over);
@@ -22,14 +25,14 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
 
   const current = weeks.find((w) => w.id === huddleWeekId(huddle.id, week));
   const earlier = weeks
-    .filter((w) => w.huddleId === huddle.id && w.weekStart < week && w.description.trim())
+    .filter((w) => w.huddleId === huddle.id && w.weekStart < week && hasRichContent(w.description))
     .sort((a, b) => b.weekStart.localeCompare(a.weekStart))[0];
 
-  const shown: { text: string; source: 'week' | 'carried' | 'huddle' | 'none'; from?: string } = current?.description.trim()
+  const shown: { text: string; source: 'week' | 'carried' | 'huddle' | 'none'; from?: string } = current && hasRichContent(current.description)
     ? { text: current.description, source: 'week' }
     : earlier
       ? { text: earlier.description, source: 'carried', from: earlier.weekStart }
-      : huddle.description.trim()
+      : hasRichContent(huddle.description)
         ? { text: huddle.description, source: 'huddle' }
         : { text: '', source: 'none' };
 
@@ -60,7 +63,7 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
 
   return (
     <Collapsible
-      id="huddle.description"
+      id="huddle.description" info={{ what: t("Le sujet ou le focus du huddle pour la semaine choisie. Chaque semaine peut avoir le sien ; sinon la dernière description écrite est reprise.", "The huddle's topic or focus for the selected week. Each week can have its own; otherwise the last one written is carried over."), source: t("descriptions hebdomadaires du huddle (écrites par l'animateur ou un gestionnaire des huddles).", "the huddle's weekly descriptions (written by the host or a huddle manager).") }}
       title={t('Description de la semaine', 'This week’s description')}
       icon={<FileText size={18} />}
       actions={
@@ -73,14 +76,12 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
     >
       {editing ? (
         <div className="stack">
-          <textarea
-            className="input"
-            rows={6}
-            maxLength={4000}
+          <RichTextEditor
             value={draft}
+            onChange={setDraft}
             disabled={busy}
-            aria-label={t('Description de la semaine', 'This week’s description')}
-            onChange={(e) => setDraft(e.target.value)}
+            ariaLabel={t('Description de la semaine', 'This week’s description')}
+            minHeight={140}
           />
           <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>
             <button className="btn btn-sm" disabled={busy} onClick={() => setEditing(false)}>
@@ -100,7 +101,7 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
               {t(`Reprise de la semaine du ${fmtDay(shown.from, 'fr')}`, `Carried from the week of ${fmtDay(shown.from, 'en')}`)}
             </div>
           )}
-          <div className={`align-desc-text${shown.source === 'week' ? '' : ' muted'}`}>{shown.text}</div>
+          <RichText html={shown.text} className={`align-desc-text${shown.source === 'week' ? '' : ' muted'}`} />
         </>
       )}
     </Collapsible>

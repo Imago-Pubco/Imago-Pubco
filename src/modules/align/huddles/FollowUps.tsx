@@ -30,7 +30,7 @@ export function FollowUpForm({
   const toast = useToast();
   const [kind, setKind] = useState<'followup' | 'note'>('followup');
   const [text, setText] = useState('');
-  const [assigneeId, setAssigneeId] = useState(priority.ownerId ?? user!.id);
+  const [assigneeId, setAssigneeId] = useState(user!.id); // the person writing it, by default
   const [due, setDue] = useState('');
   const [busy, setBusy] = useState(false);
 

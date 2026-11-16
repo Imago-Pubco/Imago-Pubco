@@ -1,6 +1,7 @@
+import { hasRichContent } from '@/components/richtext/sanitize';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Compass, ListChecks, Settings, Users, Video } from 'lucide-react';
+import { Compass, Settings, Users, Video } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { useCollection } from '@/data/db';
 import { users } from '@/data/stores';
@@ -11,16 +12,15 @@ import { Empty, PageHeader } from '@/components/ui';
 import { isBlocked, priorityInQuarter, quarterLabel, rockPriorities, rockProgress } from '../lib';
 import { ProgressBar } from '../components/RockShared';
 import { Collapsible, WeekPicker, useWeekParam } from '../components/WeekKit';
-import { alignHuddles, alignPriorities, checkins, huddleWeeks, notes, rocks, tasks } from '../stores';
+import { alignHuddles, alignPriorities, checkins, huddleWeeks, rocks, tasks } from '../stores';
 import { checkinId, quarterOfWeek } from '../week';
-import type { AlignNote, AlignPriority, Checkin, Rock } from '../schemas';
+import type { AlignPriority, Checkin, Rock } from '../schemas';
 import { HuddleForm } from '../huddles/HuddleForm';
-import { FollowUpItem } from '../huddles/FollowUps';
 import { HuddleDescription } from '../huddles/HuddleDescription';
 import { HuddleTasks } from '../huddles/HuddleTasks';
 import { HuddlePriorities } from '../huddles/HuddlePriorities';
 import { HuddleMembers, type MemberStat } from '../huddles/HuddleMembers';
-import { byDue, canEditHuddle, groupBy, scheduleLabel } from '../huddles/huddleLib';
+import { canEditHuddle, groupBy, scheduleLabel } from '../huddles/huddleLib';
 
 interface RockStats {
   done: number;
@@ -41,7 +41,6 @@ export function HuddleMeeting() {
   // One subscription per collection, at page level; the sections receive what they need.
   const { rows: allRocks, loading: loadingRocks } = useCollection(rocks);
   const { rows: allPriorities, loading: loadingPriorities } = useCollection(alignPriorities);
-  const { rows: allNotes } = useCollection(notes);
   const { rows: huddles, loading: loadingHuddles } = useCollection(alignHuddles);
   const { rows: allUsers } = useCollection(users);
   const { rows: allTasks } = useCollection(tasks);
@@ -87,7 +86,8 @@ export function HuddleMeeting() {
     () => quarterPriorities.filter((p) => p.ownerId && memberSet.has(p.ownerId)),
     [quarterPriorities, memberSet],
   );
-  const myPriorities = useMemo(() => allPriorities.filter((p) => !p.archived && p.ownerId === me), [allPriorities, me]);
+  // Every active priority (the composer keeps the assignee's ones).
+  const myPriorities = useMemo(() => allPriorities.filter((p) => !p.archived), [allPriorities]);
 
   const rockRows = useMemo(
     () => allRocks.filter((r) => r.quarter === quarter && !r.archived).sort((a, b) => a.order - b.order),
@@ -136,18 +136,11 @@ export function HuddleMeeting() {
           openTasks: openTasks.get(m)?.length ?? 0,
           openPrio: openPrio.get(m)?.length ?? 0,
           blocked: blocked.get(m)?.length ?? 0,
-          whatsUp: !!checkinById.get(checkinId(m, week))?.whatsUp.trim(),
+          whatsUp: hasRichContent(checkinById.get(checkinId(m, week))?.whatsUp),
         },
       ]),
     );
   }, [weekTasks, memberPriorities, prioById, allCheckins, members, week]);
-
-  // Open follow-ups written during this huddle.
-  const huddleOpen = useMemo(
-    () =>
-      huddle ? allNotes.filter((n: AlignNote) => n.kind === 'followup' && !n.done && n.huddleId === huddle.id).sort(byDue) : [],
-    [allNotes, huddle],
-  );
 
   if (!huddle) {
     if (loadingHuddles || loadingPriorities || loadingRocks) return null;
@@ -199,7 +192,7 @@ export function HuddleMeeting() {
       <HuddleDescription huddle={huddle} week={week} weeks={allWeeks} canEdit={canSettings} />
 
       {/* Rocks overview (company-wide, for the quarter of the week) */}
-      <Collapsible id="huddle.rocks" title={t('Rocks', 'Rocks')} icon={<Compass size={18} />} count={rockRows.length}>
+      <Collapsible id="huddle.rocks" info={{ what: t("Les Rocks (objectifs de l'entreprise) du trimestre et leur progression : priorités terminées ÷ priorités totales.", "The quarter's Rocks (company goals) and their progress: completed priorities ÷ total priorities."), source: t("Align › Rocks, trimestre de la semaine choisie.", "Align › Rocks, quarter of the selected week.") }} title={t('Rocks', 'Rocks')} icon={<Compass size={18} />} count={rockRows.length}>
         {!rockRows.length ? (
           <Empty icon={<Compass size={32} />} title={t('Aucun Rock pour ce trimestre', 'No Rock for this quarter')}>
             <Link to="/align/rocks">{t('Voir les Rocks', 'View Rocks')}</Link>
@@ -267,19 +260,6 @@ export function HuddleMeeting() {
         stats={memberStats}
         canSettings={canSettings}
       />
-
-      {/* Open follow-ups of this meeting */}
-      <Collapsible id="huddle.followups" title={t('Suivis ouverts de cette réunion', 'Open follow-ups from this meeting')} icon={<ListChecks size={18} />} count={huddleOpen.length}>
-        {!huddleOpen.length ? (
-          <div className="small muted">{t('Aucun suivi ouvert pour cette réunion.', 'No open follow-up from this meeting.')}</div>
-        ) : (
-          <div className="align-followup-list">
-            {huddleOpen.map((n) => (
-              <FollowUpItem key={n.id} note={n} userName={userName} priorityTitle={prioById.get(n.priorityId)?.title} />
-            ))}
-          </div>
-        )}
-      </Collapsible>
 
       {formOpen && <HuddleForm huddle={huddle} people={people} onClose={() => setFormOpen(false)} />}
     </Page>

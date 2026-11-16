@@ -20,6 +20,9 @@ import { TaskComposer } from '../tasks/TaskComposer';
 import { TaskList } from '../tasks/TaskList';
 import { checkinId, quarterOfWeek, shiftWeek } from '../week';
 import { useMemberNav } from '../team/useMemberNav';
+import { RichTextEditor } from '@/components/richtext/RichTextEditor';
+import { RichText } from '@/components/richtext/RichText';
+import { hasRichContent } from '@/components/richtext/sanitize';
 
 /** Center-crops an image to a square and returns it as a small JPEG data URL. */
 async function squarePhoto(file: File, size = 160): Promise<string> {
@@ -105,22 +108,18 @@ function WhatsUp({
       {lastWhatsUp && (
         <details className="align-whatsup-prev">
           <summary className="small muted">{t('Semaine précédente', 'Last week')}</summary>
-          <p className="small" style={{ whiteSpace: 'pre-line', margin: '6px 0 0' }}>
-            {lastWhatsUp}
-          </p>
+          <RichText html={lastWhatsUp} className="small" />
         </details>
       )}
       {canEdit ? (
         <>
-          <textarea
-            className="input align-whatsup-input"
-            rows={4}
-            maxLength={4000}
-            aria-label={t('Quoi de neuf ?', "What's up?")}
-            placeholder={t('Ce qui se passe de ton côté cette semaine…', "What's going on this week…")}
+          <RichTextEditor
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={setDraft}
             onBlur={() => void save()}
+            ariaLabel={t('Quoi de neuf ?', "What's up?")}
+            placeholder={t('Ce qui se passe de ton côté cette semaine…', "What's going on this week…")}
+            minHeight={110}
           />
           <div className="row row-wrap" style={{ justifyContent: 'space-between', gap: 8 }}>
             <span className="small muted">{stamp}</span>
@@ -138,7 +137,7 @@ function WhatsUp({
         </>
       ) : (
         <>
-          <div className="align-whatsup-text">{saved || t("Rien d'inscrit cette semaine", 'Nothing written this week')}</div>
+          {hasRichContent(saved) ? <RichText html={saved} className="align-whatsup-text" /> : <div className="small muted">{t("Rien d'inscrit cette semaine", 'Nothing written this week')}</div>}
           {stamp && <div className="small muted">{stamp}</div>}
         </>
       )}
@@ -224,14 +223,15 @@ export function MemberWeek() {
   );
   const openTaskCount = weekTasks.filter((x) => !x.done).length;
   const nextOrder = weekTasks.reduce((m, x) => Math.max(m, x.order + 1), 0);
-  const ownPriorities = useMemo(() => allPriorities.filter((p) => p.ownerId === userId && !p.archived), [allPriorities, userId]);
+  const activePriorities = useMemo(() => allPriorities.filter((p) => !p.archived), [allPriorities]);
   const quarterRocks = useMemo(
     () => allRocks.filter((r) => r.quarter === quarter && !r.archived).sort((a, b) => a.order - b.order),
     [allRocks, quarter],
   );
 
   const checkin = allCheckins.find((c) => c.id === checkinId(userId, week));
-  const lastWhatsUp = allCheckins.find((c) => c.id === checkinId(userId, prevWeek))?.whatsUp ?? '';
+  const prevText = allCheckins.find((c) => c.id === checkinId(userId, prevWeek))?.whatsUp ?? '';
+  const lastWhatsUp = hasRichContent(prevText) ? prevText : '';
 
   async function carryOver() {
     const titles = new Set(weekTasks.map((x) => x.title.trim().toLowerCase()));
@@ -323,17 +323,29 @@ export function MemberWeek() {
         <nav className="align-member-nav" aria-label={t('Autres membres', 'Other members')}>
           {nav.prevId ? (
             <Link to={hrefFor(nav.prevId)} className="align-member-step" title={t('Membre précédent (Alt+←)', 'Previous member (Alt+←)')}>
-              <ChevronLeft size={16} /> {userName(nav.prevId)}
+              <ChevronLeft size={16} /> <span className="align-member-step-name">{userName(nav.prevId)}</span>
             </Link>
           ) : (
             <span className="align-member-step is-off" aria-disabled="true">
               <ChevronLeft size={16} />
             </span>
           )}
-          <span className="faint">|</span>
+          <select
+            className="select align-member-jump"
+            value={userId}
+            aria-label={t('Aller à un membre', 'Go to a member')}
+            onChange={(e) => navigate(hrefFor(e.target.value))}
+          >
+            {!nav.ids.includes(userId) && <option value={userId}>{member.displayName}</option>}
+            {nav.ids.map((id) => (
+              <option key={id} value={id}>
+                {userName(id)}
+              </option>
+            ))}
+          </select>
           {nav.nextId ? (
             <Link to={hrefFor(nav.nextId)} className="align-member-step" title={t('Membre suivant (Alt+→)', 'Next member (Alt+→)')}>
-              {userName(nav.nextId)} <ChevronRight size={16} />
+              <span className="align-member-step-name">{userName(nav.nextId)}</span> <ChevronRight size={16} />
             </Link>
           ) : (
             <span className="align-member-step is-off" aria-disabled="true">
@@ -371,12 +383,12 @@ export function MemberWeek() {
       </div>
 
       <div className="stack" style={{ gap: 16 }}>
-        <Collapsible id="member.whatsup" title={t('Quoi de neuf ?', "What's up?")} icon={<MessageSquare size={16} />}>
+        <Collapsible id="member.whatsup" info={{ what: t("Ce qui se passe pour la personne cette semaine (texte enrichi : listes, liens, images, tableaux). Modifiable par la personne et les gestionnaires des priorités.", "What is going on for the person this week (rich text: lists, links, pictures, tables). Editable by the person and priority managers."), source: t("le « Quoi de neuf » de la personne pour la semaine choisie (un par semaine).", "the person's \"What's up\" for the selected week (one per week).") }} title={t('Quoi de neuf ?', "What's up?")} icon={<MessageSquare size={16} />}>
           <WhatsUp userId={userId} week={week} checkin={checkin} canEdit={canEdit} lastWhatsUp={lastWhatsUp} userName={userName} />
         </Collapsible>
 
         <Collapsible
-          id="member.priorities"
+          id="member.priorities" info={{ what: t("Les priorités de la personne pour le trimestre de la semaine : la personne met à jour la santé, le statut et l'avancement ; tous peuvent ajouter des suivis.", "The person's priorities for the week's quarter: they update health, status and progress; anyone can add follow-ups."), source: t("Align › Rocks (priorités assignées à cette personne).", "Align › Rocks (priorities assigned to this person).") }}
           title={t('Priorités de la semaine', "This week's priorities")}
           icon={<ListChecks size={16} />}
           count={openPrioCount}
@@ -403,10 +415,8 @@ export function MemberWeek() {
           )}
         </Collapsible>
 
-        <Collapsible id="member.plan" title={t("Plan d'action", 'Action plan')} icon={<ListTodo size={16} />} count={openTaskCount}>
-          {canEdit && (
-            <TaskComposer ownerId={userId} week={week} huddleId={huddleId} rocks={quarterRocks} priorities={ownPriorities} nextOrder={nextOrder} />
-          )}
+        <Collapsible id="member.plan" info={{ what: t("Le plan d'action de la semaine : actions hebdo ou actions Rock. Une action peut être assignée à n'importe quel membre (par défaut, celui qui la crée).", "The week's action plan: weekly or Rock actions. An action can be assigned to any member (by default, its creator)."), source: t("Align › Tâches hebdo, semaine choisie, assignées à cette personne.", "Align › Weekly tasks, selected week, assigned to this person.") }} title={t("Plan d'action", 'Action plan')} icon={<ListTodo size={16} />} count={openTaskCount}>
+          <TaskComposer key={userId} ownerId={userId} week={week} huddleId={huddleId} rocks={quarterRocks} priorities={activePriorities} nextOrder={nextOrder} preferredIds={nav.ids} />
           {prevOpen.length > 0 && (
             <div className="row row-wrap align-carry">
               <span className="small muted">

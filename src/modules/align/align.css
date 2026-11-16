@@ -1285,13 +1285,15 @@ a.align-dash-title:hover {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 .align-member-step {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  max-width: 220px;
+  max-width: 180px;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1384,4 +1386,502 @@ a.align-dash-title:hover {
     min-width: 0;
     width: 100%;
   }
+}
+.align-member-jump {
+  width: auto;
+  min-width: 180px;
+  max-width: 260px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.align-member-step svg {
+  flex-shrink: 0;
+}
+.align-member-step-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .align-member-step-name {
+    display: none;
+  }
+}
+
+/* ---------- compact weekly layout (overrides above) ---------- */
+.align-collapsible {
+  margin-bottom: 12px;
+  padding: 12px 16px;
+}
+.align-collapsible-body {
+  padding-top: 10px;
+}
+
+/* Composer: one line */
+.align-composer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.align-composer .input,
+.align-composer .select {
+  height: 32px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 13px;
+}
+.align-composer-title {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.align-composer-who {
+  width: 170px;
+}
+.align-composer-rock {
+  width: 220px;
+}
+.align-composer-prio {
+  width: 180px;
+}
+.align-seg {
+  display: inline-flex;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.align-seg button {
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.align-seg button + button {
+  border-left: 1px solid var(--border);
+}
+.align-seg button.on {
+  background: var(--accent);
+  color: #fff;
+}
+.align-seg button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Task rows: one line each, hairline separators, actions on hover */
+.align-task-list {
+  gap: 0;
+}
+.align-task-row {
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+.align-task-row:last-child {
+  border-bottom: 0;
+}
+.align-task-row:hover {
+  background: var(--bg-sunken);
+}
+.align-task-row > input[type='checkbox'] {
+  margin: 0;
+  flex-shrink: 0;
+}
+.align-task-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.align-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 240px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  color: var(--muted, inherit);
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.align-chip svg {
+  flex-shrink: 0;
+}
+.align-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.align-chip.is-rock {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+.align-task-actions {
+  display: inline-flex;
+  gap: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.align-task-row:hover .align-task-actions,
+.align-task-row:focus-within .align-task-actions {
+  opacity: 1;
+}
+@media (hover: none) {
+  .align-task-actions {
+    opacity: 1;
+  }
+}
+.align-task-actions .btn-icon {
+  width: 26px;
+  height: 26px;
+}
+.align-task-group {
+  margin-top: 6px;
+}
+.align-task-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+@media (max-width: 640px) {
+  .align-task-row {
+    flex-wrap: nowrap;
+  }
+  .align-chip {
+    max-width: 120px;
+  }
+  .align-composer-who,
+  .align-composer-rock,
+  .align-composer-prio {
+    flex: 1 1 140px;
+    width: auto;
+  }
+}
+
+/* Priorities table: one line per priority */
+.align-prio-table th,
+.align-prio-table td {
+  padding: 6px 8px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.align-prio-table th {
+  font-size: 11px;
+}
+.align-prio-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.align-prio-title {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+.align-prio-title .badge {
+  margin-right: 6px;
+}
+.align-prio-rock {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.align-prio-status {
+  white-space: nowrap;
+}
+.align-nowrap {
+  white-space: nowrap;
+}
+
+/* Member tiles: smaller */
+.align-member-grid {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+.align-member-tile {
+  padding: 10px 8px;
+  gap: 4px;
+}
+.align-composer .align-composer-title {
+  flex: 1 1 200px;
+  width: auto;
+}
+.align-composer .align-composer-who {
+  flex: 0 1 170px;
+  width: 170px;
+}
+.align-composer .align-composer-rock {
+  flex: 0 1 220px;
+  width: 220px;
+}
+.align-composer .align-composer-prio {
+  flex: 0 1 180px;
+  width: 180px;
+}
+.align-task-row .align-task-title {
+  flex: 1 1 45%;
+  min-width: 120px;
+}
+.align-task-row .align-chip {
+  flex: 0 1 auto;
+  max-width: 200px;
+}
+
+/* Compact priority row (member page) */
+.align-prow {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.align-prow:last-child {
+  border-bottom: 0;
+}
+.align-prow-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.align-prow-title {
+  flex: 1 1 auto;
+  min-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 14px;
+}
+.align-prow-ctrls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.align-prow-meta {
+  padding-left: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.align-prow .select.align-mini {
+  width: 118px;
+  height: 28px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 12px;
+}
+.align-pct {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+}
+.align-prow .input.align-mini-num {
+  width: 52px;
+  height: 28px;
+  padding: 0 4px;
+  font-size: 12px;
+  text-align: right;
+}
+.align-prow-fu {
+  gap: 4px;
+}
+.align-prow-fu.on {
+  color: var(--accent);
+}
+.align-prow .align-followup-list,
+.align-prow form {
+  margin: 6px 0 2px 18px;
+}
+@media (max-width: 760px) {
+  .align-prow-line {
+    flex-wrap: wrap;
+  }
+  .align-prow-ctrls {
+    width: 100%;
+    padding-left: 18px;
+  }
+}
+
+/* ---------- explanations (ⓘ) and hover lists ---------- */
+.align-info {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  color: var(--text-3, var(--muted, inherit));
+  cursor: help;
+  outline: none;
+  vertical-align: middle;
+}
+.align-info:hover,
+.align-info:focus-visible {
+  color: var(--accent);
+}
+.align-info-pop,
+.align-hover-pop {
+  position: absolute;
+  z-index: 40;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  width: max-content;
+  max-width: 320px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elev);
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  pointer-events: none;
+}
+.align-info-pop {
+  top: calc(100% + 6px);
+  left: -10px;
+}
+.align-info:hover .align-info-pop,
+.align-info:focus .align-info-pop {
+  display: flex;
+}
+.align-info-src {
+  color: var(--text-3, var(--muted, inherit));
+}
+.align-dash-h {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.align-hover {
+  position: relative;
+}
+.align-hover.is-clickable {
+  cursor: pointer;
+}
+.align-hover-pop {
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+}
+.align-hover:hover > .align-hover-pop,
+.align-hover:focus-visible > .align-hover-pop {
+  display: flex;
+}
+.align-hover-title {
+  font-weight: 600;
+}
+.align-hover-pop ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.align-hover-pop li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.align-hover-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.align-hover-meta {
+  color: var(--text-3, var(--muted, inherit));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+.align-hover-hint {
+  color: var(--accent);
+  font-size: 11.5px;
+}
+.align-kpi-hover {
+  display: flex;
+}
+.align-kpi-hover > .kpi {
+  flex: 1;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.align-kpi-hover:hover > .kpi {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.align-dash-seg .align-dash-seg-part {
+  height: 100%;
+}
+.align-dash-seg .align-dash-seg-part:hover {
+  filter: brightness(1.15);
+}
+.align-dash-seg .align-dash-seg-part > .align-hover-pop {
+  top: calc(100% + 8px);
+}
+.align-dash-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  padding: 1px 4px;
+}
+.align-dash-legend-item.is-clickable:hover {
+  background: var(--bg-sunken);
+}
+.align-dash-rockbar {
+  border-radius: 6px;
+  padding: 2px 0;
+}
+.align-dash-rockbar:hover {
+  background: var(--bg-sunken);
+}
+.align-dash-seg {
+  overflow: visible;
+}
+.align-dash-seg > .align-dash-seg-part:first-child {
+  border-radius: 6px 0 0 6px;
+}
+.align-dash-seg > .align-dash-seg-part:last-child {
+  border-radius: 0 6px 6px 0;
+}
+.align-dash-seg > .align-dash-seg-part:only-child {
+  border-radius: 6px;
+}
+.align-collapsible-head {
+  justify-content: flex-start;
+}
+/* Lists of items near the right edge open towards the left. */
+.align-dash-seg-part:nth-last-child(-n + 2) > .align-hover-pop,
+.align-dash-legend li:nth-child(even) .align-hover-pop,
+.kpis > .align-kpi-hover:nth-child(4n) > .align-hover-pop,
+.kpis > .align-kpi-hover:nth-child(4n + 3) > .align-hover-pop {
+  left: auto;
+  right: 0;
 }

@@ -13,6 +13,7 @@ import { useI18n } from '@/i18n';
 import { Avatar } from '@/modules/admin/pages/Users';
 import type { User } from '@/data/types';
 import { shiftWeek, thisWeek, weekFromParam, weekLabel } from '../week';
+import { InfoTip } from './Insight';
 
 /** The selected week (a Monday) from ?week=, and a setter that keeps the other URL parameters. */
 export function useWeekParam(): [string, (w: string) => void] {
@@ -74,9 +75,12 @@ export function Collapsible({
   icon,
   count,
   actions,
+  info,
   children,
 }: {
   id: string;
+  /** ⓘ next to the title: what the section shows and where its data comes from. */
+  info?: { what: string; source: string };
   title: ReactNode;
   icon?: ReactNode;
   count?: number;
@@ -106,6 +110,8 @@ export function Collapsible({
           </span>
           {count !== undefined && <span className="badge">{count}</span>}
         </button>
+        {info && <InfoTip what={info.what} source={info.source} />}
+        <span style={{ flex: 1 }} />
         {actions && <div className="row row-wrap" style={{ gap: 8 }}>{actions}</div>}
       </div>
       <AnimatePresence initial={false}>

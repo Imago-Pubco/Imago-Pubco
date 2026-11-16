@@ -59,8 +59,8 @@ export function HuddleTasks({
 
   return (
     <Collapsible
-      id="huddle.tasks"
-      title={t('Tâches de la semaine', 'Weekly tasks')}
+      id="huddle.tasks" info={{ what: t("Les actions de la semaine (lundi au vendredi) des membres : actions hebdo et actions qui font avancer un Rock. Ajoutez-en une et assignez-la à un membre.", "The members' actions for the week (Monday to Friday): weekly actions and actions that move a Rock forward. Add one and assign it to a member."), source: t("Align › Tâches hebdo (plans d'action de la semaine choisie).", "Align › Weekly tasks (action plans of the selected week).") }}
+      title={t('Plan d’action', 'Action plan')}
       icon={<ListTodo size={18} />}
       count={openCount}
       actions={
@@ -72,7 +72,7 @@ export function HuddleTasks({
     >
       {canCompose && (
         <div style={{ marginBottom: 12 }}>
-          <TaskComposer ownerId={me} week={week} huddleId={huddleId} rocks={rocks} priorities={myPriorities} nextOrder={nextOrder} />
+          <TaskComposer ownerId={me} week={week} huddleId={huddleId} rocks={rocks} priorities={myPriorities} nextOrder={nextOrder} preferredIds={[...memberSet]} />
         </div>
       )}
 

@@ -51,50 +51,32 @@ export function PriorityRow({ priority: p, rockTitle, blockerTitle, blocked, ove
   }
 
   return (
-    <div className="align-prio-row">
-      <div className="align-prio-main">
-        <div className="row row-wrap" style={{ gap: 8 }}>
-          <HealthDot health={p.health} className="align-dot" />
-          <strong>{p.title}</strong>
-          <span className="badge">{STATUS_LABEL[p.status][lang]}</span>
-          {blocked && (
-            <span className="badge badge-warn" title={p.blockedNote || undefined}>
-              {t('Bloquée', 'Blocked')}
-              {blockerTitle ? ` · ${t('par', 'by')} ${blockerTitle}` : ''}
-            </span>
-          )}
-          {overdue && <span className="badge badge-err">{t('En retard', 'Overdue')}</span>}
-        </div>
-
-        <div className="small muted" style={{ marginTop: 2 }}>
-          {rockTitle ?? t('Sans Rock', 'No Rock')} · {t('échéance', 'due')} {p.dueDate ? fmtDay(p.dueDate, lang) : t('aucune', 'none')}
-          {blocked && p.blockedNote ? ` · ${p.blockedNote}` : ''}
-        </div>
-
-        <div className="row" style={{ gap: 8, marginTop: 8 }}>
-          <ProgressBar pct={pct} style={{ flex: 1 }} />
-          <span className="small mono" style={{ minWidth: 40, textAlign: 'right' }}>
-            {pct} %
+    <div className="align-prow">
+      <div className="align-prow-line">
+        <HealthDot health={p.health} className="align-dot" />
+        <span className="align-prow-title" title={p.title}>
+          {p.title}
+        </span>
+        {blocked && (
+          <span className="badge badge-warn" title={[blockerTitle, p.blockedNote].filter(Boolean).join(' — ') || undefined}>
+            {t('Bloquée', 'Blocked')}
           </span>
-        </div>
-
-        {canEdit && (
-          <div className="row row-wrap" style={{ gap: 8, marginTop: 8 }}>
-            <label className="small row" style={{ gap: 4 }}>
-              {t('Santé', 'Health')}
-              <select className="select" style={{ width: 150 }} disabled={busy} value={p.health} onChange={(e) => void patch({ health: e.target.value as Health })}>
+        )}
+        {overdue && <span className="badge badge-err">{t('En retard', 'Overdue')}</span>}
+        <span className="align-prow-ctrls">
+          {canEdit ? (
+            <>
+              <select className="select align-mini" title={t('Santé', 'Health')} aria-label={t('Santé', 'Health')} disabled={busy} value={p.health} onChange={(e) => void patch({ health: e.target.value as Health })}>
                 {(Object.keys(HEALTH_LABEL) as Health[]).map((h) => (
                   <option key={h} value={h}>
                     {HEALTH_LABEL[h][lang]}
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="small row" style={{ gap: 4 }}>
-              {t('Statut', 'Status')}
               <select
-                className="select"
-                style={{ width: 150 }}
+                className="select align-mini"
+                title={t('Statut', 'Status')}
+                aria-label={t('Statut', 'Status')}
                 disabled={busy}
                 value={p.status}
                 onChange={(e) => {
@@ -103,25 +85,28 @@ export function PriorityRow({ priority: p, rockTitle, blockerTitle, blocked, ove
                   void patch(status === 'completed' ? { status, progress: 100 } : { status });
                 }}
               >
-                {(Object.keys(STATUS_LABEL) as PriorityStatus[]).map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_LABEL[s][lang]}
+                {(Object.keys(STATUS_LABEL) as PriorityStatus[]).map((st) => (
+                  <option key={st} value={st}>
+                    {STATUS_LABEL[st][lang]}
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="small row" style={{ gap: 4 }}>
-              {t('Avancement', 'Progress')}
+            </>
+          ) : (
+            <span className="badge">{STATUS_LABEL[p.status][lang]}</span>
+          )}
+          <ProgressBar pct={pct} style={{ width: 64 }} />
+          {canEdit ? (
+            <span className="align-pct">
               <input
                 key={p.progress}
-                className="input"
+                className="input align-mini-num"
                 type="number"
                 min={0}
                 max={100}
                 step={5}
-                style={{ width: 84 }}
                 disabled={busy}
-                defaultValue={p.progress}
+                defaultValue={pct}
                 aria-label={t('Avancement (%)', 'Progress (%)')}
                 onBlur={(e) => {
                   const v = normalizeProgress(p.status, Number(e.target.value) || 0);
@@ -130,41 +115,40 @@ export function PriorityRow({ priority: p, rockTitle, blockerTitle, blocked, ove
                 }}
               />
               %
-            </label>
-          </div>
-        )}
+            </span>
+          ) : (
+            <span className="small mono">{pct} %</span>
+          )}
+          <button
+            className={`btn btn-ghost btn-sm align-prow-fu${mode !== 'none' ? ' on' : ''}`}
+            onClick={() => setMode(mode === 'none' ? (followups.length ? 'list' : 'add') : 'none')}
+            aria-expanded={mode !== 'none'}
+            title={t('Suivis', 'Follow-ups')}
+          >
+            <ListChecks size={14} /> {openCount}
+          </button>
+        </span>
+      </div>
+      <div className="align-prow-meta small muted">
+        {rockTitle ?? t('Sans Rock', 'No Rock')} · {t('échéance', 'due')} {p.dueDate ? fmtDay(p.dueDate, lang) : t('aucune', 'none')}
+        {blocked && p.blockedNote ? ` · ${p.blockedNote}` : ''}
       </div>
 
-      <div className="align-prio-side">
-        <button
-          className="btn btn-sm"
-          onClick={() => setMode(mode === 'add' ? 'none' : 'add')}
-          aria-expanded={mode === 'add'}
-        >
-          <MessageSquarePlus size={14} /> {t('Suivi', 'Follow-up')}
-        </button>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() => setMode(mode === 'list' ? 'none' : 'list')}
-          aria-expanded={mode === 'list'}
-          title={t('Voir les suivis', 'Show follow-ups')}
-        >
-          <ListChecks size={14} /> {openCount} {t('ouvert(s)', 'open')}
-        </button>
-      </div>
+      {mode === 'list' && (
+        <div className="align-followup-list">
+          {followups.map((n) => (
+            <FollowUpItem key={n.id} note={n} userName={userName} />
+          ))}
+          <button className="btn btn-ghost btn-sm" onClick={() => setMode('add')}>
+            <MessageSquarePlus size={14} /> {t('Ajouter un suivi', 'Add a follow-up')}
+          </button>
+        </div>
+      )}
 
       {mode === 'add' && (
         <FollowUpForm priority={p} huddleId={huddleId} people={people} userName={userName} onDone={() => setMode('none')} />
       )}
 
-      {mode === 'list' && (
-        <div className="align-followup-list">
-          {followups.length === 0 && <div className="small muted">{t('Aucun suivi pour cette priorité.', 'No follow-up for this priority.')}</div>}
-          {followups.map((n) => (
-            <FollowUpItem key={n.id} note={n} userName={userName} />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

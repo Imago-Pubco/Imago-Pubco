@@ -25,6 +25,7 @@ import type { ZodObject } from 'zod';
 import { ALIGN_SCHEMAS } from '../src/modules/align/schemas.ts';
 import type { AuthInfo } from './auth.ts';
 import * as db from './db.ts';
+import { sanitizeRich } from './richText.ts';
 
 type Result = { doc: Record<string, unknown> } | { status: number; error: string };
 type Doc = Record<string, unknown> & db.Doc;
@@ -86,9 +87,10 @@ async function canWrite(c: string, input: Record<string, unknown>, a: AuthInfo, 
     }
     case 'align.tasks': {
       if (a.can('align.priorities.manage')) return null;
-      if (!existing) return input.ownerId === a.user.id ? null : 'You can only create your own actions.';
+      // Anyone may create an action for a colleague (assign it); then its owner and its creator manage it.
+      if (!existing) return null;
       if (existing.ownerId !== a.user.id && existing.createdBy !== a.user.id) return 'You can only edit your own actions.';
-      return input.ownerId === undefined || input.ownerId === a.user.id ? null : 'You can only give your actions to yourself.';
+      return null;
     }
     case 'align.checkins':
       if (a.can('align.priorities.manage')) return null;
@@ -146,6 +148,10 @@ export async function guardAlign(c: string, body: Record<string, unknown>, a: Au
   }
   if (c === 'align.tasks') {
     const fin = final(doc, existing);
+    if ('ownerId' in doc) {
+      const owner = await db.getDoc<Doc>('users', String(doc.ownerId));
+      if (!owner || owner.active === false) return { status: 400, error: 'The person does not exist or is inactive.' };
+    }
     if (fin.kind === 'weekly') doc.rockId = null;
     else if (fin.rockId == null) return { status: 400, error: 'A Rock action needs a Rock.' };
     else if (!(await db.getDoc('align.rocks', String(fin.rockId)))) return { status: 400, error: 'The rock does not exist.' };
@@ -168,6 +174,10 @@ export async function guardAlign(c: string, body: Record<string, unknown>, a: Au
       return { status: 400, error: 'huddleId and weekStart cannot be changed' };
     }
   }
+
+  // Rich text fields: only the editor's formatting is kept (no scripts, no outside images).
+  if (c === 'align.checkins' && typeof doc.whatsUp === 'string') doc.whatsUp = sanitizeRich(doc.whatsUp);
+  if (c === 'align.huddleWeeks' && typeof doc.description === 'string') doc.description = sanitizeRich(doc.description);
 
   const stamp = new Date().toISOString();
   if (!existing) {

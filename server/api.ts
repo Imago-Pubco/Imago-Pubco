@@ -626,6 +626,43 @@ export function apiRouter() {
     res.json({ ok: true, to: user.email });
   }));
 
+  /* ---------- Align: pictures inside rich text (what's up, weekly huddle description) ---------- */
+
+  /** Real image types, recognized from the file's first bytes (the declared type is not trusted). */
+  const imageType = (b: Buffer): string | null => {
+    if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'image/jpeg';
+    if (b.length > 8 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png';
+    if (b.length > 12 && b.subarray(0, 4).toString('latin1') === 'RIFF' && b.subarray(8, 12).toString('latin1') === 'WEBP') return 'image/webp';
+    if (b.length > 6 && /^GIF8[79]a$/.test(b.subarray(0, 6).toString('latin1'))) return 'image/gif';
+    return null;
+  };
+  r.post(
+    '/align/images',
+    express.raw({ type: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], limit: '3mb' }),
+    wrap(async (req, res) => {
+      if (!me(req).can('align.access')) return forbid(res);
+      const body = req.body as unknown;
+      if (!Buffer.isBuffer(body) || !body.length) return res.status(400).json({ error: 'image required (JPEG, PNG, WebP or GIF, 3 MB max)' });
+      const type = imageType(body);
+      if (!type) return res.status(400).json({ error: 'not an image' });
+      const id = uid('aimg_');
+      await db.saveFile(id, `align-${id}`, type, body);
+      await audit(me(req).user.id, 'align.image.upload', `${id} ${body.length} B`, req.ip ?? '');
+      res.status(201).json({ id, url: `/api/align/images/${id}` });
+    }),
+  );
+  r.get('/align/images/:id', wrap(async (req, res) => {
+    if (!me(req).can('align.access')) return forbid(res);
+    const id = String(req.params.id);
+    if (!/^aimg_[a-f0-9]{16}$/.test(id)) return res.status(404).end();
+    const f = await db.getFile(id);
+    if (!f || !f.contentType.startsWith('image/')) return res.status(404).end();
+    res.setHeader('Content-Type', f.contentType);
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'private, max-age=86400, immutable');
+    res.send(f.data);
+  }));
+
   /* ---------- Align: fill rocks, priorities, notes and huddles from the KPI tool (replaces them) ---------- */
   r.post('/align/import-kpi', wrap(async (req, res) => {
     // The import replaces rocks, priorities, notes and huddles, and copies KPI data: it needs every right it overrides.

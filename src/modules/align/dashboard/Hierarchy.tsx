@@ -7,6 +7,7 @@ import type { AlignPriority, Strategy } from '../schemas';
 import type { QuarterModel, RockRow } from './model';
 import { thrustOf } from './model';
 import { HealthDot, ProgressBar } from '../components/RockShared';
+import { InfoTip } from '../components/Insight';
 
 /* ---------- generic collapsible tree (connector lines are drawn in align.css) ---------- */
 
@@ -135,7 +136,7 @@ export function Hierarchy({
   return (
     <section className="card align-dash-card">
       <div className="card-head">
-        <h3>{t('Plan hiérarchique', 'Hierarchical plan')}</h3>
+        <h3 className="align-dash-h">{t('Plan hiérarchique', 'Hierarchical plan')} <InfoTip what={t("Comment tout s'aligne : axes stratégiques → initiatives de l'année → Rocks du trimestre → priorités des personnes.", "How it all lines up: key thrusts → one-year initiatives → the quarter's Rocks → people's priorities.")} source={t("Align › Stratégie (plan stratégique d'une page) et Align › Rocks.", "Align › Strategy (one-page strategic plan) and Align › Rocks.")} /></h3>
         <span className="small muted">{t('Raison d’être → axes → Rocks → priorités', 'Purpose → thrusts → Rocks → priorities')}</span>
       </div>
       <div className="card-pad align-tree-wrap">

@@ -4,7 +4,7 @@ import { ListChecks } from 'lucide-react';
 import type { User } from '@/data/types';
 import { useI18n } from '@/i18n';
 import { Empty } from '@/components/ui';
-import { isBlocked, isOverdue, priorityPct, STATUS_LABEL } from '../lib';
+import { HEALTH_LABEL, isBlocked, isOverdue, priorityPct, STATUS_LABEL } from '../lib';
 import { HealthDot, ProgressBar } from '../components/RockShared';
 import { Collapsible, MemberAvatar } from '../components/WeekKit';
 import type { AlignPriority, Rock } from '../schemas';
@@ -51,7 +51,7 @@ export function HuddlePriorities({
 
   return (
     <Collapsible
-      id="huddle.priorities"
+      id="huddle.priorities" info={{ what: t("Les priorités des membres pour le trimestre de la semaine choisie : statut, santé, avancement et échéance. Cliquer sur une ligne ouvre la page de la personne.", "Members' priorities for the selected week's quarter: status, health, progress and due date. Click a row to open the person's page."), source: t("Align › Rocks (priorités assignées aux membres, liées à un Rock du trimestre ou à échéance dans le trimestre).", "Align › Rocks (priorities assigned to members, linked to a Rock of the quarter or due in the quarter).") }}
       title={t('Priorités', 'Priorities')}
       icon={<ListChecks size={18} />}
       count={rows.length}
@@ -81,7 +81,6 @@ export function HuddlePriorities({
                 <th>{t('Priorité', 'Priority')}</th>
                 <th>Rock</th>
                 <th>{t('Statut', 'Status')}</th>
-                <th>{t('Santé', 'Health')}</th>
                 <th>{t('Avancement', 'Progress')}</th>
                 <th>{t('Échéance', 'Due')}</th>
               </tr>
@@ -105,39 +104,30 @@ export function HuddlePriorities({
                       if (e.key === 'Enter') open(p.ownerId);
                     }}
                   >
-                    <td>
-                      <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
-                        <MemberAvatar user={userById.get(owner)} name={userName(owner)} size={22} />
-                        <span>{userName(owner)}</span>
-                      </div>
+                    <td className="align-prio-who">
+                      <MemberAvatar user={userById.get(owner)} name={userName(owner)} size={22} />
+                      <span>{userName(owner)}</span>
                     </td>
-                    <td>
-                      <strong>{p.title}</strong>
+                    <td className="align-prio-title" title={p.title}>
                       {blocked && (
-                        <div>
-                          <span className="badge badge-warn" title={p.blockedNote || undefined}>
-                            {t('Bloquée', 'Blocked')}
-                            {blocker ? ` · ${t('par', 'by')} ${blocker}` : ''}
-                          </span>
-                        </div>
+                        <span className="badge badge-warn" title={[blocker, p.blockedNote].filter(Boolean).join(' — ') || undefined}>
+                          {t('Bloquée', 'Blocked')}
+                        </span>
                       )}
+                      {p.title}
                     </td>
-                    <td className="small">{rockTitle ?? t('Sans Rock', 'No Rock')}</td>
-                    <td>
-                      <span className="badge">{t(STATUS_LABEL[p.status])}</span>
-                    </td>
-                    <td>
-                      <HealthDot health={p.health} withLabel />
+                    <td className="align-prio-rock small muted" title={rockTitle}>{rockTitle ?? t('Sans Rock', 'No Rock')}</td>
+                    <td className="align-prio-status small" title={t(HEALTH_LABEL[p.health])}>
+                      <HealthDot health={p.health} /> {t(STATUS_LABEL[p.status])}
                     </td>
                     <td>
                       <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
-                        <ProgressBar pct={pct} style={{ width: 90 }} />
+                        <ProgressBar pct={pct} style={{ width: 56 }} />
                         <span className="small mono">{pct} %</span>
                       </div>
                     </td>
-                    <td className="small" style={overdue ? { color: 'var(--err)', fontWeight: 600 } : undefined}>
+                    <td className="small align-nowrap" title={overdue ? t('En retard', 'Overdue') : undefined} style={overdue ? { color: 'var(--err)', fontWeight: 600 } : undefined}>
                       {p.dueDate ? fmtDay(p.dueDate, lang) : '—'}
-                      {overdue && <> · {t('En retard', 'Overdue')}</>}
                     </td>
                   </tr>
                 );

@@ -1,0 +1,231 @@
+/* ---------- rich text: editor + view ---------- */
+.rt-editor {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  overflow: hidden;
+}
+.rt-editor:focus-within {
+  border-color: var(--accent);
+}
+.rt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sunken);
+}
+.rt-btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.rt-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+.rt-btn.on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.rt-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.rt-mini {
+  font-size: 11px;
+  font-weight: 600;
+}
+.rt-select {
+  height: 28px;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.rt-select:hover {
+  border-color: var(--border);
+}
+.rt-size {
+  width: 64px;
+}
+.rt-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--border);
+}
+.rt-spacer {
+  flex: 1;
+}
+.rt-pop {
+  position: relative;
+  display: inline-flex;
+}
+.rt-palette {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-sm);
+}
+.rt-swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+}
+.rt-swatch-none {
+  display: grid;
+  place-items: center;
+  background: var(--bg-elev);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1;
+}
+.rt-editable {
+  padding: 10px 12px;
+  outline: none;
+}
+.rt-editor.is-disabled .rt-editable {
+  opacity: 0.7;
+}
+
+/* Content (editor and view) */
+.rt-content {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.rt-content > :first-child {
+  margin-top: 0;
+}
+.rt-content > :last-child {
+  margin-bottom: 0;
+}
+.rt-content p {
+  margin: 0 0 6px;
+}
+.rt-content h1 {
+  font-size: 1.4em;
+  margin: 10px 0 6px;
+}
+.rt-content h2 {
+  font-size: 1.2em;
+  margin: 10px 0 6px;
+}
+.rt-content h3 {
+  font-size: 1.05em;
+  margin: 8px 0 4px;
+}
+.rt-content ul,
+.rt-content ol {
+  margin: 0 0 6px;
+  padding-left: 22px;
+}
+.rt-content ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 2px;
+}
+.rt-content ul[data-type='taskList'] li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.rt-content ul[data-type='taskList'] li > label {
+  margin-top: 2px;
+}
+.rt-content ul[data-type='taskList'] li > div {
+  flex: 1;
+}
+.rt-content blockquote {
+  margin: 0 0 6px;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+  color: var(--muted, inherit);
+}
+.rt-content hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 10px 0;
+}
+.rt-content a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.rt-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.rt-content img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+}
+.rt-content mark {
+  border-radius: 3px;
+  padding: 0 2px;
+  color: #111827;
+}
+.rt-content table {
+  border-collapse: collapse;
+  margin: 6px 0;
+  width: 100%;
+  table-layout: fixed;
+}
+.rt-content th,
+.rt-content td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  vertical-align: top;
+  position: relative;
+}
+.rt-content th {
+  background: var(--bg-sunken);
+  font-weight: 600;
+  text-align: left;
+}
+.rt-content .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-soft);
+  pointer-events: none;
+}
+.rt-content .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--accent);
+  pointer-events: none;
+}
+.rt-content .tableWrapper {
+  overflow-x: auto;
+}
+.rt-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--faint, #9ca3af);
+}

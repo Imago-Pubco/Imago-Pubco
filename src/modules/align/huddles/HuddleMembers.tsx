@@ -40,7 +40,7 @@ export function HuddleMembers({
 }) {
   const { t } = useI18n();
   return (
-    <Collapsible id="huddle.members" title={t('Membres', 'Members')} icon={<Users size={18} />} count={members.length}>
+    <Collapsible id="huddle.members" info={{ what: t("Les membres du huddle. Cliquer sur une personne ouvre sa page de la semaine : quoi de neuf, priorités, plan d'action.", "The huddle's members. Click a person to open their week: what's up, priorities, action plan."), source: t("membres définis dans les paramètres du huddle ; chiffres = tâches de la semaine et priorités du trimestre de chaque personne.", "members set in the huddle settings; figures = each person's tasks of the week and priorities of the quarter.") }} title={t('Membres', 'Members')} icon={<Users size={18} />} count={members.length}>
       {!members.length ? (
         <Empty icon={<Users size={32} />} title={t('Aucun membre dans ce huddle', 'No member in this huddle')}>
           {canSettings ? t('Ajoutez des membres dans les paramètres.', 'Add members in the settings.') : null}

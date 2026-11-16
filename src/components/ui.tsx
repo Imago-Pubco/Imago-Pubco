@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, AlertTriangle, X, ShieldOff } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
@@ -51,7 +52,9 @@ export function Modal({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  return (
+  // Rendered at the top of the document: an animated page (filter/transform) would otherwise trap the fixed backdrop
+  // inside the page, and the window could open off-screen on long pages.
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -82,7 +85,8 @@ export function Modal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
 

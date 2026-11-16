@@ -1,5 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Mountain, Pencil, Target, Trash2 } from 'lucide-react';
+import { useCollection } from '@/data/db';
+import { users } from '@/data/stores';
 import { useAuth } from '@/auth/AuthContext';
 import type { User } from '@/data/types';
 import { useI18n } from '@/i18n';
@@ -70,38 +72,33 @@ export function TaskList({ tasks: rows, rockById, priorityById, showOwner = fals
                 onChange={(e) => void toggle(task, e.target.checked)}
                 aria-label={t('Fait', 'Done')}
               />
-              <div className="align-task-main">
-                <div className="row row-wrap" style={{ gap: 8 }}>
-                  <span className="align-task-title">{task.title}</span>
-                  {task.kind === 'rock' ? (
-                    <span className="badge align-task-kind is-rock" title={rock?.title}>
-                      {t(TASK_KIND_LABEL.rock)} · {rock?.title ?? t('Rock introuvable', 'Rock not found')}
-                    </span>
-                  ) : (
-                    <span className="badge align-task-kind">{t(TASK_KIND_LABEL.weekly)}</span>
-                  )}
-                </div>
-                {priority && (
-                  <div className="small muted">
-                    {t('Priorité', 'Priority')} : {priority.title}
-                  </div>
-                )}
-              </div>
+              <span className="align-task-title" title={task.title}>
+                {task.title}
+              </span>
+              {task.kind === 'rock' && (
+                <span className="align-chip is-rock" title={`Rock · ${rock?.title ?? ''}`}>
+                  <Mountain size={12} /> <span>{rock?.title ?? t('Rock introuvable', 'Rock not found')}</span>
+                </span>
+              )}
+              {priority && (
+                <span className="align-chip" title={`${t('Priorité', 'Priority')} · ${priority.title}`}>
+                  <Target size={12} /> <span>{priority.title}</span>
+                </span>
+              )}
               {showOwner && (
-                <span className="align-task-owner small">
-                  <MemberAvatar user={owner} name={task.ownerId} size={24} />
-                  {owner?.displayName ?? task.ownerId}
+                <span className="align-task-owner" title={owner?.displayName ?? task.ownerId}>
+                  <MemberAvatar user={owner} name={task.ownerId} size={20} />
                 </span>
               )}
               {canEdit && (
-                <div className="align-task-actions">
+                <span className="align-task-actions">
                   <button className="btn btn-ghost btn-icon btn-sm" title={t('Modifier', 'Edit')} aria-label={t('Modifier', 'Edit')} onClick={() => setEditing(task)}>
-                    <Pencil size={14} />
+                    <Pencil size={13} />
                   </button>
                   <button className="btn btn-ghost btn-icon btn-sm" title={t('Supprimer', 'Delete')} aria-label={t('Supprimer', 'Delete')} onClick={() => void remove(task)}>
-                    <Trash2 size={14} />
+                    <Trash2 size={13} />
                   </button>
-                </div>
+                </span>
               )}
             </li>
           );
@@ -138,7 +135,10 @@ function TaskEditModal({
   const [kind, setKind] = useState<TaskKind>(task.kind);
   const [rockId, setRockId] = useState(task.rockId ?? '');
   const [priorityId, setPriorityId] = useState(task.priorityId ?? '');
+  const [ownerId, setOwnerId] = useState(task.ownerId);
   const [busy, setBusy] = useState(false);
+  const { rows: allUsers } = useCollection(users);
+  const people = useMemo(() => allUsers.filter((u) => u.active || u.id === task.ownerId).sort((a, b) => a.displayName.localeCompare(b.displayName)), [allUsers, task.ownerId]);
 
   // Active Rocks, plus the current one even when archived.
   const rockOptions = useMemo(
@@ -149,9 +149,9 @@ function TaskEditModal({
   const priorityOptions = useMemo(
     () =>
       [...priorityById.values()]
-        .filter((p) => p.ownerId === task.ownerId && (!p.archived || p.id === task.priorityId))
+        .filter((p) => p.ownerId === ownerId && (!p.archived || p.id === task.priorityId))
         .sort((a, b) => a.title.localeCompare(b.title)),
-    [priorityById, task.ownerId, task.priorityId],
+    [priorityById, ownerId, task.priorityId],
   );
 
   async function submit(e: FormEvent) {
@@ -164,7 +164,8 @@ function TaskEditModal({
         title: value,
         kind,
         rockId: kind === 'rock' ? rockId : null,
-        priorityId: priorityId || null,
+        priorityId: priorityId && priorityOptions.some((p) => p.id === priorityId) ? priorityId : null,
+        ...(ownerId !== task.ownerId ? { ownerId } : {}),
       });
       toast(t('Action modifiée', 'Action updated'));
       onClose();
@@ -196,6 +197,16 @@ function TaskEditModal({
         <label className="field">
           <span>{t('Titre', 'Title')}</span>
           <input className="input" maxLength={300} required value={title} onChange={(e) => setTitle(e.target.value)} />
+        </label>
+        <label className="field">
+          <span>{t('Assigné à', 'Assigned to')}</span>
+          <select className="select" value={ownerId} onChange={(e) => setOwnerId(e.target.value)}>
+            {people.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.displayName}
+              </option>
+            ))}
+          </select>
         </label>
         <div className="field">
           <span>{t('Type', 'Type')}</span>

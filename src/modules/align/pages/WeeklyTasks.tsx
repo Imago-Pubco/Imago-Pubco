@@ -57,7 +57,7 @@ export function WeeklyTasks() {
   const people = useMemo(() => userOptions(allUsers), [allUsers]);
   const nameOf = (id: string) => userById.get(id)?.displayName ?? id;
 
-  const prioritiesOf = (ownerId: string) => allPriorities.filter((p) => p.ownerId === ownerId && !p.archived);
+  const activePriorities = useMemo(() => allPriorities.filter((p) => !p.archived), [allPriorities]);
   const weekTasks = useMemo(() => allTasks.filter((x) => x.weekStart === week), [allTasks, week]);
   const mineAll = useMemo(() => weekTasks.filter((x) => x.ownerId === me).sort(sortTasks), [weekTasks, me]);
   const mineShown = useMemo(() => mineAll.filter((x) => matches(x, kind, hideDone)), [mineAll, kind, hideDone]);
@@ -137,8 +137,8 @@ export function WeeklyTasks() {
       {loading && <div className="small muted" style={{ marginTop: 12 }}>…</div>}
 
       <div className="stack" style={{ marginTop: 12 }}>
-        <Collapsible id="tasks.mine" title={t('Mon plan d’action', 'My action plan')} icon={<ListTodo size={16} />} count={openMine}>
-          <TaskComposer key={me} ownerId={me} week={week} rocks={quarterRocks} priorities={prioritiesOf(me)} nextOrder={nextOrderFor(mineAll)} />
+        <Collapsible id="tasks.mine" info={{ what: t("Vos actions de la semaine choisie. Cochez-les quand elles sont faites.", "Your actions for the selected week. Tick them when done."), source: t("Align › Tâches hebdo assignées à vous.", "Align › Weekly tasks assigned to you.") }} title={t('Mon plan d’action', 'My action plan')} icon={<ListTodo size={16} />} count={openMine}>
+          <TaskComposer key={me} ownerId={me} week={week} rocks={quarterRocks} priorities={activePriorities} nextOrder={nextOrderFor(mineAll)} />
           <div style={{ marginTop: 14 }}>
             {mineShown.length === 0 ? (
               <Empty
@@ -156,7 +156,7 @@ export function WeeklyTasks() {
         {view === 'all' && (
           <>
             {canManage && (
-              <Collapsible id="tasks.addfor" title={t('Ajouter pour…', 'Add for…')} icon={<UserPlus size={16} />}>
+              <Collapsible id="tasks.addfor" info={{ what: t("Ajouter une action dans le plan d'une autre personne.", "Add an action to someone else's plan."), source: t("Align › Tâches hebdo.", "Align › Weekly tasks.") }} title={t('Ajouter pour…', 'Add for…')} icon={<UserPlus size={16} />}>
                 <label className="field">
                   <span>{t('Personne', 'Person')}</span>
                   <select className="select" value={addForId} onChange={(e) => setAddForId(e.target.value)}>
@@ -175,7 +175,7 @@ export function WeeklyTasks() {
                       ownerId={addForId}
                       week={week}
                       rocks={quarterRocks}
-                      priorities={prioritiesOf(addForId)}
+                      priorities={activePriorities}
                       nextOrder={nextOrderFor(addForTasks)}
                     />
                   </div>
@@ -191,7 +191,7 @@ export function WeeklyTasks() {
               groups.map((g) => (
                 <Collapsible
                   key={g.id}
-                  id={`tasks.p.${g.id}`}
+                  id={`tasks.p.${g.id}`} info={{ what: t("Les actions de cette personne pour la semaine choisie.", "This person's actions for the selected week."), source: t("Align › Tâches hebdo assignées à cette personne.", "Align › Weekly tasks assigned to this person.") }}
                   title={
                     <span className="row" style={{ gap: 8, display: 'inline-flex' }}>
                       <MemberAvatar user={userById.get(g.id)} name={g.id} size={24} />

@@ -1,3 +1,4 @@
+import { hasRichContent } from '@/components/richtext/sanitize';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Search, Users } from 'lucide-react';
@@ -66,7 +67,7 @@ export function Team() {
     [allPriorities, quarter, rockById],
   );
   const wroteThisWeek = useMemo(
-    () => new Set(allCheckins.filter((c) => c.weekStart === week && c.whatsUp.trim()).map((c) => c.userId)),
+    () => new Set(allCheckins.filter((c) => c.weekStart === week && hasRichContent(c.whatsUp)).map((c) => c.userId)),
     [allCheckins, week],
   );
 
