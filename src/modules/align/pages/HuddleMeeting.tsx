@@ -1,7 +1,7 @@
 import { hasRichContent } from '@/components/richtext/sanitize';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Compass, Settings, Users, Video } from 'lucide-react';
+import { ChevronDown, Compass, Settings, Users, Video } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { useCollection } from '@/data/db';
 import { users } from '@/data/stores';
@@ -18,7 +18,7 @@ import type { AlignPriority, Checkin, Rock } from '../schemas';
 import { HuddleForm } from '../huddles/HuddleForm';
 import { HuddleDescription } from '../huddles/HuddleDescription';
 import { HuddleTasks } from '../huddles/HuddleTasks';
-import { HuddlePriorities } from '../huddles/HuddlePriorities';
+import { RockPriorities } from '../huddles/RockPriorities';
 import { HuddleMembers, type MemberStat } from '../huddles/HuddleMembers';
 import { canEditHuddle, groupBy, scheduleLabel } from '../huddles/huddleLib';
 
@@ -28,6 +28,17 @@ interface RockStats {
   pct: number;
   blocked: number;
   red: number;
+}
+
+/** The small arrow of a Rock that shows or hides its priorities. */
+function PrioToggle({ open, count, onClick }: { open: boolean; count: number; onClick: () => void }) {
+  const { t } = useI18n();
+  return (
+    <button className="btn btn-ghost btn-sm align-rockprio-toggle" onClick={onClick} aria-expanded={open} title={open ? t('Masquer les priorités', 'Hide the priorities') : t('Afficher les priorités', 'Show the priorities')}>
+      <ChevronDown size={14} className={`align-past-chevron${open ? ' open' : ''}`} />
+      {t('Priorités', 'Priorities')} <span className="badge">{count}</span>
+    </button>
+  );
 }
 
 /** A weekly huddle: the week's description, Rocks, the members' tasks and priorities, the members, open follow-ups. */
@@ -48,6 +59,25 @@ export function HuddleMeeting() {
   const { rows: allWeeks } = useCollection(huddleWeeks);
 
   const [formOpen, setFormOpen] = useState(false);
+  // Rocks whose priorities are shown (the key "none" is the priorities without a Rock); remembered in this browser.
+  const [shownRocks, setShownRocks] = useState<string[]>(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem('imago:align:huddle-rock-prios') ?? '[]');
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+    } catch {
+      return [];
+    }
+  });
+  const toggleRock = (key: string) =>
+    setShownRocks((cur) => {
+      const next = cur.includes(key) ? cur.filter((x) => x !== key) : [...cur, key];
+      try {
+        localStorage.setItem('imago:align:huddle-rock-prios', JSON.stringify(next));
+      } catch {
+        /* this session only */
+      }
+      return next;
+    });
 
   const me = user!.id;
   const canManage = can('align.huddles.manage');
@@ -113,6 +143,16 @@ export function HuddleMeeting() {
   );
 
   const weekTasks = useMemo(() => allTasks.filter((x) => x.weekStart === week), [allTasks, week]);
+  // Actions of earlier weeks that were never completed (most recent week first), to bring into this week.
+  const pastTasks = useMemo(
+    () =>
+      allTasks
+        .filter((x) => x.weekStart < week && !x.done && memberSet.has(x.ownerId))
+        .sort((a, b) => b.weekStart.localeCompare(a.weekStart) || a.order - b.order),
+    [allTasks, week, memberSet],
+  );
+  // The members' priorities of the quarter, under their Rock (or apart when they have none).
+  const prioritiesByRock = useMemo(() => groupBy(memberPriorities, (p) => p.rockId ?? 'none'), [memberPriorities]);
 
   // Per-member figures for the tiles: open tasks and priorities of the week, blocked, and the "what's up" check-in.
   const memberStats = useMemo(() => {
@@ -216,10 +256,25 @@ export function HuddleMeeting() {
                     </span>
                     {s.blocked > 0 && <span className="badge badge-warn">{t(`${s.blocked} bloquée(s)`, `${s.blocked} blocked`)}</span>}
                     {s.red > 0 && <span className="badge badge-err">{t(`${s.red} rouge(s)`, `${s.red} red`)}</span>}
+                    <PrioToggle open={shownRocks.includes(r.id)} count={prioritiesByRock.get(r.id)?.length ?? 0} onClick={() => toggleRock(r.id)} />
                   </div>
+                  {shownRocks.includes(r.id) && (
+                    <RockPriorities huddleId={huddle.id} week={week} priorities={prioritiesByRock.get(r.id) ?? []} prioById={prioById} userById={userById} userName={userName} />
+                  )}
                 </li>
               );
             })}
+            {(prioritiesByRock.get('none')?.length ?? 0) > 0 && (
+              <li className="align-rock-row">
+                <div className="row row-wrap" style={{ justifyContent: 'space-between', gap: 8 }}>
+                  <strong>{t('Sans Rock', 'No Rock')}</strong>
+                  <PrioToggle open={shownRocks.includes('none')} count={prioritiesByRock.get('none')!.length} onClick={() => toggleRock('none')} />
+                </div>
+                {shownRocks.includes('none') && (
+                  <RockPriorities huddleId={huddle.id} week={week} priorities={prioritiesByRock.get('none')!} prioById={prioById} userById={userById} userName={userName} />
+                )}
+              </li>
+            )}
           </ul>
         )}
       </Collapsible>
@@ -231,21 +286,11 @@ export function HuddleMeeting() {
         canCompose={canCompose}
         memberSet={memberSet}
         weekTasks={weekTasks}
+        pastTasks={pastTasks}
         rocks={rockRows}
         rockById={rockById}
         prioById={prioById}
         myPriorities={myPriorities}
-        userById={userById}
-        userName={userName}
-      />
-
-      <HuddlePriorities
-        huddleId={huddle.id}
-        week={week}
-        priorities={memberPriorities}
-        me={me}
-        rockById={rockById}
-        prioById={prioById}
         userById={userById}
         userName={userName}
       />

@@ -1,17 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ListTodo } from 'lucide-react';
+import { ChevronDown, ListTodo } from 'lucide-react';
 import type { User } from '@/data/types';
 import { useI18n } from '@/i18n';
-import { Empty } from '@/components/ui';
+import { Empty, useToast } from '@/components/ui';
 import { Collapsible, MemberAvatar } from '../components/WeekKit';
+import { errorText } from '../components/RockShared';
 import type { AlignPriority, AlignTask, Rock } from '../schemas';
+import { tasks } from '../stores';
 import { TaskList } from '../tasks/TaskList';
 import { TaskComposer } from '../tasks/TaskComposer';
 import { groupBy } from './huddleLib';
 import { memberPath } from './HuddleMembers';
+import { PastActions } from './PastActions';
 
-/** The members' weekly tasks, grouped by person, with my own composer on top. */
+const FOLDED_KEY = 'imago:align:huddle-folded-owners';
+
+/** The members' weekly tasks, grouped by person, with my own composer on top and the unfinished actions of past weeks. */
 export function HuddleTasks({
   huddleId,
   week,
@@ -19,6 +24,7 @@ export function HuddleTasks({
   canCompose,
   memberSet,
   weekTasks,
+  pastTasks,
   rocks,
   rockById,
   prioById,
@@ -34,6 +40,8 @@ export function HuddleTasks({
   memberSet: Set<string>;
   /** Tasks of the selected week (all people). */
   weekTasks: AlignTask[];
+  /** Open tasks of earlier weeks (members only). */
+  pastTasks: AlignTask[];
   /** Non-archived Rocks of the week's quarter. */
   rocks: Rock[];
   rockById: Map<string, Rock>;
@@ -44,23 +52,57 @@ export function HuddleTasks({
   userName: (id?: string | null) => string;
 }) {
   const { t, lang } = useI18n();
+  const toast = useToast();
   const [hideDone, setHideDone] = useState(false);
+  const [dragged, setDragged] = useState<AlignTask | null>(null);
+  const [overOwner, setOverOwner] = useState<string | null>(null);
+  const [folded, setFolded] = useState<string[]>(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem(FOLDED_KEY) ?? '[]');
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+    } catch {
+      return [];
+    }
+  });
+  const toggleFold = (ownerId: string) =>
+    setFolded((cur) => {
+      const next = cur.includes(ownerId) ? cur.filter((x) => x !== ownerId) : [...cur, ownerId];
+      try {
+        localStorage.setItem(FOLDED_KEY, JSON.stringify(next));
+      } catch {
+        /* this session only */
+      }
+      return next;
+    });
 
   const memberTasks = useMemo(() => weekTasks.filter((x) => memberSet.has(x.ownerId)), [weekTasks, memberSet]);
   const openCount = useMemo(() => memberTasks.filter((x) => !x.done).length, [memberTasks]);
   const groups = useMemo(() => {
     const byOwner = groupBy(memberTasks.filter((x) => !hideDone || !x.done), (x) => x.ownerId);
+    // While an action is dragged, every member is a target, even without an action yet.
+    if (dragged) for (const m of memberSet) if (!byOwner.has(m)) byOwner.set(m, []);
     return [...byOwner.entries()].sort(([a], [b]) => userName(a).localeCompare(userName(b), lang));
-  }, [memberTasks, hideDone, userName, lang]);
+  }, [memberTasks, hideDone, dragged, memberSet, userName, lang]);
   const nextOrder = useMemo(
     () => weekTasks.filter((x) => x.ownerId === me).reduce((max, x) => Math.max(max, x.order + 1), 0),
     [weekTasks, me],
   );
 
+  /** Bring an earlier open action into the selected week, for its owner or for the person it is dropped on. */
+  async function bringHere(task: AlignTask, ownerId: string = task.ownerId) {
+    const order = weekTasks.filter((x) => x.ownerId === ownerId).reduce((max, x) => Math.max(max, x.order + 1), 0);
+    try {
+      await tasks.update(task.id, { weekStart: week, ownerId, order });
+      toast(t('Action ajoutée à cette semaine', 'Action moved to this week'));
+    } catch (err) {
+      toast(errorText(err), 'err');
+    }
+  }
+
   return (
     <Collapsible
-      id="huddle.tasks" info={{ what: t("Les actions de la semaine (lundi au vendredi) des membres : actions hebdo et actions qui font avancer un Rock. Ajoutez-en une et assignez-la à un membre.", "The members' actions for the week (Monday to Friday): weekly actions and actions that move a Rock forward. Add one and assign it to a member."), source: t("Align › Tâches hebdo (plans d'action de la semaine choisie).", "Align › Weekly tasks (action plans of the selected week).") }}
-      title={t('Plan d’action', 'Action plan')}
+      id="huddle.tasks" info={{ what: t("Les actions de la semaine (lundi au vendredi) des membres : actions hebdo et actions qui font avancer un Rock. Ajoutez-en une et assignez-la à un membre. Les actions non terminées des semaines passées sont dans la section repliable : glissez-les sur une personne ou reportez-les à cette semaine.", "The members' actions for the week (Monday to Friday): weekly actions and actions that move a Rock forward. Add one and assign it to a member. Unfinished actions of past weeks are in the collapsible section: drag them onto a person or move them to this week."), source: t("Align › Tâches hebdo (plans d'action de la semaine choisie).", "Align › Weekly tasks (action plans of the selected week).") }}
+      title={t('Plan d’action de la semaine', 'Action plan for the week')}
       icon={<ListTodo size={18} />}
       count={openCount}
       actions={
@@ -76,29 +118,67 @@ export function HuddleTasks({
         </div>
       )}
 
+      <PastActions
+        tasks={pastTasks}
+        week={week}
+        userById={userById}
+        onReschedule={(task) => void bringHere(task)}
+        onDragStart={setDragged}
+        onDragEnd={() => {
+          setDragged(null);
+          setOverOwner(null);
+        }}
+      />
+
       {!groups.length ? (
         <Empty icon={<ListTodo size={32} />} title={t('Aucune tâche cette semaine', 'No task this week')} />
       ) : (
         groups.map(([ownerId, list]) => {
           const open = list.filter((x) => !x.done).length;
+          const isFolded = folded.includes(ownerId);
           return (
-            <div key={ownerId} className="align-task-group">
+            <div
+              key={ownerId}
+              className={`align-task-group${dragged ? ' is-target' : ''}${dragged && overOwner === ownerId ? ' is-drop' : ''}`}
+              onDragOver={(e) => {
+                if (!dragged) return;
+                e.preventDefault();
+                setOverOwner(ownerId);
+              }}
+              onDragLeave={() => setOverOwner((cur) => (cur === ownerId ? null : cur))}
+              onDrop={(e) => {
+                e.preventDefault();
+                const task = dragged;
+                setDragged(null);
+                setOverOwner(null);
+                if (task) void bringHere(task, ownerId);
+              }}
+            >
               <div className="align-task-group-head">
+                <button
+                  className="btn btn-ghost btn-icon btn-sm"
+                  onClick={() => toggleFold(ownerId)}
+                  aria-expanded={!isFolded}
+                  aria-label={isFolded ? t('Afficher le plan d’action', 'Show the action plan') : t('Masquer le plan d’action', 'Hide the action plan')}
+                  title={isFolded ? t('Afficher', 'Show') : t('Masquer', 'Hide')}
+                >
+                  <ChevronDown size={16} className={`align-past-chevron${isFolded ? '' : ' open'}`} />
+                </button>
                 <Link to={memberPath(huddleId, ownerId, week)} className="align-member-link">
                   <MemberAvatar user={userById.get(ownerId)} name={userName(ownerId)} size={24} />
                   <strong>{userName(ownerId)}</strong>
                 </Link>
-                <span className="small muted">
-                  {t(`${open} ouverte(s)`, `${open} open`)}
-                </span>
+                <span className="small muted">{t(`${open} ouverte(s)`, `${open} open`)}</span>
               </div>
-              <TaskList
-                tasks={list}
-                rockById={rockById}
-                priorityById={prioById}
-                showOwner={false}
-                emptyText={t('Aucune tâche', 'No task')}
-              />
+              {!isFolded && (
+                <TaskList
+                  tasks={list}
+                  rockById={rockById}
+                  priorityById={prioById}
+                  showOwner={false}
+                  emptyText={dragged ? t('Déposez l’action ici', 'Drop the action here') : t('Aucune tâche', 'No task')}
+                />
+              )}
             </div>
           );
         })

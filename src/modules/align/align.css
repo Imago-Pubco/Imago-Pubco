@@ -1885,3 +1885,81 @@ a.align-dash-title:hover {
   left: auto;
   right: 0;
 }
+
+/* Huddle: per-person fold arrow, past unfinished actions, priorities under each Rock */
+.align-task-group-head .align-member-link {
+  margin-right: auto;
+}
+.align-task-group-head {
+  justify-content: flex-start;
+}
+.align-past-chevron {
+  transition: transform 0.18s ease;
+  transform: rotate(-90deg);
+}
+.align-past-chevron.open {
+  transform: rotate(0deg);
+}
+.align-past {
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+}
+.align-past-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.align-past-hint,
+.align-past-empty {
+  margin: 6px 0;
+}
+.align-past-row {
+  cursor: grab;
+}
+.align-task-group.is-target {
+  border-radius: 10px;
+  outline: 1px dashed var(--border);
+  outline-offset: 4px;
+}
+.align-task-group.is-drop {
+  outline: 2px solid var(--accent, #7c3aed);
+  background: color-mix(in srgb, var(--accent, #7c3aed) 8%, transparent);
+}
+.align-rockprio-toggle {
+  margin-left: auto;
+}
+.align-rockprio-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--border);
+}
+.align-rockprio-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto auto 70px;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.align-rockprio-row:hover,
+.align-rockprio-row:focus-visible {
+  background: var(--surface-2, rgba(127, 127, 127, 0.1));
+}
+.align-rockprio-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.align-rockprio-empty {
+  padding: 6px 0 0 14px;
+}
