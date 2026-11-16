@@ -19,7 +19,7 @@ import { PriorityRow } from '../huddles/PriorityRow';
 import { TaskComposer } from '../tasks/TaskComposer';
 import { TaskList } from '../tasks/TaskList';
 import { endOrder } from '../tasks/taskDnd';
-import { postponeFields } from '../tasks/taskLib';
+import { postponeFields, counted } from '../tasks/taskLib';
 import { checkinId, quarterOfWeek, shiftWeek } from '../week';
 import { useMemberNav } from '../team/useMemberNav';
 import { RichTextEditor } from '@/components/richtext/RichTextEditor';
@@ -223,7 +223,7 @@ export function MemberWeek() {
     () => allTasks.filter((x) => x.ownerId === userId && x.weekStart === prevWeek && !x.done),
     [allTasks, userId, prevWeek],
   );
-  const openTaskCount = weekTasks.filter((x) => !x.done).length;
+  const openTaskCount = weekTasks.filter((x) => counted(x) && !x.done).length;
   const nextOrder = endOrder(weekTasks);
   const activePriorities = useMemo(() => allPriorities.filter((p) => !p.archived), [allPriorities]);
   const quarterRocks = useMemo(
@@ -392,7 +392,7 @@ export function MemberWeek() {
 
         <Collapsible
           id="member.priorities" info={{ what: t("Les priorités de la personne pour le trimestre de la semaine : la personne met à jour la santé, le statut et l'avancement ; tous peuvent ajouter des suivis.", "The person's priorities for the week's quarter: they update health, status and progress; anyone can add follow-ups."), source: t("Align › Rocks (priorités assignées à cette personne).", "Align › Rocks (priorities assigned to this person).") }}
-          title={t('Priorités de la semaine', "This week's priorities")}
+          title={t('Priorités du trimestre', 'Quarter priorities')}
           icon={<ListChecks size={16} />}
           count={openPrioCount}
         >

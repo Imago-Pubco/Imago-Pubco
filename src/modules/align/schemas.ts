@@ -197,6 +197,8 @@ export const TaskSchema = z.strictObject({
   since: date.optional(),
   /** How many times it was carried over to a later week. */
   postponed: z.number().int().min(0).max(1000).optional(),
+  /** A demo / test action (Administration → Modules → Align): shown, but never counted in the figures. */
+  demo: z.boolean().optional(),
   ...stamps,
 });
 

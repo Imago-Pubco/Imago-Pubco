@@ -36,3 +36,5 @@ export function taskStaleness(t: AlignTask, today = new Date()): Staleness {
 
 /** The fields a copy (or a move) to a later week carries over: same start day, one more postponement. */
 export const postponeFields = (t: AlignTask) => ({ since: taskSince(t), postponed: (t.postponed ?? 0) + 1 });
+/** Real actions only: demo / test actions are shown but never counted. */
+export const counted = (t: AlignTask) => !t.demo;

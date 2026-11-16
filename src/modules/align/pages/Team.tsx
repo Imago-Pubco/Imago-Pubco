@@ -1,3 +1,4 @@
+import { counted } from '../tasks/taskLib';
 import { hasRichContent } from '@/components/richtext/sanitize';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -104,7 +105,7 @@ export function Team() {
       ) : (
         <div className="align-team-grid">
           {shown.map((u) => {
-            const ts = tasksByOwner.get(u.id) ?? [];
+            const ts = (tasksByOwner.get(u.id) ?? []).filter(counted);
             const done = ts.filter((x) => x.done).length;
             const ps = openPrioByOwner.get(u.id) ?? [];
             const blocked = ps.filter((p) => isBlocked(p, prioById)).length;

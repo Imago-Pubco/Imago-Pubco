@@ -11,7 +11,7 @@ import { tasks } from '../stores';
 import { TaskList } from '../tasks/TaskList';
 import { TaskComposer } from '../tasks/TaskComposer';
 import { dragging, endOrder, moveTask } from '../tasks/taskDnd';
-import { canEditTask, postponeFields } from '../tasks/taskLib';
+import { canEditTask, postponeFields, counted } from '../tasks/taskLib';
 import { useAuth } from '@/auth/AuthContext';
 import { groupBy } from './huddleLib';
 import { memberPath } from './HuddleMembers';
@@ -85,7 +85,7 @@ export function HuddleTasks({
     });
 
   const memberTasks = useMemo(() => weekTasks.filter((x) => memberSet.has(x.ownerId)), [weekTasks, memberSet]);
-  const openCount = useMemo(() => memberTasks.filter((x) => !x.done).length, [memberTasks]);
+  const openCount = useMemo(() => memberTasks.filter((x) => counted(x) && !x.done).length, [memberTasks]);
   const groups = useMemo(() => {
     const byOwner = groupBy(memberTasks.filter((x) => !hideDone || !x.done), (x) => x.ownerId);
     // While an action is dragged, every member is a target, even without an action yet.
@@ -141,7 +141,7 @@ export function HuddleTasks({
         <Empty icon={<ListTodo size={32} />} title={t('Aucune tâche cette semaine', 'No task this week')} />
       ) : (
         groups.map(([ownerId, list]) => {
-          const open = list.filter((x) => !x.done).length;
+          const open = list.filter((x) => counted(x) && !x.done).length;
           const isFolded = folded.includes(ownerId);
           return (
             <div

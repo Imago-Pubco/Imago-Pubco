@@ -2192,3 +2192,21 @@ a.align-dash-title:hover {
     display: none;
   }
 }
+
+/* Rock row: the priorities chevron on the left of the title */
+.align-rock-head {
+  gap: 4px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  align-items: center;
+}
+.align-rock-head .align-rockprio-toggle {
+  margin-left: -6px;
+  flex-shrink: 0;
+}
+.align-chip.align-demo {
+  background: color-mix(in srgb, var(--info, #3b82f6) 16%, transparent);
+  color: var(--info, #3b82f6);
+  font-weight: 600;
+  flex: 0 0 auto;
+}

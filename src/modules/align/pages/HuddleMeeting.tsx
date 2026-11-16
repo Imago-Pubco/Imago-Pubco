@@ -1,3 +1,4 @@
+import { counted } from '../tasks/taskLib';
 import { hasRichContent } from '@/components/richtext/sanitize';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -34,9 +35,14 @@ interface RockStats {
 function PrioToggle({ open, count, onClick }: { open: boolean; count: number; onClick: () => void }) {
   const { t } = useI18n();
   return (
-    <button className="btn btn-ghost btn-sm align-rockprio-toggle" onClick={onClick} aria-expanded={open} title={open ? t('Masquer les priorités', 'Hide the priorities') : t('Afficher les priorités', 'Show the priorities')}>
-      <ChevronDown size={14} className={`align-past-chevron${open ? ' open' : ''}`} />
-      {t('Priorités', 'Priorities')} <span className="badge">{count}</span>
+    <button
+      className="btn btn-ghost btn-icon btn-sm align-rockprio-toggle"
+      onClick={onClick}
+      aria-expanded={open}
+      aria-label={open ? t('Masquer les priorités', 'Hide the priorities') : t('Afficher les priorités', 'Show the priorities')}
+      title={open ? t(`Masquer les priorités (${count})`, `Hide the priorities (${count})`) : t(`Afficher les priorités (${count})`, `Show the priorities (${count})`)}
+    >
+      <ChevronDown size={16} className={`align-past-chevron${open ? ' open' : ''}`} />
     </button>
   );
 }
@@ -157,7 +163,7 @@ export function HuddleMeeting() {
   // Per-member figures for the tiles: open tasks and priorities of the week, blocked, and the "what's up" check-in.
   const memberStats = useMemo(() => {
     const openTasks = groupBy(
-      weekTasks.filter((x) => !x.done),
+      weekTasks.filter((x) => counted(x) && !x.done),
       (x) => x.ownerId,
     );
     const openPrio = groupBy(
@@ -244,9 +250,12 @@ export function HuddleMeeting() {
               return (
                 <li key={r.id} className="align-rock-row">
                   <div className="row row-wrap" style={{ justifyContent: 'space-between', gap: 8 }}>
-                    <Link to={`/align/rocks/${r.id}`} className="align-rock-link">
-                      {r.title}
-                    </Link>
+                    <span className="row align-rock-head">
+                      <PrioToggle open={shownRocks.includes(r.id)} count={prioritiesByRock.get(r.id)?.length ?? 0} onClick={() => toggleRock(r.id)} />
+                      <Link to={`/align/rocks/${r.id}`} className="align-rock-link">
+                        {r.title}
+                      </Link>
+                    </span>
                     <span className="small muted">{r.ownerId ? userName(r.ownerId) : t('Sans responsable', 'No owner')}</span>
                   </div>
                   <div className="row row-wrap" style={{ gap: 8, marginTop: 6 }}>
@@ -256,7 +265,6 @@ export function HuddleMeeting() {
                     </span>
                     {s.blocked > 0 && <span className="badge badge-warn">{t(`${s.blocked} bloquée(s)`, `${s.blocked} blocked`)}</span>}
                     {s.red > 0 && <span className="badge badge-err">{t(`${s.red} rouge(s)`, `${s.red} red`)}</span>}
-                    <PrioToggle open={shownRocks.includes(r.id)} count={prioritiesByRock.get(r.id)?.length ?? 0} onClick={() => toggleRock(r.id)} />
                   </div>
                   {shownRocks.includes(r.id) && (
                     <RockPriorities huddleId={huddle.id} week={week} priorities={prioritiesByRock.get(r.id) ?? []} prioById={prioById} userById={userById} userName={userName} />
@@ -266,10 +274,10 @@ export function HuddleMeeting() {
             })}
             {(prioritiesByRock.get('none')?.length ?? 0) > 0 && (
               <li className="align-rock-row">
-                <div className="row row-wrap" style={{ justifyContent: 'space-between', gap: 8 }}>
-                  <strong>{t('Sans Rock', 'No Rock')}</strong>
+                <span className="row align-rock-head">
                   <PrioToggle open={shownRocks.includes('none')} count={prioritiesByRock.get('none')!.length} onClick={() => toggleRock('none')} />
-                </div>
+                  <strong>{t('Sans Rock', 'No Rock')}</strong>
+                </span>
                 {shownRocks.includes('none') && (
                   <RockPriorities huddleId={huddle.id} week={week} priorities={prioritiesByRock.get('none')!} prioById={prioById} userById={userById} userName={userName} />
                 )}

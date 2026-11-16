@@ -151,6 +151,11 @@ export function TaskList({ tasks: rows, rockById, priorityById, showOwner = fals
                 {task.title}
               </span>
               {stale === 'alert' && <ElectricFx />}
+              {task.demo && (
+                <span className="align-chip align-demo" title={t('Action de démonstration : affichée, mais jamais comptée dans les résultats.', 'Demo action: shown, but never counted in the results.')}>
+                  {t('Démo', 'Demo')}
+                </span>
+              )}
               {stale !== 'none' && <StaleBadge task={task} level={stale} />}
               {task.kind === 'rock' && (
                 <span className="align-chip is-rock" title={`Rock · ${rock?.title ?? ''}`}>

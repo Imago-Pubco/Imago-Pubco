@@ -161,6 +161,10 @@ export async function guardAlign(c: string, body: Record<string, unknown>, a: Au
     if (fin.huddleId != null && !(await db.getDoc('align.huddles', String(fin.huddleId)))) {
       return { status: 400, error: 'The huddle does not exist.' };
     }
+    // Demo actions are not counted anywhere: only Align data managers may mark (or unmark) one.
+    if ('demo' in doc && !!doc.demo !== !!existing?.demo && !a.can('align.data')) {
+      return { status: 403, error: 'Only Align data managers can create demo actions.' };
+    }
     // Staleness: the first day of the action cannot be in the future, nor moved later once set (that would hide the
     // warning); the postponement count only goes up.
     const today = new Date().toISOString().slice(0, 10);

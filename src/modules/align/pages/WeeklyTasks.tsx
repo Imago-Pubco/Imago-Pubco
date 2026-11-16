@@ -17,6 +17,7 @@ import { groupBy } from '../huddles/huddleLib';
 import { TaskComposer } from '../tasks/TaskComposer';
 import { TaskList } from '../tasks/TaskList';
 import { endOrder } from '../tasks/taskDnd';
+import { counted } from '../tasks/taskLib';
 import { sortTasks } from '../tasks/taskLib';
 
 type View = 'mine' | 'all';
@@ -69,18 +70,19 @@ export function WeeklyTasks() {
     return [...byOwner.entries()]
       .map(([id, list]) => ({
         id,
-        open: list.filter((x) => !x.done).length,
+        open: list.filter((x) => counted(x) && !x.done).length,
         shown: list.filter((x) => matches(x, kind, hideDone)).sort(sortTasks),
       }))
       .sort((a, b) => (userById.get(a.id)?.displayName ?? a.id).localeCompare(userById.get(b.id)?.displayName ?? b.id, lang));
   }, [weekTasks, me, personId, kind, hideDone, userById, lang]);
 
   // Stats over the scope of the view (my plan, or everyone / one person).
-  const scope = view === 'mine' ? mineAll : personId ? weekTasks.filter((x) => x.ownerId === personId) : weekTasks;
+  // Demo / test actions are listed but never counted.
+  const scope = (view === 'mine' ? mineAll : personId ? weekTasks.filter((x) => x.ownerId === personId) : weekTasks).filter(counted);
   const doneCount = scope.filter((x) => x.done).length;
   const pct = scope.length ? Math.round((doneCount / scope.length) * 100) : 0;
   const rockCount = scope.filter((x) => x.kind === 'rock').length;
-  const openMine = mineAll.filter((x) => !x.done).length;
+  const openMine = mineAll.filter((x) => counted(x) && !x.done).length;
 
   const addForTasks = addForId ? weekTasks.filter((x) => x.ownerId === addForId) : [];
 

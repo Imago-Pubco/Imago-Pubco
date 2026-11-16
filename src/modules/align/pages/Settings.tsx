@@ -9,6 +9,7 @@ import { ArchiveCard, CurrentCard, DangerCard } from '../admin/Cards';
 import { ImportCard } from '../admin/ImportCard';
 import { ArchiveModal, EraseModal, RestoreModal, SnapshotWarningModal } from '../admin/Modals';
 import { SnapshotsCard } from '../admin/SnapshotsCard';
+import { DemoCard } from '../admin/DemoCard';
 import { errorText, isFilled, REPLACE_RIGHTS, type AlignCounts, type AlignDataStatus, type ArchiveParts, type ArchiveResult, type RestoreSource } from '../admin/types';
 
 type Busy = '' | 'snapshot' | 'archive' | 'restore' | 'erase';
@@ -167,6 +168,8 @@ export function Settings() {
         </div>
 
         <ImportCard />
+
+        <DemoCard />
 
         <SnapshotsCard
           snapshots={status.snapshots}
