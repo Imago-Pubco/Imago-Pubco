@@ -135,3 +135,39 @@
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
+.brand-logo-styles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.brand-logo-style {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.brand-logo-style.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.brand-logo-style-box {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 40px;
+  border-radius: 6px;
+  background: var(--sidebar-bg);
+}
+.brand-logo-style-box img {
+  max-width: 90%;
+  max-height: 30px;
+  object-fit: contain;
+}

@@ -12,6 +12,18 @@ const image = z
   .max(700_000)
   .regex(/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+=*$/);
 
+/** normal · invert (colours flipped) · white (single-colour white) · black (single-colour black). */
+export const LOGO_STYLE = z.enum(['normal', 'invert', 'white', 'black']);
+export type LogoStyle = z.infer<typeof LOGO_STYLE>;
+
+/** The CSS filter that draws the logo in that style. */
+export const LOGO_FILTER: Record<LogoStyle, string> = {
+  normal: 'none',
+  invert: 'invert(1) hue-rotate(180deg)',
+  white: 'brightness(0) invert(1)',
+  black: 'brightness(0)',
+};
+
 export const BrandColorsSchema = z.strictObject({
   /** Main brand colour: buttons, links, the dashboard accent. */
   primary: hex.nullable(),
@@ -32,6 +44,8 @@ export const BrandingSchema = z.strictObject({
   title: z.string().trim().min(1).max(80),
   /** Logo shown instead of the butterfly; null = the butterfly. */
   logo: image.nullable(),
+  /** How the logo is drawn (a dark logo on the dark sidebar needs inverting or turning white). */
+  logoStyle: LOGO_STYLE.optional(),
   /** Browser tab icon; null = the default. */
   favicon: image.nullable(),
   colors: BrandColorsSchema,
@@ -45,6 +59,7 @@ export const DEFAULT_BRANDING: Branding = {
   tagline: 'Imago · Hub 2.0',
   title: 'Imago · Pubco Hub',
   logo: null,
+  logoStyle: 'normal',
   favicon: null,
   colors: { primary: null, sidebarBg: null, sidebarText: null, bgLight: null, bgDark: null },
 };

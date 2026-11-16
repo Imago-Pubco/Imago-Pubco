@@ -11,7 +11,7 @@ import { Page } from '@/components/Page';
 import { PageHeader, useToast } from '@/components/ui';
 import { Butterfly } from '@/components/Butterfly';
 import { resetBranding, saveBranding, useBranding } from '@/branding/BrandingContext';
-import type { BrandColors, Branding, SiteBranding } from '@/branding/brandingSchema';
+import { LOGO_FILTER, type BrandColors, type Branding, type LogoStyle, type SiteBranding } from '@/branding/brandingSchema';
 import '../branding.css';
 
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -168,7 +168,7 @@ export function Branding() {
           <section className="card card-pad stack">
             <h3>{t('Logo et icône', 'Logo and icon')}</h3>
             <div className="brand-logo-row">
-              <div className="brand-logo-box">{draft.logo ? <img src={draft.logo} alt="" /> : <Butterfly size={56} />}</div>
+              <div className="brand-logo-box">{draft.logo ? <img src={draft.logo} alt="" style={{ filter: LOGO_FILTER[draft.logoStyle ?? 'normal'] }} /> : <Butterfly size={56} />}</div>
               <div className="stack" style={{ gap: 6 }}>
                 <label className="btn btn-sm">
                   <ImagePlus size={14} /> {t('Changer le logo', 'Change the logo')}
@@ -182,6 +182,34 @@ export function Branding() {
                 <span className="small muted">{t('PNG, JPEG, WebP ou SVG. Fond transparent conseillé.', 'PNG, JPEG, WebP or SVG. A transparent background works best.')}</span>
               </div>
             </div>
+            {draft.logo && (
+              <div className="field">
+                <span>{t('Couleur du logo (le menu latéral est foncé)', 'Logo colour (the sidebar is dark)')}</span>
+                <div className="brand-logo-styles" role="group" aria-label={t('Couleur du logo', 'Logo colour')}>
+                  {(
+                    [
+                      ['normal', 'Normale', 'Normal'],
+                      ['invert', 'Inversée', 'Inverted'],
+                      ['white', 'Tout en blanc', 'All white'],
+                      ['black', 'Tout en noir', 'All black'],
+                    ] as [LogoStyle, string, string][]
+                  ).map(([key, fr, en]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`brand-logo-style${(draft.logoStyle ?? 'normal') === key ? ' on' : ''}`}
+                      aria-pressed={(draft.logoStyle ?? 'normal') === key}
+                      onClick={() => set({ logoStyle: key })}
+                    >
+                      <span className="brand-logo-style-box">
+                        <img src={draft.logo!} alt="" style={{ filter: LOGO_FILTER[key] }} />
+                      </span>
+                      {t(fr, en)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="brand-logo-row">
               <div className="brand-logo-box brand-icon-box">{draft.favicon ? <img src={draft.favicon} alt="" /> : <Butterfly size={24} />}</div>
               <div className="stack" style={{ gap: 6 }}>
