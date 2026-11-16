@@ -170,6 +170,50 @@ export const ChecklistItemSchema = z.strictObject({
   ...stamps,
 });
 
+/** A Monday (YYYY-MM-DD): the start of a work week (Monday to Friday). */
+export const weekStart = date.refine((d) => new Date(`${d}T00:00:00Z`).getUTCDay() === 1, 'must be a Monday');
+
+export const TASK_KIND = z.enum(['weekly', 'rock']);
+
+/**
+ * An action of someone's weekly action plan ("Plan d'action"): a plain weekly action, or an action that moves a Rock
+ * forward (rockId set). Owners manage their own; align.priorities.manage manages everyone's.
+ */
+export const TaskSchema = z.strictObject({
+  id,
+  title: z.string().min(1).max(300),
+  ownerId: id,
+  weekStart,
+  kind: TASK_KIND,
+  /** Rock actions only (null for a weekly action). */
+  rockId: ref,
+  /** Optional: the priority it advances. */
+  priorityId: ref,
+  done: z.boolean(),
+  /** The huddle where it was added, if any. */
+  huddleId: ref,
+  order: z.number().int().min(0).max(100000),
+  ...stamps,
+});
+
+/** A member's weekly check-in ("Quoi de neuf"). One per person and week; id = `${userId}_${weekStart}`. */
+export const CheckinSchema = z.strictObject({
+  id,
+  userId: id,
+  weekStart,
+  whatsUp: txt(4000),
+  ...stamps,
+});
+
+/** A huddle's description for one week (each week can have its own). id = `${huddleId}_${weekStart}`. */
+export const HuddleWeekSchema = z.strictObject({
+  id,
+  huddleId: id,
+  weekStart,
+  description: txt(4000),
+  ...stamps,
+});
+
 export const ALIGN_SCHEMAS = {
   'align.rocks': RockSchema,
   'align.priorities': PrioritySchema,
@@ -177,6 +221,9 @@ export const ALIGN_SCHEMAS = {
   'align.huddles': HuddleSchema,
   'align.strategy': StrategySchema,
   'align.checklist': ChecklistItemSchema,
+  'align.tasks': TaskSchema,
+  'align.checkins': CheckinSchema,
+  'align.huddleWeeks': HuddleWeekSchema,
 } as const;
 
 export type Rock = z.infer<typeof RockSchema>;
@@ -188,3 +235,7 @@ export type ChecklistItem = z.infer<typeof ChecklistItemSchema>;
 export type Health = z.infer<typeof HEALTH>;
 export type PriorityStatus = z.infer<typeof PRIORITY_STATUS>;
 export type Cadence = z.infer<typeof CADENCE>;
+export type AlignTask = z.infer<typeof TaskSchema>;
+export type TaskKind = z.infer<typeof TASK_KIND>;
+export type Checkin = z.infer<typeof CheckinSchema>;
+export type HuddleWeek = z.infer<typeof HuddleWeekSchema>;

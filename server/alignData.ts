@@ -1,9 +1,9 @@
 /**
  * Align data management (Administration → Modules → Align), like the KPI tool's:
- *   - snapshots: up to 3 full copies of the six align.* collections (meta keys align.snapshot.1..3)
+ *   - snapshots: up to 3 full copies of the nine align.* collections (meta keys align.snapshot.1..3)
  *   - restore: from a snapshot, or from the automatic backup taken before the last KPI import (meta align.backup)
  *   - archive: reload the strategy, the 40-point checklist and/or the quarter's Rocks captured from Align (archive.ts)
- *   - erase: empty the six collections (snapshots and backup are kept)
+ *   - erase: empty the nine collections (snapshots and backup are kept)
  * Every replacement runs in ONE transaction and every document is validated against the schemas first (all or nothing).
  */
 import type { PoolClient } from 'pg';

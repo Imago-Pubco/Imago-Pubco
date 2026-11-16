@@ -7,7 +7,7 @@ import { users } from '@/data/stores';
 import { ALIGN_ARCHIVE_DATE, ARCHIVE_CHECKLIST, ARCHIVE_ROCKS, ARCHIVE_STRATEGY } from '../archive';
 import { quarterOf } from '../lib';
 import type { Rock } from '../schemas';
-import { alignHuddles, alignPriorities, checklist, notes, rocks, strategy } from '../stores';
+import { alignHuddles, alignPriorities, checkins, checklist, huddleWeeks, notes, rocks, strategy, tasks } from '../stores';
 import type { AlignCounts, AlignDataClient, AlignSlot, ArchiveParts, ArchiveResult, RestoreSource } from './types';
 
 const SNAP_KEY = 'imago:align:snapshots';
@@ -29,7 +29,7 @@ interface StoredSnapshot {
   data: Dump;
 }
 
-/** The six collections, by their server names. */
+/** The nine collections, by their server names. */
 const COLLECTIONS = [
   ['align.rocks', rocks],
   ['align.priorities', alignPriorities],
@@ -37,6 +37,9 @@ const COLLECTIONS = [
   ['align.huddles', alignHuddles],
   ['align.strategy', strategy],
   ['align.checklist', checklist],
+  ['align.tasks', tasks],
+  ['align.checkins', checkins],
+  ['align.huddleWeeks', huddleWeeks],
 ] as unknown as [string, DevCollection][];
 
 const SLOTS = [1, 2, 3];

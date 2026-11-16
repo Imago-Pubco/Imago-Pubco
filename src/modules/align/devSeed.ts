@@ -3,10 +3,11 @@
  * Pubco's 4D Vision summary as Rocks, with a few priorities assigned to the demo accounts.
  */
 import { quarterOf, quarterRange } from './lib';
-import type { AlignHuddle, AlignNote, AlignPriority, Rock } from './schemas';
-import { alignHuddles, alignPriorities, notes, rocks } from './stores';
+import { checkinId, huddleWeekId, shiftWeek, thisWeek } from './week';
+import type { AlignHuddle, AlignNote, AlignPriority, AlignTask, Checkin, HuddleWeek, Rock } from './schemas';
+import { alignHuddles, alignPriorities, checkins, huddleWeeks, notes, rocks, tasks } from './stores';
 
-const KEY = 'imago:seed:align:v2';
+const KEY = 'imago:seed:align:v3';
 
 export async function ensureAlignSeeded(force = false) {
   if (!force && localStorage.getItem(KEY) === '1') return;
@@ -51,6 +52,37 @@ export async function ensureAlignSeeded(force = false) {
     { id: 'hud_demo1', name: 'Huddle de direction', description: 'Revue hebdomadaire des Rocks et des priorités.', ownerId: 'u_admin', memberIds: ['u_admin', 'u_compta', 'u_prod'], cadence: 'weekly', dayOfWeek: 1, startTime: '08:30', endTime: '09:00', videoUrl: '', active: true, sourceId: null },
   ];
 
+  // Weekly layer: this week's and last week's action plans, check-ins and the huddle's description.
+  const wk = thisWeek();
+  const prev = shiftWeek(wk, -1);
+  let t = 0;
+  const task = (ownerId: string, weekStart: string, title: string, rockId: string | null, done = false, priorityId: string | null = null): AlignTask => ({
+    id: `t_demo${++t}`, title, ownerId, weekStart, kind: rockId ? 'rock' : 'weekly', rockId, priorityId, done, huddleId: 'hud_demo1', order: t,
+  });
+  const T: AlignTask[] = [
+    task('u_compta', prev, 'Envoyer le rapport de marge de la semaine', 'rock_demo1', true, 'prio_demo2'),
+    task('u_compta', prev, 'Relancer les comptes à recevoir de plus de 60 jours', null),
+    task('u_compta', wk, 'Comparer 3 projets terminés : soumis vs réel', 'rock_demo1', false, 'prio_demo2'),
+    task('u_compta', wk, 'Préparer la paie de jeudi', null, true),
+    task('u_prod', wk, 'Bloquer la rencontre de planification avec Montech', 'rock_demo3', false, 'prio_demo6'),
+    task('u_prod', wk, 'Former 2 chargés de projet à la liste de démarrage', 'rock_demo2', false, 'prio_demo5'),
+    task('u_prod', wk, 'Inventaire des panneaux en cour', null),
+    task('u_admin', wk, 'Valider le gabarit de tableau de bord avec chaque département', 'rock_demo4'),
+    task('u_admin', wk, 'Ordre du jour du huddle de direction', null, true),
+  ];
+  const C: Checkin[] = [
+    { id: checkinId('u_compta', wk), userId: 'u_compta', weekStart: wk, whatsUp: 'Fin de mois en vue : la paie et les comptes à recevoir prennent du temps cette semaine.' },
+    { id: checkinId('u_prod', wk), userId: 'u_prod', weekStart: wk, whatsUp: 'Deux gros projets en production; Montech confirme ses disponibilités mercredi.' },
+    { id: checkinId('u_compta', prev), userId: 'u_compta', weekStart: prev, whatsUp: 'Rapport de marge envoyé, à discuter en huddle.' },
+  ];
+  const W: HuddleWeek[] = [
+    { id: huddleWeekId('hud_demo1', prev), huddleId: 'hud_demo1', weekStart: prev, description: 'Focus : marges des projets terminés.' },
+    { id: huddleWeekId('hud_demo1', wk), huddleId: 'hud_demo1', weekStart: wk, description: 'Focus de la semaine : planification Pubco–Montech et dossiers complets avant démarrage.' },
+  ];
+
+  await tasks.replaceAll(T);
+  await checkins.replaceAll(C);
+  await huddleWeeks.replaceAll(W);
   await rocks.replaceAll(R);
   await alignPriorities.replaceAll(P);
   await notes.replaceAll(N);

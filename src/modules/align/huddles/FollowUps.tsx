@@ -20,7 +20,7 @@ export function FollowUpForm({
   onDone,
 }: {
   priority: AlignPriority;
-  huddleId: string;
+  huddleId: string | null;
   people: User[];
   userName: (id?: string) => string;
   onDone: () => void;

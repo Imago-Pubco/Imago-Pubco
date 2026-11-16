@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
-import { Compass, LayoutDashboard, Mountain, Presentation, Target } from 'lucide-react';
+import { Compass, LayoutDashboard, ListTodo, Mountain, Presentation, Target, Users } from 'lucide-react';
 import type { ModuleDef } from '../types';
 import { Dashboard } from './pages/Dashboard';
 import { Strategy } from './pages/Strategy';
@@ -8,6 +8,9 @@ import { RockDetail } from './pages/RockDetail';
 import { Huddles } from './pages/Huddles';
 import { HuddleMeeting } from './pages/HuddleMeeting';
 import { Settings } from './pages/Settings';
+import { WeeklyTasks } from './pages/WeeklyTasks';
+import { Team } from './pages/Team';
+import { MemberWeek } from './pages/MemberWeek';
 import './align.css';
 
 function AlignRoutes() {
@@ -19,6 +22,10 @@ function AlignRoutes() {
       <Route path="rocks/:id" element={<RockDetail />} />
       <Route path="huddles" element={<Huddles />} />
       <Route path="huddles/:id" element={<HuddleMeeting />} />
+      <Route path="huddles/:id/members/:userId" element={<MemberWeek />} />
+      <Route path="tasks" element={<WeeklyTasks />} />
+      <Route path="team" element={<Team />} />
+      <Route path="team/:userId" element={<MemberWeek />} />
     </Routes>
   );
 }
@@ -48,6 +55,8 @@ export const alignModule: ModuleDef = {
     { path: 'strategy', label: { fr: 'Stratégie', en: 'Strategy' }, icon: Compass },
     { path: 'rocks', label: { fr: 'Rocks', en: 'Rocks' }, icon: Mountain },
     { path: 'huddles', label: { fr: 'Huddles', en: 'Huddles' }, icon: Presentation },
+    { path: 'tasks', label: { fr: 'Tâches hebdo', en: 'Weekly tasks' }, icon: ListTodo },
+    { path: 'team', label: { fr: 'Équipe', en: 'Team' }, icon: Users },
   ],
   component: AlignRoutes,
   settings: {

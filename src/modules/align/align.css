@@ -1049,3 +1049,339 @@ a.align-dash-title:hover {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 }
+
+/* ---------- weekly screens: week picker, collapsible sections ---------- */
+.align-week-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.align-week-label {
+  min-width: 190px;
+  text-align: center;
+}
+.align-collapsible {
+  margin-bottom: 16px;
+}
+.align-collapsible-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.align-collapsible-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.align-collapsible-chevron {
+  transition: transform 0.2s;
+  transform: rotate(-90deg);
+  color: var(--muted, inherit);
+}
+.align-collapsible.open .align-collapsible-chevron {
+  transform: rotate(0deg);
+}
+.align-collapsible-body {
+  padding-top: 12px;
+}
+
+/* ---------- weekly huddle ---------- */
+.align-desc-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.align-desc-text.muted {
+  color: var(--text-3);
+}
+.align-member-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.align-member-link:hover strong {
+  text-decoration: underline;
+}
+.align-task-group {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+.align-task-group:first-of-type {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+.align-task-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.align-prio-table td,
+.align-prio-table th {
+  vertical-align: middle;
+}
+.align-prio-table tr.clickable {
+  cursor: pointer;
+}
+.align-prio-table tr.clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.align-member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+.align-member-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  color: inherit;
+  text-align: center;
+  text-decoration: none;
+}
+.align-member-tile:hover {
+  border-color: var(--accent);
+}
+.align-tile-name {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.align-member-whatsup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.align-whatsup-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--text-3);
+  flex-shrink: 0;
+}
+.align-whatsup-dot.is-on {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+/* ---------- weekly tasks ---------- */
+.align-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.align-task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+}
+.align-task-row > input[type='checkbox'] {
+  margin-top: 4px;
+}
+.align-task-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.align-task-title {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.align-task-row.is-done {
+  opacity: 0.6;
+}
+.align-task-row.is-done .align-task-title {
+  text-decoration: line-through;
+}
+.align-task-kind.is-rock {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+.align-task-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.align-task-actions {
+  display: flex;
+  gap: 2px;
+}
+.align-task-kind-toggle {
+  display: inline-flex;
+  gap: 6px;
+}
+.align-task-composer {
+  display: flex;
+  flex-direction: column;
+}
+.align-task-seg {
+  display: inline-flex;
+  gap: 4px;
+}
+@media (max-width: 640px) {
+  .align-task-row {
+    flex-wrap: wrap;
+  }
+  .align-task-composer .select,
+  .align-task-composer .input {
+    width: 100% !important;
+  }
+}
+
+/* ---------- team & member ---------- */
+.align-member-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.align-member-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+.align-member-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.align-member-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  text-decoration: none;
+}
+.align-member-step:hover {
+  color: var(--accent);
+}
+.align-member-step.is-off {
+  opacity: 0.35;
+  cursor: default;
+}
+.align-member-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.align-member-name {
+  margin: 0;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.align-member-photo-actions {
+  margin-left: auto;
+  gap: 8px;
+}
+.align-whatsup-input {
+  resize: vertical;
+  min-height: 96px;
+}
+.align-whatsup-text {
+  white-space: pre-line;
+  line-height: 1.5;
+}
+.align-whatsup-prev summary {
+  cursor: pointer;
+}
+.align-carry {
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.align-team-toolbar {
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.align-team-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 220px;
+  color: var(--muted, inherit);
+}
+.align-team-search .input {
+  flex: 1;
+}
+.align-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.align-team-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.align-team-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.align-team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .align-member-photo-actions {
+    margin-left: 0;
+  }
+  .align-team-search {
+    min-width: 0;
+    width: 100%;
+  }
+}

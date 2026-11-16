@@ -59,7 +59,7 @@ export interface AlignDataClient {
 /** Rights needed to replace Align data (restore, archive reload, erase): the server checks all of them. */
 export const REPLACE_RIGHTS = ['align.data', 'align.rocks.manage', 'align.priorities.manage', 'align.huddles.manage', 'align.strategy.manage'];
 
-/** The six Align collections, in display order. */
+/** The nine Align collections, in display order. */
 export const ALIGN_COUNT_ITEMS: { key: string; label: L }[] = [
   { key: 'align.rocks', label: { fr: 'Rocks', en: 'Rocks' } },
   { key: 'align.priorities', label: { fr: 'Priorités', en: 'Priorities' } },
@@ -67,6 +67,9 @@ export const ALIGN_COUNT_ITEMS: { key: string; label: L }[] = [
   { key: 'align.huddles', label: { fr: 'Huddles', en: 'Huddles' } },
   { key: 'align.strategy', label: { fr: 'Plan stratégique', en: 'Strategic plan' } },
   { key: 'align.checklist', label: { fr: 'Liste de vérification', en: 'Checklist' } },
+  { key: 'align.tasks', label: { fr: 'Tâches hebdo', en: 'Weekly tasks' } },
+  { key: 'align.checkins', label: { fr: 'Quoi de neuf', en: 'Check-ins' } },
+  { key: 'align.huddleWeeks', label: { fr: 'Descriptions de huddle par semaine', en: 'Weekly huddle descriptions' } },
 ];
 
 export const labelOfKey = (key: string): L => ALIGN_COUNT_ITEMS.find((i) => i.key === key)?.label ?? { fr: key, en: key };

@@ -22,7 +22,7 @@ export interface PriorityRowProps {
   overdue: boolean;
   /** All follow-ups of this priority (open and done). */
   followups: AlignNote[];
-  huddleId: string;
+  huddleId: string | null;
   people: User[];
   userName: (id?: string) => string;
 }

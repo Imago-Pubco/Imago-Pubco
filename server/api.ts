@@ -207,6 +207,10 @@ async function userPerms(u: User): Promise<Set<string>> {
 /** Permission keys: letters, digits, dots and the wildcard. */
 const validPerms = (v: unknown): v is string[] => Array.isArray(v) && v.length <= 300 && v.every((p) => typeof p === 'string' && /^[a-z0-9_.*-]{1,100}$/i.test(p));
 
+/** A profile photo: a small JPEG, PNG or WebP data URL (at most 200 000 characters). */
+const PHOTO_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
+const validPhoto = (v: unknown): v is string => typeof v === 'string' && v.length <= 200000 && PHOTO_RE.test(v);
+
 /** Nobody can hand out, or take over, more than they hold themselves: "manage users" is not "be an administrator". */
 const canGrant = (a: AuthInfo, perms: Iterable<string>) => [...perms].every((p) => a.can(p));
 
@@ -473,12 +477,15 @@ export function apiRouter() {
     const body = { ...(req.body ?? {}) } as Partial<User> & { password?: string };
     const isAdmin = a.can('admin.users.manage');
     if (!isAdmin) {
-      // Users may only change their own preferences.
+      // Users may only change their own preferences and photo.
       const keys = Object.keys(body).filter((k) => k !== 'id');
-      if (id !== a.user.id || keys.some((k) => k !== 'prefs')) return forbid(res);
+      if (id !== a.user.id || keys.some((k) => k !== 'prefs' && k !== 'photo')) return forbid(res);
     }
     for (const f of PROTECTED_USER_FIELDS) delete body[f];
     delete (body as { id?: string }).id;
+    // Photo: null or '' removes it; otherwise a small JPEG/PNG/WebP data URL (the browser resizes it first).
+    const removePhoto = body.photo === null || body.photo === '';
+    if (body.photo !== undefined && !removePhoto && !validPhoto(body.photo)) return res.status(400).json({ error: 'invalid photo' });
     if (isAdmin) {
       // You cannot change someone who holds more than you do (password reset = account takeover), nor give anyone more than you hold.
       const target = await db.getDoc<User>('users', id);
@@ -511,6 +518,11 @@ export function apiRouter() {
       if (password.length < MIN_PASSWORD) return res.status(400).json({ error: `password must be at least ${MIN_PASSWORD} characters` });
       patch.passwordHash = await hashPassword(password);
       patch.salt = '';
+    }
+    if (removePhoto) {
+      // A merge cannot drop a key, so the photo field is removed from the stored document first.
+      delete patch.photo;
+      await db.pool.query(`update docs set data = data - 'photo' where collection = 'users' and id = $1`, [id]);
     }
     const updated = await db.updateDoc<User>('users', id, patch);
     if (!updated) return res.status(404).json({ error: 'not_found' });

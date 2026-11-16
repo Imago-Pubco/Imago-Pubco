@@ -414,7 +414,10 @@ export function Users() {
   );
 }
 
-export function Avatar({ name, size = 32 }: { name: string; size?: number }) {
+export function Avatar({ name, size = 32, photo }: { name: string; size?: number; photo?: string }) {
+  if (photo && /^data:image\/(jpeg|png|webp);base64,/.test(photo)) {
+    return <img className="avatar" src={photo} alt="" width={size} height={size} style={{ width: size, height: size, objectFit: 'cover' }} />;
+  }
   const initials = name
     .split(/\s+/)
     .map((p) => p[0])

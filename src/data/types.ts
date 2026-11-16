@@ -32,6 +32,8 @@ export interface User {
   createdAt: string;
   lastLoginAt?: string;
   prefs?: UserPrefs;
+  /** Profile picture: a small square image as a data URL (data:image/jpeg|png|webp;base64,…), set by the person or an admin. */
+  photo?: string;
 }
 
 export interface Group {
