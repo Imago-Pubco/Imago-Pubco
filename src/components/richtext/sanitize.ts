@@ -59,3 +59,6 @@ export function hasRichContent(s: string | null | undefined): boolean {
   if (!isRichHtml(s)) return !!s.trim();
   return /<(img|table|hr)\b/i.test(s) || !!s.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
 }
+
+/** Pictures still being uploaded (pasted inline pictures, with the server backend): wait before saving. */
+export const hasUploadingImages = (html: string) => API_MODE && /<img[^>]+src="(data:|https?:)/i.test(html);

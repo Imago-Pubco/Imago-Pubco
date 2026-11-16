@@ -208,7 +208,7 @@ export const CheckinSchema = z.strictObject({
   userId: id,
   weekStart,
   /** Rich text (HTML from the editor, cleaned by the server). */
-  whatsUp: txt(100000),
+  whatsUp: txt(500000),
   ...stamps,
 });
 
@@ -217,7 +217,7 @@ export const HuddleWeekSchema = z.strictObject({
   id,
   huddleId: id,
   weekStart,
-  description: txt(100000), // rich text (HTML, cleaned by the server)
+  description: txt(500000), // rich text (HTML, cleaned by the server)
   ...stamps,
 });
 

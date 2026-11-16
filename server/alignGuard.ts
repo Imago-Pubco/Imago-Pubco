@@ -31,6 +31,11 @@ type Result = { doc: Record<string, unknown> } | { status: number; error: string
 type Doc = Record<string, unknown> & db.Doc;
 
 const STAMPS = ['createdBy', 'createdAt', 'updatedBy', 'updatedAt'];
+/** Rich text fields (HTML from the editor), cleaned by sanitizeRich before validation. */
+const RICH_FIELDS: [string, string][] = [
+  ['align.checkins', 'whatsUp'],
+  ['align.huddleWeeks', 'description'],
+];
 /** What the person a priority is assigned to may change without align.priorities.manage. */
 const OWNER_FIELDS = new Set(['status', 'health', 'progress', 'blockedById', 'blockedNote']);
 /** What the assignee of a follow-up may change on someone else's note. */
@@ -121,6 +126,15 @@ export async function guardAlign(c: string, body: Record<string, unknown>, a: Au
   const refusal = await canWrite(c, input, a, existing);
   if (refusal) return forbidden(refusal);
 
+  // Rich text is cleaned BEFORE the size check: pasted Word / web content carries a lot of hidden markup and inline
+  // images that are removed anyway; only what is kept counts. (A raw body over 4 MB is still refused.)
+  for (const [col, field] of RICH_FIELDS) {
+    if (c === col && typeof input[field] === 'string') {
+      if ((input[field] as string).length > 4_000_000) return { status: 413, error: 'Text too large.' };
+      input[field] = sanitizeRich(input[field] as string);
+    }
+  }
+
   const parsed = (existing ? schema.partial() : schema).safeParse(existing ? input : { ...input, id: body.id });
   if (!parsed.success) {
     return { status: 400, error: `invalid data: ${parsed.error.issues.slice(0, 3).map((i) => `${i.path.join('.') || 'body'} ${i.message}`).join('; ')}` };
@@ -191,8 +205,6 @@ export async function guardAlign(c: string, body: Record<string, unknown>, a: Au
   }
 
   // Rich text fields: only the editor's formatting is kept (no scripts, no outside images).
-  if (c === 'align.checkins' && typeof doc.whatsUp === 'string') doc.whatsUp = sanitizeRich(doc.whatsUp);
-  if (c === 'align.huddleWeeks' && typeof doc.description === 'string') doc.description = sanitizeRich(doc.description);
 
   const stamp = new Date().toISOString();
   if (!existing) {

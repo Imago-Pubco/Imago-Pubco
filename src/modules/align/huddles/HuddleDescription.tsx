@@ -10,7 +10,7 @@ import { huddleWeekId } from '../week';
 import { fmtDay } from './huddleLib';
 import { RichTextEditor } from '@/components/richtext/RichTextEditor';
 import { RichText } from '@/components/richtext/RichText';
-import { hasRichContent } from '@/components/richtext/sanitize';
+import { hasRichContent, hasUploadingImages } from '@/components/richtext/sanitize';
 
 /**
  * The huddle's description for one week. Shown: this week's text; else the latest earlier week's text (carried over);
@@ -42,6 +42,11 @@ export function HuddleDescription({ huddle, week, weeks, canEdit }: { huddle: Al
   }
 
   async function save() {
+    // Pasted pictures are still uploading: save once they are stored.
+    if (hasUploadingImages(draft)) {
+      toast(t('Images en cours d’envoi… réessayez dans un instant.', 'Pictures are uploading… try again in a moment.'));
+      return;
+    }
     setBusy(true);
     try {
       if (current) await huddleWeeks.update(current.id, { description: draft });

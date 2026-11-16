@@ -20,6 +20,8 @@ import {
 import { useI18n } from '@/i18n';
 import { useToast } from '@/components/ui';
 import { uploadRichImage } from './images';
+import { settleImages } from './pasteImages';
+import { API_MODE } from '@/data/db';
 import { textToHtml } from './sanitize';
 import './richtext.css';
 
@@ -42,6 +44,17 @@ export interface RichTextEditorProps {
   /** Minimum height of the writing area, in px. */
   minHeight?: number;
   ariaLabel?: string;
+}
+
+/** Any picture not stored by Imago yet (pasted inside content)? */
+function hasPendingImages(ed: Editor): boolean {
+  let found = false;
+  ed.state.doc.descendants((node) => {
+    if (found) return false;
+    if (node.type.name === 'image' && typeof node.attrs.src === 'string' && !node.attrs.src.startsWith('/api/align/images/') && !(node.attrs.src.startsWith('data:') && !API_MODE)) found = true;
+    return !found;
+  });
+  return found;
 }
 
 export function RichTextEditor({ value, onChange, onBlur, placeholder, disabled, minHeight = 120, ariaLabel }: RichTextEditorProps) {
@@ -74,6 +87,7 @@ export function RichTextEditor({ value, onChange, onBlur, placeholder, disabled,
       Highlight.configure({ multicolor: true }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      // Pasted pictures show at once (inline), then are uploaded and point to the stored copy (pasteImages.ts).
       Image.configure({ allowBase64: true }),
       TableKit.configure({ table: { resizable: true } }),
       Placeholder.configure({ placeholder: placeholder ?? '' }),
@@ -97,7 +111,17 @@ export function RichTextEditor({ value, onChange, onBlur, placeholder, disabled,
         return true;
       },
     },
-    onUpdate: ({ editor: ed }) => changeRef.current(ed.isEmpty ? '' : ed.getHTML()),
+    onUpdate: ({ editor: ed }) => {
+      changeRef.current(ed.isEmpty ? '' : ed.getHTML());
+      // Pictures pasted or dropped inside content (Word, web pages): upload them where they are.
+      if (hasPendingImages(ed)) {
+        setTimeout(() => {
+          void settleImages(ed).then((lost) => {
+            if (lost) toast(t(`${lost} image(s) n’ont pas pu être copiées : enregistrez-les puis utilisez le bouton Image.`, `${lost} picture(s) could not be copied: save them, then use the Picture button.`), 'err');
+          });
+        }, 0);
+      }
+    },
     onBlur: () => blurRef.current?.(),
   });
   const editorRef = useRef<Editor | null>(null);

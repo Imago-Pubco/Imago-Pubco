@@ -24,7 +24,7 @@ import { checkinId, quarterOfWeek, shiftWeek } from '../week';
 import { useMemberNav } from '../team/useMemberNav';
 import { RichTextEditor } from '@/components/richtext/RichTextEditor';
 import { RichText } from '@/components/richtext/RichText';
-import { hasRichContent } from '@/components/richtext/sanitize';
+import { hasRichContent, hasUploadingImages } from '@/components/richtext/sanitize';
 
 /** Center-crops an image to a square and returns it as a small JPEG data URL. */
 async function squarePhoto(file: File, size = 160): Promise<string> {
@@ -89,6 +89,11 @@ function WhatsUp({
 
   async function save() {
     if (inFlight.current || draft === saved) return;
+    // Pasted pictures are still uploading: save once they are stored (the text changes again then).
+    if (hasUploadingImages(draft)) {
+      toast(t('Images en cours d’envoi… réessayez dans un instant.', 'Pictures are uploading… try again in a moment.'));
+      return;
+    }
     inFlight.current = true;
     try {
       if (checkin) await checkins.update(checkin.id, { whatsUp: draft });

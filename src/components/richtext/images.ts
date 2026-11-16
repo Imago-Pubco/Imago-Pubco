@@ -57,3 +57,18 @@ export async function uploadRichImage(file: File): Promise<string> {
   }
   return ((await res.json()) as { url: string }).url;
 }
+
+/** A pasted inline picture (data URL) as a file, to upload it; null when it is not a supported image. */
+export function dataUrlToFile(dataUrl: string, name: string): File | null {
+  const m = /^data:(image\/(png|jpeg|webp|gif));base64,(.+)$/i.exec(dataUrl);
+  if (!m) return null;
+  try {
+    const bin = atob(m[3]);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const type = m[1].toLowerCase();
+    return new File([bytes], `${name}.${type.split('/')[1]}`, { type });
+  } catch {
+    return null;
+  }
+}
