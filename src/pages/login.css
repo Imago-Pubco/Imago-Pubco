@@ -3,7 +3,7 @@
   grid-template-columns: 1.1fr 1fr;
   min-height: 100vh;
   --accent: var(--red);
-  --accent-soft: rgba(218, 41, 28, 0.14);
+  --accent-soft: color-mix(in srgb, var(--red) 14%, transparent);
 }
 .login-brand {
   position: relative;
@@ -12,7 +12,7 @@
   justify-content: space-between;
   padding: 40px 48px;
   background:
-    radial-gradient(90% 70% at 50% 50%, rgba(218, 41, 28, 0.22), transparent 70%),
+    radial-gradient(90% 70% at 50% 50%, color-mix(in srgb, var(--red) 22%, transparent), transparent 70%),
     #0a0a0a;
   color: #f1f1f1;
   overflow: hidden;

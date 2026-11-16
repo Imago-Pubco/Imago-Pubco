@@ -22,7 +22,8 @@ export function flatNav(nav: NavItem[]): NavItem[] {
   return nav.flatMap((n) => [n, ...flatNav(n.children ?? [])]);
 }
 
-export const HOME_ACCENT = '#da291c';
+/** The dashboard's accent: the brand's main colour (Administration → Image de marque), Pubco red by default. */
+export const HOME_ACCENT = 'var(--red)';
 
 /** The module owning a path; the most specific path wins (e.g. /tools/pm is Function Fox, not KPI). */
 export function moduleForPath(pathname: string): ModuleDef | undefined {

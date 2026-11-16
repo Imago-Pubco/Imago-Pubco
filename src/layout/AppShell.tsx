@@ -7,7 +7,7 @@ import { useI18n } from '@/i18n';
 import { COMPLIANCE_SEGMENT } from '@/modules/compliance';
 import { flatNav, modules, moduleForPath, HOME_ACCENT } from '@/modules/registry';
 import type { ModuleDef } from '@/modules/types';
-import { Butterfly, Wordmark } from '@/components/Butterfly';
+import { BrandLogo, BrandWordmark } from '@/branding/BrandLogo';
 import { RequirePermission } from '@/components/ui';
 import { Avatar } from '@/modules/admin/pages/Users';
 import { Home } from '@/pages/Home';
@@ -44,19 +44,22 @@ export function AppShell() {
   const sidebarModules = sections.flatMap((s) => s.modules);
   const canEditMenu = can('admin.menu');
   const currentName = current ? (layout.names[current.id] ?? current.name) : null;
-  // Sections folded by this person (remembered in this browser).
-  const [closedGroups, setClosedGroups] = useState<string[]>(() => {
+  // Sections start folded, except the one holding the current module; what a person opens or closes is
+  // remembered in this browser.
+  const [groupState, setGroupState] = useState<Record<string, boolean>>(() => {
     try {
-      return JSON.parse(localStorage.getItem('imago:nav:closed-groups') ?? '[]') as string[];
+      const v = JSON.parse(localStorage.getItem('imago:nav:groups') ?? '{}');
+      return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, boolean>) : {};
     } catch {
-      return [];
+      return {};
     }
   });
-  const toggleGroup = (id: string) =>
-    setClosedGroups((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+  const groupOpen = (id: string, hasCurrent: boolean) => groupState[id] ?? hasCurrent;
+  const toggleGroup = (id: string, hasCurrent: boolean) =>
+    setGroupState((prev) => {
+      const next = { ...prev, [id]: !(prev[id] ?? hasCurrent) };
       try {
-        localStorage.setItem('imago:nav:closed-groups', JSON.stringify(next));
+        localStorage.setItem('imago:nav:groups', JSON.stringify(next));
       } catch {
         /* storage unavailable: this session only */
       }
@@ -144,7 +147,7 @@ export function AppShell() {
       <div className="shell shell-topnav" style={{ ['--accent' as string]: accent }}>
         <header className="topnav">
           <NavLink to="/" className="topnav-brand" aria-label="Imago">
-            <Butterfly size={30} />
+            <BrandLogo size={30} />
           </NavLink>
           <nav className="topnav-links">
             <NavLink to="/" end className="topnav-link" style={{ ['--m' as string]: HOME_ACCENT }} title={t('Tableau de bord', 'Dashboard')}>
@@ -176,7 +179,7 @@ export function AppShell() {
       <aside className="sidebar">
         <div className="sidebar-brand">
           <NavLink to="/" aria-label="Imago">
-            <Wordmark compact={collapsed} />
+            <BrandWordmark compact={collapsed} />
           </NavLink>
         </div>
 
@@ -190,11 +193,12 @@ export function AppShell() {
 
           {sections.map((s) => {
             // A folded section still shows when the sidebar is reduced to icons.
-            const folded = !collapsed && !!s.label && closedGroups.includes(s.id);
+            const hasCurrent = !!current && s.modules.some((m) => m.id === current.id);
+            const folded = !collapsed && !!s.label && !groupOpen(s.id, hasCurrent);
             return (
               <div key={s.id} className={`side-group ${folded ? 'folded' : ''}`}>
                 {s.label ? (
-                  <button className="side-section side-section-toggle" onClick={() => toggleGroup(s.id)} aria-expanded={!folded} title={folded ? t('Développer', 'Expand') : t('Réduire', 'Collapse')}>
+                  <button className="side-section side-section-toggle" onClick={() => toggleGroup(s.id, hasCurrent)} aria-expanded={!folded} title={folded ? t('Développer', 'Expand') : t('Réduire', 'Collapse')}>
                     <span>{t(s.label)}</span>
                     <ChevronDown size={13} className="side-section-chevron" />
                   </button>

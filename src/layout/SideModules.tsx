@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion';
 import { ChevronDown, GripVertical } from 'lucide-react';
 import { useI18n } from '@/i18n';
@@ -81,7 +81,7 @@ function SubLinks({ m, items, can, parent, depth = 0 }: { m: ModuleDef; items: N
             </NavLink>
           );
           return n.children ? (
-            <SubSection key={n.path + '/'} id={`${m.id}:${n.path}`} header={link}>
+            <SubSection key={n.path + '/'} id={`${m.id}:${n.path}`} path={subPath(m, n.path)} header={link}>
               <SubLinks m={m} items={n.children} can={can} parent={n.path} depth={depth + 1} />
             </SubSection>
           ) : (
@@ -92,26 +92,28 @@ function SubLinks({ m, items, can, parent, depth = 0 }: { m: ModuleDef; items: N
   );
 }
 
-const SECTIONS_KEY = 'imago:nav:closed-sections';
+const SECTIONS_KEY = 'imago:nav:subsections';
 
-function readClosed(): string[] {
+function readState(): Record<string, boolean> {
   try {
-    return JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? '[]') as string[];
+    const v = JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? '{}');
+    return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, boolean>) : {};
   } catch {
-    return [];
+    return {};
   }
 }
 
-/** Collapsible nested section (open by default; the choice is remembered in this browser). */
-function SubSection({ id, header, children }: { id: string; header: ReactNode; children: ReactNode }) {
+/** Collapsible nested section: folded at first, unless the current page is inside it; the choice is remembered. */
+function SubSection({ id, path, header, children }: { id: string; path: string; header: ReactNode; children: ReactNode }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(() => !readClosed().includes(id));
+  const { pathname } = useLocation();
+  const inside = pathname === path || pathname.startsWith(path + '/');
+  const [open, setOpen] = useState(() => readState()[id] ?? inside);
   const toggle = () => {
     const next = !open;
     setOpen(next);
-    const closed = readClosed().filter((x) => x !== id);
     try {
-      localStorage.setItem(SECTIONS_KEY, JSON.stringify(next ? closed : [...closed, id]));
+      localStorage.setItem(SECTIONS_KEY, JSON.stringify({ ...readState(), [id]: next }));
     } catch {
       /* storage unavailable: keep the state for this session only */
     }

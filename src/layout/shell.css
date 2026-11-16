@@ -733,3 +733,84 @@
 .shell.collapsed .side-section-chevron {
   display: none;
 }
+
+/* ---------- sidebar: plain icons, light and compact typography ---------- */
+.sidebar-nav {
+  font-weight: 300;
+}
+.side-section {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  padding: 14px 12px 5px;
+}
+.side-link {
+  height: 34px;
+  gap: 10px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+.side-link.active {
+  color: var(--sidebar-text);
+  font-weight: 400;
+  background: color-mix(in srgb, var(--sidebar-text) 9%, transparent);
+}
+/* Icons: single colour, no tile; the module colour is no longer used in the sidebar. */
+.side-icon,
+.side-link.active .side-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+}
+.side-icon svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.6;
+}
+.side-toggle {
+  width: 26px;
+  height: 26px;
+}
+.side-sub {
+  margin: 1px 0 4px 18px;
+  padding-left: 16px;
+  border-left: 1px solid color-mix(in srgb, var(--sidebar-text) 12%, transparent);
+}
+.side-sublink {
+  height: 28px;
+  gap: 8px;
+  margin-left: -10px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 300;
+}
+.side-sublink svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.6;
+}
+.side-sublink.active {
+  color: var(--sidebar-text);
+  font-weight: 400;
+  background: color-mix(in srgb, var(--sidebar-text) 8%, transparent);
+}
+.side-sublink.active svg {
+  color: inherit;
+}
+.side-group-gap {
+  height: 8px;
+}
+.wordmark-text strong {
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+.wordmark-text span {
+  font-weight: 300;
+}

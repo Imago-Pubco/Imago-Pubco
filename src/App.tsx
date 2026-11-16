@@ -3,6 +3,7 @@ import { BrowserRouter, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { I18nProvider } from '@/i18n';
 import { ToastProvider } from '@/components/ui';
+import { BrandingProvider } from '@/branding/BrandingContext';
 import { AppShell } from '@/layout/AppShell';
 import { Login } from '@/pages/Login';
 import { ResetPassword } from '@/pages/ResetPassword';
@@ -33,6 +34,7 @@ function Gate() {
 export function App() {
   return (
     <BrowserRouter>
+      <BrandingProvider>
       <I18nProvider>
         <ToastProvider>
           <AuthProvider>
@@ -40,6 +42,7 @@ export function App() {
           </AuthProvider>
         </ToastProvider>
       </I18nProvider>
+      </BrandingProvider>
     </BrowserRouter>
   );
 }

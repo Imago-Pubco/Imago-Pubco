@@ -46,6 +46,7 @@ import { assertMail, defaultTemplate, getTemplate, renderTemplate, sampleVars, s
 import { consumeToken, createToken, deleteUserTokens, humanDuration, peekToken } from './tokens.ts';
 import * as kpiData from './kpiData.ts';
 import { HttpError } from './ms.ts';
+import { getBranding, inspectSite, resetBranding, saveBranding } from './branding.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
 const now = () => new Date().toISOString();
@@ -352,9 +353,16 @@ export function apiRouter() {
     res.json({ user: publicUser(req.auth.user), impersonatedBy: by ? { id: by } : undefined });
   });
 
+  /* Branding: public (the sign-in page shows the logo and the name). */
+  r.get('/branding', wrap(async (_req, res) => {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.json(await getBranding());
+  }));
+
   /* Everything below needs a signed-in user. */
   r.use(requireAuth);
   const me = (req: Request) => req.auth!;
+
 
   /* ---------- "view as": an administrator sees the portal exactly as another user does (read-only) ---------- */
 
@@ -392,6 +400,30 @@ export function apiRouter() {
     });
     next();
   });
+
+  /* Branding (Administration → Image de marque): admin.branding. */
+  r.put('/branding', wrap(async (req, res) => {
+    if (!me(req).can('admin.branding')) return forbid(res);
+    const saved = await saveBranding(req.body);
+    await audit(me(req).user.id, 'admin.branding.save', `${saved.appName} · logo ${saved.logo ? 'oui' : 'non'}`, req.ip ?? '');
+    broadcast('branding');
+    res.json(saved);
+  }));
+  r.delete('/branding', wrap(async (req, res) => {
+    if (!me(req).can('admin.branding')) return forbid(res);
+    const saved = await resetBranding();
+    await audit(me(req).user.id, 'admin.branding.reset', '', req.ip ?? '');
+    broadcast('branding');
+    res.json(saved);
+  }));
+  /** Reads a public web site and suggests a name, logos, icons and colours (nothing is saved). */
+  r.post('/branding/inspect', wrap(async (req, res) => {
+    if (!me(req).can('admin.branding')) return forbid(res);
+    const url = String((req.body as { url?: unknown })?.url ?? '').slice(0, 500);
+    if (!url.trim()) return res.status(400).json({ error: 'url required' });
+    await audit(me(req).user.id, 'admin.branding.inspect', url, req.ip ?? '');
+    res.json(await inspectSite(url));
+  }));
 
   r.get('/events', eventsHandler);
 

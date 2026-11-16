@@ -3,7 +3,7 @@
   overflow: hidden;
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(120% 140% at 85% 30%, rgba(218, 41, 28, 0.35), transparent 55%),
+    radial-gradient(120% 140% at 85% 30%, color-mix(in srgb, var(--red) 35%, transparent), transparent 55%),
     linear-gradient(135deg, #0a0a0a 0%, #1a1a1c 100%);
   color: #f1f1f1;
   padding: 44px 40px;

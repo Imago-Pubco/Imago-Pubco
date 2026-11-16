@@ -4,6 +4,8 @@ import { AlertCircle, CheckCircle2, KeyRound, Moon, Sun } from 'lucide-react';
 import { ApiError, api } from '@/data/db';
 import { useI18n } from '@/i18n';
 import { Butterfly } from '@/components/Butterfly';
+import { BrandLogo } from '@/branding/BrandLogo';
+import { useBranding } from '@/branding/BrandingContext';
 import { useTheme } from '@/layout/theme';
 import './login.css';
 
@@ -12,6 +14,7 @@ import './login.css';
  * the person chooses a password. The link works once and expires.
  */
 export function ResetPassword() {
+  const { branding } = useBranding();
   const { t, lang, setLang } = useI18n();
   const { theme, toggle } = useTheme();
   const token = new URLSearchParams(window.location.search).get('token') ?? '';
@@ -59,10 +62,10 @@ export function ResetPassword() {
     <div className="login">
       <section className="login-brand">
         <div className="login-brand-top">
-          <Butterfly size={48} />
+          <BrandLogo size={48} />
           <div>
-            <div className="login-word">PUBCO</div>
-            <div className="login-sub">Imago · Hub 2.0</div>
+            <div className="login-word">{branding.appName}</div>
+            {branding.tagline && <div className="login-sub">{branding.tagline}</div>}
           </div>
         </div>
         <div className="meta">
