@@ -4,6 +4,7 @@ import { API_MODE, api, resetBrowserData } from '@/data/db';
 import { useI18n } from '@/i18n';
 import { Page } from '@/components/Page';
 import { Modal, PageHeader } from '@/components/ui';
+import { UpdateCard } from './UpdateCard';
 
 interface ServerConfig {
   integrations: {
@@ -76,7 +77,8 @@ function ServerSystem() {
   return (
     <Page>
       <PageHeader eyebrow={t('Administration', 'Administration')} title={t('Système', 'System')} />
-      <div className="grid-2">
+      <UpdateCard />
+      <div className="grid-2" style={{ marginTop: 16 }}>
         <div className="card card-pad stack">
           <div className="row">
             <Database size={20} color="var(--accent)" />

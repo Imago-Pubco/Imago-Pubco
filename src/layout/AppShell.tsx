@@ -331,7 +331,7 @@ function UserMenu({ compact }: { compact?: boolean }) {
                   <span className="user-pop-admin-icon">
                     <Icon size={16} />
                   </span>
-                  {t('Paramètres d’administration', 'Admin settings')}
+                  {m.id === 'admin' ? t('Paramètres d’administration', 'Admin settings') : t(m.name)}
                 </NavLink>
               );
             })}

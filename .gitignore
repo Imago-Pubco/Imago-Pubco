@@ -10,3 +10,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Updater (deploy/imago-update.sh) and database backups
+.update/
+backups/

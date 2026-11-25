@@ -1,0 +1,16 @@
+{
+  "name": "imago-sandbox-runner",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Imago Sandbox runner: runs the Claude agent on a private copy of Imago for each Sandbox request.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node runner.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.322"
+  }
+}

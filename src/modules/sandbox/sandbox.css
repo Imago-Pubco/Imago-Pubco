@@ -1,0 +1,146 @@
+/* ---------- Sandbox ---------- */
+.sbx-new h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.sbx-new-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sbx-new-row .select {
+  width: 200px;
+}
+.sbx-new-row .input {
+  flex: 1 1 280px;
+}
+.sbx-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.sbx-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.sbx-title h1 {
+  margin: 0;
+  font-size: 20px;
+}
+.sbx-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr);
+  gap: 14px;
+  height: calc(100vh - 190px);
+  min-height: 520px;
+}
+@media (max-width: 1000px) {
+  .sbx-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .sbx-preview {
+    height: 70vh;
+  }
+}
+.sbx-chat,
+.sbx-preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.sbx-log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sbx-hint {
+  margin: auto 0;
+  text-align: center;
+}
+.sbx-ev {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.sbx-ev svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.sbx-ev-user {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 12px 12px 2px 12px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.sbx-ev-agent {
+  max-width: 92%;
+  padding: 8px 12px;
+  border-radius: 12px 12px 12px 2px;
+  background: var(--bg-sunken);
+}
+.sbx-ev-tool,
+.sbx-ev-info {
+  font-size: 12px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  padding-left: 22px;
+}
+.sbx-ev-error {
+  font-size: 12.5px;
+  color: var(--err);
+  padding-left: 22px;
+}
+.sbx-working {
+  animation: sbx-pulse 1.4s ease-in-out infinite;
+}
+@keyframes sbx-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+.sbx-prompt {
+  border-top: 1px solid var(--border);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sbx-prompt textarea {
+  resize: vertical;
+}
+.sbx-preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.sbx-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: var(--bg);
+}
+.sbx-frame-empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}

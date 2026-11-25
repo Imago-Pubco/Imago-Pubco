@@ -32,8 +32,9 @@ function Gate() {
 }
 
 export function App() {
+  // The Sandbox preview is built under a sub-path (vite --base); the normal app has base "/".
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '') || undefined}>
       <BrandingProvider>
       <I18nProvider>
         <ToastProvider>

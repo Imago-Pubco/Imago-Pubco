@@ -47,6 +47,8 @@ import { consumeToken, createToken, deleteUserTokens, humanDuration, peekToken }
 import * as kpiData from './kpiData.ts';
 import { HttpError } from './ms.ts';
 import { getBranding, inspectSite, resetBranding, saveBranding } from './branding.ts';
+import { sandboxPreviewRoute, sandboxRoutes } from './sandbox.ts';
+import { updateRoutes } from './updates.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
 const now = () => new Date().toISOString();
@@ -353,6 +355,9 @@ export function apiRouter() {
     res.json({ user: publicUser(req.auth.user), impersonatedBy: by ? { id: by } : undefined });
   });
 
+  /* Sandbox preview: private token link, isolated document (server/sandbox.ts). */
+  sandboxPreviewRoute(r, wrap);
+
   /* Branding: public (the sign-in page shows the logo and the name). */
   r.get('/branding', wrap(async (_req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
@@ -400,6 +405,12 @@ export function apiRouter() {
     });
     next();
   });
+
+  /* Sandbox (user menu): requests, the agent, preview, submit, review — server/sandbox.ts. */
+  sandboxRoutes(r, { me, audit, wrap, forbid, broadcast });
+
+  /* Application updates (Administration › Système › Mise à jour): admin.system — server/updates.ts. */
+  updateRoutes(r, { me, audit, wrap, forbid });
 
   /* Branding (Administration → Image de marque): admin.branding. */
   r.put('/branding', wrap(async (req, res) => {

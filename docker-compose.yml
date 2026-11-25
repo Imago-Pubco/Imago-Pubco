@@ -27,9 +27,34 @@ services:
       PGPASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "${IMAGO_PORT:-8080}:8080"
+    # Update requests and progress (Administration › Système › Mise à jour), shared with the server's
+    # updater (deploy/imago-update.sh). Created by deploy/install-updater.sh.
+    volumes:
+      - ./.update:/app/update
     depends_on:
       db:
         condition: service_healthy
 
+  # Sandbox runner (optional): starts only with  docker compose --profile sandbox up -d --build
+  # Reached by the app at http://sandbox-runner:8095 on the internal network; never published on the host.
+  sandbox-runner:
+    profiles: ["sandbox"]
+    build: ./sandbox-runner
+    image: imago-sandbox-runner:latest
+    restart: unless-stopped
+    environment:
+      RUNNER_SECRET: ${SANDBOX_RUNNER_SECRET:?Set SANDBOX_RUNNER_SECRET in .env}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GITHUB_REPO: ${SANDBOX_GITHUB_REPO:-}
+      GITHUB_TOKEN: ${SANDBOX_GITHUB_TOKEN:-}
+      GITHUB_BASE: ${SANDBOX_GITHUB_BASE:-main}
+      SANDBOX_MODEL: ${SANDBOX_MODEL:-claude-opus-5-5}
+      RUNNER_FAKE: ${SANDBOX_TEST_MODE:-0}
+    volumes:
+      - sandbox_data:/data
+    mem_limit: 4g
+    cpus: 2
+
 volumes:
   db_data:
+  sandbox_data:
