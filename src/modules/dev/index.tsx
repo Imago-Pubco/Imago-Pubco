@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { Clock, Code2 } from 'lucide-react';
 import { useI18n } from '@/i18n';
 import { Page } from '@/components/Page';
-import { Empty, PageHeader, RequirePermission } from '@/components/ui';
+import { PageHeader, RequirePermission } from '@/components/ui';
 import type { ModuleDef } from '../types';
 
 /** Punch card: placeholder until its features are specified. */
@@ -12,9 +12,7 @@ function PunchCardPage() {
     <Page>
       <PageHeader eyebrow={t('Développement', 'Development')} title={t('Punch card', 'Punch card')} />
       <div className="card">
-        <Empty icon={<Clock size={36} />} title={t('Page en développement', 'Page under development')}>
-          {t('Le contenu de cette page arrive bientôt.', 'This page’s content is coming soon.')}
-        </Empty>
+        <p style={{ margin: 0 }}>test</p>
       </div>
     </Page>
   );
