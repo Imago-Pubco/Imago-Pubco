@@ -9,12 +9,11 @@ import type { ModuleDef } from '../types';
 function PunchCardPage() {
   const { t } = useI18n();
   return (
-    <Page>
-      <PageHeader eyebrow={t('Développement', 'Development')} title={t('Punch card', 'Punch card')} />
-      <div className="card">
-        <p style={{ margin: 0 }}>Hello world</p>
-      </div>
-    </Page>
+    <div style={{ background: '#dc2626', minHeight: 'calc(100vh - 60px)', color: '#fff' }}>
+      <Page>
+        <PageHeader title={t('Punch card', 'Punch card')} />
+      </Page>
+    </div>
   );
 }
 
