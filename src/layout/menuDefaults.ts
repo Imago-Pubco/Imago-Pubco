@@ -11,5 +11,6 @@ export const DEFAULT_SECTIONS: { id: string; label: L | null; moduleIds: string[
   { id: 'accounting', label: { fr: 'Comptabilité', en: 'Accounting' }, moduleIds: ['accounting'] },
   { id: 'production', label: { fr: 'Outils de production', en: 'Production tools' }, moduleIds: ['estimating', 'shipping'] },
   { id: 'studio', label: { fr: 'Outils studio', en: 'Studio tools' }, moduleIds: ['tools.pm'] },
+  { id: 'dev', label: { fr: 'Développement', en: 'Development' }, moduleIds: ['dev'] },
   { id: 'archive', label: { fr: 'Archive temporaire', en: 'Archive (temporary)' }, moduleIds: ['tools'] },
 ];

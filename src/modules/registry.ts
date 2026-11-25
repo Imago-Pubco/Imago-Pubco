@@ -14,8 +14,9 @@ import { alignModule } from './align';
 import { toolsModule } from './tools';
 import { pmModule } from './tools/pm';
 import { adminModule } from './admin';
+import { devModule } from './dev';
 
-export const modules: ModuleDef[] = [alignModule, o365Module, rhModule, accountingModule, estimatingModule, shippingModule, pmModule, toolsModule, itModule, adminModule];
+export const modules: ModuleDef[] = [alignModule, o365Module, rhModule, accountingModule, estimatingModule, shippingModule, pmModule, devModule, toolsModule, itModule, adminModule];
 
 /** Nav items with nested sections expanded (parents first). */
 export function flatNav(nav: NavItem[]): NavItem[] {
