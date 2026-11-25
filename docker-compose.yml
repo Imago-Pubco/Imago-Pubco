@@ -43,7 +43,9 @@ services:
     image: imago-sandbox-runner:latest
     restart: unless-stopped
     environment:
-      RUNNER_SECRET: ${SANDBOX_RUNNER_SECRET:?Set SANDBOX_RUNNER_SECRET in .env}
+      # Checked by the runner itself (it refuses to start without a 24+ character secret), so the
+      # main app starts normally while the Sandbox is not configured.
+      RUNNER_SECRET: ${SANDBOX_RUNNER_SECRET:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GITHUB_REPO: ${SANDBOX_GITHUB_REPO:-}
       GITHUB_TOKEN: ${SANDBOX_GITHUB_TOKEN:-}
