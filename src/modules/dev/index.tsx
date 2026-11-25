@@ -12,7 +12,7 @@ function PunchCardPage() {
     <Page>
       <PageHeader eyebrow={t('Développement', 'Development')} title={t('Punch card', 'Punch card')} />
       <div className="card">
-        <p style={{ margin: 0 }}>test</p>
+        <p style={{ margin: 0 }}>Hello world</p>
       </div>
     </Page>
   );
