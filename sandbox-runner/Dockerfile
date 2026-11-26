@@ -6,7 +6,7 @@ RUN apt-get update \
 WORKDIR /runner
 COPY package.json package-lock.json* ./
 RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
-COPY runner.ts scope.ts ./
+COPY runner.ts scope.ts openaiAgent.ts ./
 # Sessions and the repository clone live in a volume.
 RUN mkdir -p /data && chown node:node /data
 USER node

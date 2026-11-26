@@ -1,6 +1,6 @@
 # Imago Sandbox — set-up guide
 
-The **Sandbox** (user menu › Sandbox) lets a person describe a change in plain words. Claude makes it in a private
+The **Sandbox** (user menu › Sandbox) lets a person describe a change in plain words. The AI (Claude or OpenAI) makes it in a private
 copy of Imago, on demo data; the person sees it in a preview, refines it, then clicks **Soumettre**. That opens a
 GitHub pull request, which an approver reviews and merges. **Nothing reaches the real app without that review.**
 
@@ -10,7 +10,7 @@ GitHub pull request, which an approver reviews and merges. **Nothing reaches the
 | --- | --- | --- |
 | Sandbox screens | `src/modules/sandbox/` | Requests list, new request, conversation, live preview, submit, review |
 | Sandbox API | `server/sandbox.ts` | Rights, budgets, audit; relays to the runner; serves the preview |
-| Runner | `sandbox-runner/` (own container) | Git copy per request, Claude agent (Claude Agent SDK), preview build, checks, pull request |
+| Runner | `sandbox-runner/` (own container) | Git copy per request, AI agent (Claude via the Claude Agent SDK, or OpenAI via `openaiAgent.ts`), preview build, checks, pull request |
 | Agent scope | `sandbox-runner/scope.ts` | Decides every tool call: file tools only, writes only in the allowed folders |
 
 ## Security, in short
@@ -20,8 +20,10 @@ GitHub pull request, which an approver reviews and merges. **Nothing reaches the
 - **The agent** has no shell, no web access and no sub-agents. It reads only inside the copy, never `.env`, keys,
   `.git` or `node_modules`, and writes only in the module's folders (`src/modules/<module>`). Every tool call is
   checked (`scope.ts`, tested by `scope.test.ts`), and the submitted change is checked again before the pull request.
-- **Secrets:** the agent process gets the Anthropic key only — never the GitHub token, the runner secret or any Imago
-  setting. The runner is reachable only from the app, on Docker's internal network, with a shared secret.
+- **Secrets:** with Claude, the agent process gets the Anthropic key only — never the GitHub token, the runner secret or
+  any Imago setting. With OpenAI the agent is a plain loop inside the runner that can only call the five file tools
+  below (read, list, search, edit, write): it cannot run code, so it cannot read the runner's environment; the same scope
+  rules apply, and symbolic links out of the copy are never followed (`openaiAgent.test.ts`). The runner is reachable only from the app, on Docker's internal network, with a shared secret.
 - **Preview:** demo data only (the browser demo backend). It is served as an isolated document (CSP sandbox, no
   network): its code can never use the viewer's Imago session, even when an approver opens it.
 - **Review:** every change is a pull request; the checks (scope, typecheck, build) have already passed. You decide.
@@ -31,8 +33,14 @@ GitHub pull request, which an approver reviews and merges. **Nothing reaches the
 
 ## Turning it on
 
-1. **Anthropic:** in the Anthropic Console, create an API key for Pubco and a monthly spending limit. Put the key in
-   `.env` as `ANTHROPIC_API_KEY` (it may already be there for PDF reading).
+1. **The AI key.** Either one works; set the one you use:
+   - **OpenAI:** put your OpenAI platform key in `.env` as `OPENAI_API_KEY` and set `SANDBOX_PROVIDER=openai`. The default model is
+     `gpt-4.1` (change it with `SANDBOX_MODEL`; for reasoning models such as gpt-5 also set `SANDBOX_OPENAI_REASONING=1`).
+     The monthly dollar budget is estimated from `SANDBOX_OPENAI_PRICE_IN` / `_OUT` (USD per million tokens, default
+     2 and 8): update them if you pick another model. Also set a monthly limit in the OpenAI dashboard as a hard ceiling.
+   - **Claude:** in the Anthropic Console, create an API key and a monthly spending limit; put it in `.env` as
+     `ANTHROPIC_API_KEY` (it may already be there for PDF reading).
+   With both keys present, `SANDBOX_PROVIDER` decides (default: Claude).
 2. **GitHub:** create a *fine-grained* token limited to the Imago repository, with **Contents: read and write** and
    **Pull requests: read and write**. Put it in `.env` as `SANDBOX_GITHUB_TOKEN`, and the repository as
    `SANDBOX_GITHUB_REPO` (owner/name).

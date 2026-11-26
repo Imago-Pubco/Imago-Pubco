@@ -47,10 +47,16 @@ services:
       # main app starts normally while the Sandbox is not configured.
       RUNNER_SECRET: ${SANDBOX_RUNNER_SECRET:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SANDBOX_PROVIDER: ${SANDBOX_PROVIDER:-}
       GITHUB_REPO: ${SANDBOX_GITHUB_REPO:-}
       GITHUB_TOKEN: ${SANDBOX_GITHUB_TOKEN:-}
       GITHUB_BASE: ${SANDBOX_GITHUB_BASE:-main}
-      SANDBOX_MODEL: ${SANDBOX_MODEL:-claude-opus-5-5}
+      # Empty = the provider's default (claude-opus-5-5 with Anthropic, gpt-4.1 with OpenAI).
+      SANDBOX_MODEL: ${SANDBOX_MODEL:-}
+      SANDBOX_OPENAI_PRICE_IN: ${SANDBOX_OPENAI_PRICE_IN:-2}
+      SANDBOX_OPENAI_PRICE_OUT: ${SANDBOX_OPENAI_PRICE_OUT:-8}
+      SANDBOX_OPENAI_REASONING: ${SANDBOX_OPENAI_REASONING:-0}
       RUNNER_FAKE: ${SANDBOX_TEST_MODE:-0}
     volumes:
       - sandbox_data:/data

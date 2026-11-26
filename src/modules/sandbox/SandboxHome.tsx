@@ -77,7 +77,7 @@ export function SandboxHome({ review = false }: { review?: boolean }) {
       {API_MODE && status?.configured && !status.runner && (
         <div className="alert alert-err">{t('Le service Sandbox ne répond pas.', 'The Sandbox service does not answer.')}</div>
       )}
-      {status?.runner?.fake && <div className="alert alert-info">{t('Mode test : aucun appel à Claude, aucun coût.', 'Test mode: no calls to Claude, no cost.')}</div>}
+      {status?.runner?.fake && <div className="alert alert-info">{t('Mode test : aucun appel au modèle d’IA, aucun coût.', 'Test mode: no calls to the AI model, no cost.')}</div>}
 
       {!review && (
         <form className="card card-pad sbx-new" onSubmit={create}>
