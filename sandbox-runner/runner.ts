@@ -218,7 +218,7 @@ async function agentTurn(s: Session, prompt: string) {
       if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY n’est pas configurée sur le runner.');
       await openAiAgentTurn({
         apiKey: process.env.OPENAI_API_KEY,
-        baseUrl: (process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1').replace(//+$/, ''),
+        baseUrl: (process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1').replace(/\/+$/, ''),
         model: MODEL,
         maxTurns: MAX_TURNS,
         root: tree(s.id),
