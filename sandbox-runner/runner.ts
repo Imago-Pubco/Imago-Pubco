@@ -71,6 +71,8 @@ interface Session {
   /** Folders (repository-relative, forward slashes) the agent may change. */
   allowed: string[];
   userName: string;
+  /** The requester's own rights (Imago permission keys): the preview shows only what they may open. */
+  permissions: string[];
   /** Path the preview is served at by Imago (its private link). */
   previewBase: string;
   status: Status;
@@ -309,7 +311,7 @@ async function buildPreview(s: Session) {
     VITE()[0],
     [VITE()[1], 'build', '--base', s.previewBase, '--outDir', previewDir(s.id), '--emptyOutDir', '--logLevel', 'error'],
     tree(s.id),
-    { VITE_BACKEND: 'browser', NODE_ENV: 'production' },
+    { VITE_BACKEND: 'browser', VITE_SANDBOX_PREVIEW: '1', VITE_SANDBOX_PERMS: JSON.stringify(s.permissions ?? []), VITE_SANDBOX_USER: s.userName, NODE_ENV: 'production' },
   );
   s.previewReady = b.code === 0;
   if (b.code) log(s, 'error', `L’aperçu ne compile pas :\n${b.out.slice(-1500)}`);
@@ -378,8 +380,8 @@ async function submit(s: Session, summary: string, author: string): Promise<stri
   return j.html_url;
 }
 
-async function create(id: string, title: string, allowed: string[], userName: string, previewBase: string): Promise<Session> {
-  const s: Session = { id, title, allowed, userName, previewBase, status: 'preparing', events: [], costUsd: 0, agentSessionId: null, previewReady: false, prUrl: null, error: null, createdAt: now() };
+async function create(id: string, title: string, allowed: string[], userName: string, permissions: string[], previewBase: string): Promise<Session> {
+  const s: Session = { id, title, allowed, userName, permissions, previewBase, status: 'preparing', events: [], costUsd: 0, agentSessionId: null, previewReady: false, prUrl: null, error: null, createdAt: now() };
   sessions.set(id, s);
   save(s);
   void (async () => {
@@ -446,7 +448,8 @@ const server = http.createServer(async (req, res) => {
       if (!allowed.length || allowed.some((a) => !FOLDER_RE.test(a) || a.includes('..'))) return send(res, 400, { error: 'invalid folders' });
       const previewBase = String(b.previewBase ?? '');
       if (!/^\/api\/sandbox-preview\/[a-z0-9_]+\/[a-f0-9]{48}\/$/.test(previewBase)) return send(res, 400, { error: 'invalid preview base' });
-      const s = await create(sid, String(b.title ?? '').slice(0, 200), allowed, String(b.userName ?? '').slice(0, 120), previewBase);
+      const permissions = Array.isArray(b.permissions) ? b.permissions.map(String).filter((p) => /^[A-Za-z0-9_.*:-]{1,80}$/.test(p)).slice(0, 600) : [];
+      const s = await create(sid, String(b.title ?? '').slice(0, 200), allowed, String(b.userName ?? '').slice(0, 120), permissions, previewBase);
       return send(res, 201, view(s));
     }
     const s = id && ID_RE.test(id) ? sessions.get(id) : undefined;

@@ -14,7 +14,7 @@ import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { Request, Response, Router } from 'express';
 import { sandboxModule, type SandboxRequest, type SandboxStatus } from '../src/modules/sandbox/sandboxModules.ts';
-import type { AuthInfo } from './auth.ts';
+import { permissionsFor, type AuthInfo } from './auth.ts';
 import * as db from './db.ts';
 
 const COL = 'sandbox.requests';
@@ -121,7 +121,7 @@ export function sandboxRoutes(r: Router, { me, audit, wrap, forbid, broadcast }:
 
     const id = 'sbx_' + randomBytes(8).toString('hex');
     const previewToken = randomBytes(24).toString('hex');
-    const rr = await runner('/sessions', { method: 'POST', body: { id, title, allowed: mod.folders, userName: a.user.displayName, previewBase: `/api/sandbox-preview/${id}/${previewToken}/` } });
+    const rr = await runner('/sessions', { method: 'POST', body: { id, title, allowed: mod.folders, userName: a.user.displayName, permissions: [...(await permissionsFor(a.user))], previewBase: `/api/sandbox-preview/${id}/${previewToken}/` } });
     if (rr.status >= 300) return res.status(502).json({ error: `Sandbox : ${String(rr.json.error ?? rr.status)}` });
     const stamp = new Date().toISOString();
     const doc: SandboxRequest = { id, title, moduleId: mod.id, ownerId: a.user.id, status: 'preparing', costUsd: 0, prUrl: null, previewToken, reviewNote: '', reviewedBy: null, createdAt: stamp, updatedAt: stamp };
