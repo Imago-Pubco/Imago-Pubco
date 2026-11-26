@@ -35,6 +35,7 @@ const FEATURES = [
   { key: 'sales.request', fr: 'Demandes de vente', en: 'Sales requests' },
   { key: 'sales.image', fr: 'Analyse d’image', en: 'Image analysis' },
   { key: 'accounting.invoice', fr: 'Lecture de factures', en: 'Invoice reading' },
+  { key: 'assistant', fr: 'Assistant d’aide', en: 'Help assistant' },
 ] as const;
 
 /* ---------- demo data (browser backend, no server) ---------- */
@@ -55,6 +56,7 @@ const DEMO_SYSTEM: Counter = { calls: 524, input: 900_000, output: 183_000 };
 const DEMO_FEATURES: Record<string, Counter> = {
   'sales.request': { calls: 812, input: 1_000_000, output: 220_000 },
   'sales.image': { calls: 233, input: 180_000, output: 40_000 },
+  assistant: { calls: 142, input: 210_000, output: 38_000 },
   'accounting.invoice': { calls: 239, input: 130_000, output: 30_400 },
 };
 /** Tokens of the 11 months before the current one, oldest first. */

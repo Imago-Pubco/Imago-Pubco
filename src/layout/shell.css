@@ -814,3 +814,23 @@
 .wordmark-text span {
   font-weight: 300;
 }
+
+/* ---------- Help button in the top bar ("Comment ça marche") ---------- */
+.help-btn {
+  gap: 6px;
+  white-space: nowrap;
+}
+.help-btn-text {
+  white-space: nowrap;
+}
+.topnav .help-btn {
+  color: var(--sidebar-text);
+}
+.topnav .help-btn:hover {
+  background: var(--sidebar-hover);
+}
+@media (max-width: 900px) {
+  .help-btn-text {
+    display: none;
+  }
+}

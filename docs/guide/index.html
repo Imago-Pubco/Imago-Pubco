@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Imago · Pubco Hub 2.0 — Guide de l’utilisateur</title>
+<meta name="description" content="Guide de l’utilisateur d’Imago · Pubco Hub 2.0, préparé par AKAB pour Pubco.">
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2L20 7H7"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17.5" cy="19.5" r="1.3"/></symbol>
+    <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 12h.01M12 12h.01M15 12h.01M9 16h.01M12 16h.01M15 16h.01"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></symbol>
+    <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h12v10H2zM14 10h4l3 3v3h-7z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16M8 16v-5M12 16V8M16 16v-3"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 12 0v1M16 3.5a4 4 0 0 1 0 8M22 21v-1a6 6 0 0 0-4-5.6"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="i-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7v.5M12 17h.01"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M9 16h6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2 2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><path d="M7.5 8.5h.01"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></symbol>
+    <symbol id="i-kanban" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="4" height="8" rx="1"/></symbol>
+    <symbol id="i-gantt" viewBox="0 0 24 24"><path d="M3 4v16M3 7h10M7 12h12M5 17h8"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-printer" viewBox="0 0 24 24"><path d="M7 9V3h10v6M6 17H4v-6h16v6h-2"/><rect x="7" y="14" width="10" height="7"/></symbol>
+  </defs>
+</svg>
+<div class="doc">
+<section class="cover-sheet">
+  <div class="cover">
+    <div class="cover-bg"></div>
+    <div class="cover-stripes"></div>
+    <div class="cover-inner">
+      <img class="cover-logo" src="assets/logo-akab.png" alt="AKAB">
+      <div class="cover-kicker">Guide de l’utilisateur</div>
+      <h1>Imago<br><span>Pubco Hub 2.0</span></h1>
+      <p class="cover-sub">Tout le travail de Pubco au même endroit : les ventes, les estimations, la production, la comptabilité, les ressources humaines et les outils de l’équipe.</p>
+      <div class="cover-meta">
+        <div class="m-l"><b>Version du 26 novembre 2026</b><br>Français (Québec) · Pour les utilisateurs et les gestionnaires</div>
+        <div class="prep">
+          <div><small>Préparé par</small><img src="assets/logo-akab.png" alt="AKAB"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="plain-page front">
+  <h1 style="font-family:var(--ff-disp);font-size:22pt;margin-bottom:3mm">Bienvenue dans Imago</h1>
+  <p class="lead">Imago est le portail interne de Pubco. Il réunit dans une seule application les outils utilisés chaque jour, du premier courriel d’un client jusqu’à la facture payée.</p>
+
+  <h2>Comment utiliser ce guide</h2>
+  <p>Chaque chapitre couvre un module, c’est-à-dire une section de l’application. Les chapitres suivent toujours le même plan, pour que vous retrouviez vite ce qui vous intéresse :</p>
+  <div class="cards">
+    <div class="card"><h4><span class="dot"></span>À quoi ça sert</h4><p>Le but du module, en quelques phrases.</p></div>
+    <div class="card"><h4><span class="dot"></span>Comment faire</h4><p>Des étapes numérotées, avec les noms exacts des boutons et des menus tels qu’ils apparaissent à l’écran.</p></div>
+    <div class="card"><h4><span class="dot"></span>Bon à savoir</h4><p>Des astuces et des pièges à éviter.</p></div>
+    <div class="card"><h4><span class="dot"></span>Qui y a accès</h4><p>Le groupe d’accès ou la permission nécessaire, en mots simples.</p></div>
+  </div>
+  <p class="small">Vous ne voyez pas un module ou un bouton décrit ici ? Ce n’est pas forcément un bogue : votre accès ne le permet peut-être pas encore. Un administrateur peut vous l’ouvrir (voir le chapitre 4).</p>
+
+  <h2>Sommaire</h2>
+  <div class="toc2">
+  <div class="toc-group">Démarrer</div>
+  <ul class="toc-list">
+    <li><span class="n">A</span><span class="t">Démarrer en 5 minutes</span><span class="d">Les premiers gestes</span><span class="p">3</span></li>
+  </ul>
+  <div class="toc-group">Découvrir Imago</div>
+  <ul class="toc-list">
+    <li><span class="n">1</span><span class="t">Premiers pas</span><span class="d">Le menu, la barre du haut, votre profil</span><span class="p">4</span></li>
+    <li><span class="n">2</span><span class="t">Tableau de bord</span><span class="d">Votre page d’accueil et ses widgets</span><span class="p">6</span></li>
+    <li><span class="n">3</span><span class="t">Aide et assistant IA</span><span class="d">« Comment ça marche » et le logo qui répond</span><span class="p">7</span></li>
+    <li><span class="n">4</span><span class="t">Accès et permissions</span><span class="d">Qui voit quoi, et pourquoi</span><span class="p">9</span></li>
+  </ul>
+  <div class="toc-group">Production et ventes</div>
+  <ul class="toc-list">
+    <li><span class="n">5</span><span class="t">Ventes</span><span class="d">De la demande à la soumission acceptée</span><span class="p">11</span></li>
+    <li><span class="n">6</span><span class="t">Estimation</span><span class="d">Prix des emballages sur mesure</span><span class="p">14</span></li>
+    <li><span class="n">7</span><span class="t">Ordres de travail</span><span class="d">Le suivi de la production</span><span class="p">16</span></li>
+    <li><span class="n">8</span><span class="t">Expédition</span><span class="d">Étiquettes et carnet d’adresses</span><span class="p">18</span></li>
+  </ul>
+  <div class="toc-group">Comptabilité et administration</div>
+  <ul class="toc-list">
+    <li><span class="n">9</span><span class="t">Comptabilité</span><span class="d">Factures et bons de commande avec Business Central</span><span class="p">19</span></li>
+    <li><span class="n">10</span><span class="t">Align</span><span class="d">Stratégie, Rocks, priorités et huddles</span><span class="p">21</span></li>
+    <li><span class="n">11</span><span class="t">Gestion O365</span><span class="d">Comptes et licences Microsoft 365</span><span class="p">23</span></li>
+    <li><span class="n">12</span><span class="t">RH et conformité</span><span class="d">Normes, audits et politiques</span><span class="p">25</span></li>
+  </ul>
+  <div class="toc-group">Outils de l’équipe</div>
+  <ul class="toc-list">
+    <li><span class="n">13</span><span class="t">Function Fox</span><span class="d">Projets, temps et rentabilité (outils studio)</span><span class="p">27</span></li>
+    <li><span class="n">14</span><span class="t">KPI</span><span class="d">Indicateurs, priorités et réunions d’équipe</span><span class="p">29</span></li>
+    <li><span class="n">15</span><span class="t">Support TI</span><span class="d">Le portail du support AKAB</span><span class="p">31</span></li>
+    <li><span class="n">16</span><span class="t">Sandbox</span><span class="d">Proposer un changement à l’application</span><span class="p">32</span></li>
+    <li><span class="n">17</span><span class="t">Développement</span><span class="d">Les outils en préparation</span><span class="p">34</span></li>
+    <li><span class="n">18</span><span class="t">Administration</span><span class="d">Utilisateurs, groupes, quotas d’IA, système</span><span class="p">35</span></li>
+  </ul>
+  <div class="toc-group">Annexes</div>
+  <ul class="toc-list">
+    <li><span class="n">B</span><span class="t">Pour les administrateurs</span><span class="d">Configuration du serveur, en mots simples</span><span class="p">37</span></li>
+    <li><span class="n">C</span><span class="t">Glossaire</span><span class="d">Les mots de l’application</span><span class="p">39</span></li>
+    <li><span class="n">D</span><span class="t">Foire aux questions</span><span class="d">Les questions les plus fréquentes</span><span class="p">41</span></li>
+    <li><span class="n">E</span><span class="t">Ce qui s’en vient</span><span class="d">Ce qui est encore provisoire</span><span class="p">43</span></li>
+  </ul>
+  </div>
+</section>
+
+<section class="chapter" id="demarrer">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-spark"/></svg>
+    <div class="chapter-num">Démarrage rapide</div>
+    <h1>Démarrer en 5 minutes</h1>
+    <p class="lead">Cinq gestes suffisent pour vous orienter. Vous pourrez ensuite explorer chaque module à votre rythme.</p>
+  </div>
+
+  <div class="qs-grid">
+    <div class="qs-step">
+      <div class="big">1</div>
+      <div>
+        <h4>Connectez-vous</h4>
+        <p>Entrez votre <b>identifiant</b> et votre <b>mot de passe</b> sur la page de connexion. Le mot de passe doit contenir au moins 12 caractères. Si vous l’avez oublié, demandez à un administrateur ou utilisez le lien de réinitialisation reçu par courriel.</p>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="big">2</div>
+      <div>
+        <h4>Repérez votre menu</h4>
+        <p>Le menu de gauche regroupe les modules en sections : <i>Outils administratifs</i>, <i>Comptabilité</i>, <i>Outils de production</i>, <i>Outils studio</i> et <i>Archive temporaire</i>. Vous ne voyez que les modules auxquels votre accès donne droit. Cliquez le titre d’une section pour la replier.</p>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="big">3</div>
+      <div>
+        <h4>Choisissez votre langue et votre thème</h4>
+        <p>Dans la barre du haut, cliquez <span class="ui">EN</span> ou <span class="ui">FR</span> pour changer la langue. L’icône lune ou soleil alterne entre le thème clair et le thème sombre. Votre choix est gardé.</p>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="big">4</div>
+      <div>
+        <h4>Personnalisez votre tableau de bord</h4>
+        <p>Sur la page d’accueil, cliquez <span class="ui">Personnaliser</span>. Réordonnez, agrandissez ou masquez les widgets. Ce réglage ne vaut que pour vous.</p>
+      </div>
+    </div>
+    <div class="qs-step">
+      <div class="big">5</div>
+      <div>
+        <h4>Demandez de l’aide sur la page en cours</h4>
+        <p>En haut de presque chaque page, cliquez <span class="ui">Comment ça marche</span>. Vous y trouverez à quoi sert la page, des conseils et les questions fréquentes. Pour une question précise, tapez-la dans la zone prévue.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <p>Si une page ne s’ouvre pas ou qu’un bouton manque, ce n’est généralement pas une panne : votre groupe d’accès ne le permet pas. Dites-le à un administrateur, en précisant le module et l’action voulue.</p>
+  </div>
+</section>
+
+
+
+<section class="chapter" id="ch1">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-home"/></svg>
+    <div class="chapter-num">Chapitre 1</div>
+    <h1>Premiers pas</h1>
+    <p class="lead">Imago est divisé en modules. Une fois le plan du menu compris, tout le reste se trouve facilement.</p>
+  </div>
+
+  <h2>Le grand portrait</h2>
+  <p>L’écran se divise en trois zones. À gauche, le <b>menu latéral</b> liste le tableau de bord et les modules, regroupés en sections. En haut, la <b>barre du haut</b> affiche le module ouvert, les boutons de langue et de thème, et votre menu utilisateur. Au centre, la <b>zone de travail</b> montre la page en cours.</p>
+
+  <figure class="fig">
+    <div class="fig-box">
+      <div class="sidemap">
+        <div class="sm-side">
+          <div class="sm-item sm-top"><svg class="i"><use href="#i-home"/></svg> Tableau de bord</div>
+          <div class="sm-sec">Outils administratifs</div>
+          <div class="sm-item"><i style="background:#7c3aed"></i>Align</div>
+          <div class="sm-item"><i style="background:#0f6cbd"></i>Gestion O365</div>
+          <div class="sm-item"><i style="background:#d6336c"></i>RH</div>
+          <div class="sm-sec">Comptabilité</div>
+          <div class="sm-item"><i style="background:#e07a10"></i>Comptabilité</div>
+          <div class="sm-sec">Outils de production</div>
+          <div class="sm-item"><i style="background:#c2410c"></i>Ventes</div>
+          <div class="sm-item"><i style="background:#2e9e5b"></i>Estimation</div>
+          <div class="sm-item"><i style="background:#7c3aed"></i>Ordres de travail</div>
+          <div class="sm-item"><i style="background:#1e6fd9"></i>Expédition</div>
+          <div class="sm-sec">Outils studio</div>
+          <div class="sm-item"><i style="background:#0e9fbf"></i>Function Fox</div>
+          <div class="sm-sec">Développement</div>
+          <div class="sm-item"><i style="background:#7c3aed"></i>Développement</div>
+          <div class="sm-sec">Archive temporaire</div>
+          <div class="sm-item"><i style="background:#0d9488"></i>KPI</div>
+          <div class="sm-foot"><i style="background:#0ea5c6"></i>Support TI (en bas du menu)</div>
+        </div>
+        <div class="sm-main">
+          <div class="sm-callout"><span class="num">1</span><div><b>Le tableau de bord</b> est toujours en haut du menu. C’est votre page d’accueil.</div></div>
+          <div class="sm-callout"><span class="num">2</span><div><b>Les sections</b> regroupent les modules par fonction : administration, comptabilité, production, studio, archive. Une section vide est masquée.</div></div>
+          <div class="sm-callout"><span class="num">3</span><div><b>Chaque module</b> a sa couleur. Son sous-menu s’ouvre quand vous y entrez, puis se referme quand vous partez.</div></div>
+          <div class="sm-callout"><span class="num">4</span><div><b>Support TI</b> reste épinglé en bas, pour être accessible en tout temps.</div></div>
+          <div class="sm-callout"><span class="num">5</span><div><b>Administration et Sandbox</b> ne sont pas dans le menu : ils se trouvent dans le <i>menu utilisateur</i>, en haut à droite.</div></div>
+          <div class="sm-callout"><span class="num">6</span><div><b>La barre du haut</b> : langue <span class="ui">EN</span>/<span class="ui">FR</span>, thème clair ou sombre, menu utilisateur et <span class="ui">Comment ça marche</span>.</div></div>
+        </div>
+      </div>
+    </div>
+    <figcaption>Figure 1. Le grand portrait : ce que contient chaque section du menu, dans la disposition par défaut.</figcaption>
+  </figure>
+
+  <h2>À quoi ça sert</h2>
+  <p>Ce chapitre vous montre comment naviguer : ouvrir un module, replier le menu, changer la langue ou le thème, et retrouver votre profil. Une fois ces gestes acquis, les chapitres suivants vous guideront module par module.</p>
+
+  <h2>Comment faire</h2>
+  <ol class="steps">
+    <li><b>Ouvrir une section.</b> Cliquez son titre (par exemple <span class="ui tab">Outils de production</span>) pour la déployer ou la replier. Votre choix est gardé dans ce navigateur.</li>
+    <li><b>Ouvrir un module.</b> Cliquez son nom dans le menu. Ses pages apparaissent en sous-menu. Cliquez à nouveau le module, ou sa flèche, pour le replier.</li>
+    <li><b>Réduire le menu en icônes.</b> Cliquez la flèche au bas du menu latéral. Cliquez-la de nouveau pour le déployer.</li>
+    <li><b>Changer l’ordre des modules.</b> Survolez un module : une poignée apparaît. Glissez-la à la position voulue. Pour revenir à l’ordre d’origine, ouvrez le menu utilisateur et cliquez <span class="ui menu">Rétablir l’ordre du menu</span>.</li>
+    <li><b>Changer la langue.</b> Cliquez <span class="ui">EN</span> dans la barre du haut. Le bouton affiche alors <span class="ui">FR</span> : cliquez-le pour revenir au français. Votre choix suit votre profil.</li>
+    <li><b>Passer au thème sombre.</b> Cliquez l’icône lune. Quand le thème est déjà sombre, l’icône devient un soleil : cliquez-la pour revenir au thème clair.</li>
+    <li><b>Ouvrir votre menu utilisateur.</b> Cliquez votre avatar, en haut à droite. Vous y voyez votre nom et votre courriel, ainsi que les entrées auxquelles votre accès donne droit : <span class="ui menu">Paramètres d’administration</span>, <span class="ui menu">Sandbox</span>, puis <span class="ui menu">Se déconnecter</span>.</li>
+    <li><b>Aller vite à une page.</b> Appuyez sur <span class="ui">Ctrl</span> + <span class="ui">K</span> pour ouvrir la palette de navigation, puis tapez le nom de la page.</li>
+    <li><b>Sur petit écran.</b> Le bouton <span class="ui">Menu</span> ouvre le menu latéral.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Le module ouvert garde sa couleur dans l’interface : repérez-vous grâce à elle.</li>
+      <li>Certains modules ajoutent leurs propres boutons dans la barre du haut. Par exemple, le Support TI affiche une icône de réglage aux personnes autorisées.</li>
+      <li>Un module n’apparaît dans le menu que si votre groupe d’accès permet d’y entrer.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4><p>Toute personne connectée voit le tableau de bord et son menu utilisateur. Les modules affichés dépendent de votre groupe d’accès (chapitre 4). Les entrées <span class="chip">Paramètres d’administration</span> ne sont visibles qu’avec l’accès administrateur.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch2">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-chart"/></svg>
+    <div class="chapter-num">Chapitre 2</div>
+    <h1>Tableau de bord</h1>
+    <p class="lead">Votre page d’accueil : un message de bienvenue, la liste de vos modules et des chiffres utiles, selon vos accès.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Le tableau de bord est la première page que vous voyez. Il vous donne un coup d’œil sur votre journée : vos modules favoris, vos dernières actions, vos notes et les chiffres de vos modules. Chaque personne peut l’organiser à sa façon, sans toucher à la disposition des autres.</p>
+
+  <h2>Les widgets</h2>
+  <table class="t">
+    <thead><tr><th>Widget</th><th>Ce qu’il affiche</th></tr></thead>
+    <tbody>
+      <tr><td>Bienvenue</td><td>Un message d’accueil personnalisé.</td></tr>
+      <tr><td>Mes modules</td><td>Une carte par module auquel vous avez accès. Cliquez une carte pour l’ouvrir.</td></tr>
+      <tr><td>Mon activité</td><td>Vos six dernières actions enregistrées.</td></tr>
+      <tr><td>Notes</td><td>Un bloc-notes personnel. Le texte est enregistré automatiquement.</td></tr>
+      <tr><td>Widgets des modules</td><td>Les chiffres de chaque module, par exemple les ventes, les ordres de travail ou les heures de Function Fox.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment faire</h2>
+  <ol class="steps">
+    <li><b>Personnaliser votre page.</b> Cliquez <span class="ui">Personnaliser</span>. Glissez un widget pour le réordonner.</li>
+    <li><b>Changer la largeur.</b> En mode personnalisation, choisissez une demi-largeur ou une pleine largeur sur le widget.</li>
+    <li><b>Masquer un widget.</b> Cliquez l’icône de l’œil barré du widget.</li>
+    <li><b>Ajouter un widget masqué.</b> Sous <span class="ui field">Ajouter :</span>, cliquez le nom du widget.</li>
+    <li><b>Quitter le mode personnalisation.</b> Cliquez <span class="ui">Terminé</span>.</li>
+    <li><b>Revenir à la disposition de l’organisation.</b> Cliquez <span class="ui">Personnaliser</span>, puis <span class="ui">Rétablir la disposition par défaut</span>. Ce bouton n’apparaît que si vous avez une disposition personnelle.</li>
+    <li><b>Changer la disposition pour tout le monde (administrateurs).</b> Ajustez la page, cliquez <span class="ui">Personnaliser</span>, puis <span class="ui">Enregistrer comme défaut pour tous</span>.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Un widget n’apparaît que si votre accès le permet. Si un widget manque, ce n’est pas une erreur.</li>
+      <li>Vos changements ne touchent que votre page. L’organisation garde sa propre disposition.</li>
+      <li>Le widget <i>Notes</i> est idéal pour vos rappels : il n’a pas besoin de bouton d’enregistrement.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4><p>Tout utilisateur connecté peut personnaliser sa propre page. La disposition par défaut pour tous se règle avec le droit d’administrateur. Chaque widget de module suit les permissions de ce module.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch3">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-bot"/></svg>
+    <div class="chapter-num">Chapitre 3</div>
+    <h1>Aide et assistant IA</h1>
+    <p class="lead">Deux façons d’obtenir de l’aide : le bouton « Comment ça marche » sur chaque page, et l’assistant IA, que vous appelez d’un simple clic.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Imago contient une aide intégrée pour chaque page. Elle explique à quoi sert la page, donne des conseils et répond aux questions courantes. L’assistant IA va plus loin : il répond à vos questions en langage courant, à partir de cette même aide et des données que vous avez le droit de voir. Il ne modifie jamais rien.</p>
+
+  <h2>Le bouton « Comment ça marche »</h2>
+  <p>En haut de presque chaque page, le bouton <span class="ui">Comment ça marche</span> ouvre un panneau. Il contient les conseils de la page en cours et une zone pour poser une question sur cette page.</p>
+
+  <h2>L’assistant : le logo qui répond</h2>
+  <p>Un petit logo flotte à l’écran. Vous pouvez le glisser où vous voulez. Cliquez-le pour ouvrir un clavardage avec l’assistant.</p>
+
+  <figure class="fig">
+    <div class="fig-box">
+      <div class="ai-flow">
+        <div class="ai-node"><b>1. Votre question</b><span>« Comment je soumets une estimation ? »</span></div>
+        <div class="ai-arrow">→</div>
+        <div class="ai-node gate"><b>2. Filtre d’accès</b><span>Seuls les modules et pages que vous pouvez ouvrir sont pris en compte. Chaque outil de lecture est revérifié.</span></div>
+        <div class="ai-arrow">→</div>
+        <div class="ai-node"><b>3. Sources permises</b><span>L’aide des pages accessibles et les données de lecture seule.</span></div>
+        <div class="ai-arrow">→</div>
+        <div class="ai-node"><b>4. Réponse</b><span>En français, en quelques phrases, avec les étapes à suivre.</span></div>
+      </div>
+      <div class="ai-limits">
+        <div class="ai-ok"><h4>Il peut</h4><ul>
+          <li>expliquer comment utiliser une page ou un module ;</li>
+          <li>vous indiquer quel bouton cliquer et quelle permission il faut ;</li>
+          <li>consulter, en lecture seule, les données que vous pouvez voir.</li></ul></div>
+        <div class="ai-no"><h4>Il ne peut pas</h4><ul>
+          <li>modifier, approuver, envoyer, payer ou supprimer quoi que ce soit ;</li>
+          <li>répondre à des questions sans rapport avec Imago (culture générale, autres entreprises, rédaction) ;</li>
+          <li>montrer des coûts ou des marges à une personne qui n’y a pas droit.</li></ul></div>
+      </div>
+    </div>
+    <figcaption>Figure 2. Comment l’assistant répond, et ce qu’il ne fait jamais.</figcaption>
+  </figure>
+
+  <h2>Comment faire</h2>
+  <ol class="steps">
+    <li><b>Obtenir de l’aide sur la page en cours.</b> Cliquez <span class="ui">Comment ça marche</span> en haut de la page. Lisez les conseils, puis les questions déjà répondues.</li>
+    <li><b>Poser votre propre question.</b> Tapez-la dans la zone prévue du panneau, puis envoyez-la.</li>
+    <li><b>Ouvrir l’assistant.</b> Cliquez le logo flottant. Tapez votre question dans le clavardage et envoyez-la.</li>
+    <li><b>Déplacer le logo.</b> Glissez-le à la souris vers l’endroit qui vous convient. Il garde sa position.</li>
+    <li><b>Masquer le logo.</b> Utilisez le menu du logo (les trois points) pour le cacher.</li>
+    <li><b>Être précis.</b> Nommez le module ou la page : « Dans Expédition, comment imprimer une étiquette ? » donne une meilleure réponse qu’une question générale.</li>
+  </ol>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>Limite d’utilisation</b>
+    <p>L’IA est comptée. Chaque personne a une limite mensuelle de jetons et de demandes. Les lectures de courriels, les PDF et l’analyse des demandes de vente passent aussi par l’IA et comptent dans la même limite. Quand la limite est atteinte, le message <i>« Votre quota mensuel d’IA est atteint. Contactez un administrateur. »</i> s’affiche. Les compteurs repartent à zéro le 1er du mois.</p>
+  </div>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Une réponse de l’assistant n’est pas une décision. Vérifiez les montants et les dates dans la page elle-même avant d’agir.</li>
+      <li>Les réponses ne portent que sur ce que vous pouvez ouvrir. Deux personnes peuvent recevoir des réponses différentes à la même question.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4><p>Tout utilisateur connecté peut utiliser <span class="chip">Comment ça marche</span> et l’assistant. Les données visibles par l’assistant suivent exactement vos permissions. Les quotas d’IA sont fixés par un administrateur (chapitre 18).</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch4">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-key"/></svg>
+    <div class="chapter-num">Chapitre 4</div>
+    <h1>Accès et permissions</h1>
+    <p class="lead">Vous ne voyez que ce que votre groupe d’accès permet. Ce chapitre explique le fonctionnement, pour vous et pour les administrateurs.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Les accès protègent les données de Pubco. Chaque personne reçoit des <b>groupes d’accès</b>, et chaque groupe donne des <b>permissions</b>. Vous obtenez l’addition de tout ce que vos groupes permettent. Une personne peut aussi recevoir un <b>droit individuel</b>, pour une exception.</p>
+
+  <figure class="fig">
+    <div class="fig-box">
+      <div class="acc-flow">
+        <div class="acc-col"><h4>1. Vous</h4><p>Votre compte : identifiant, courriel, compte actif ou non.</p></div>
+        <div class="acc-plus">+</div>
+        <div class="acc-col"><h4>2. Vos groupes</h4><p>Par exemple <i>Production</i> et <i>Comptabilité : lecture</i>. Les droits se cumulent.</p></div>
+        <div class="acc-plus">+</div>
+        <div class="acc-col"><h4>3. Droits individuels</h4><p>Une permission donnée à vous seule, en plus de vos groupes.</p></div>
+        <div class="acc-arrow">=</div>
+        <div class="acc-col res"><h4>4. Ce que vous voyez</h4><p>Les modules du menu, les boutons, les widgets, les données. Le serveur refait la même vérification avant chaque action.</p></div>
+      </div>
+    </div>
+    <figcaption>Figure 3. Comment vos accès se combinent pour déterminer ce que vous voyez et pouvez faire.</figcaption>
+  </figure>
+
+  <h2>Comment lire une permission</h2>
+  <p>Les permissions sont nommées par module, puis par domaine et par action, par exemple <span class="mono">accounting.invoices.post</span> (comptabiliser une facture dans Business Central). Dans l’application, vous les voyez sous leur nom en français. Le plus important : chaque module commence par une permission d’accès, nommée <i>Accéder au module</i>.</p>
+
+  <table class="t">
+    <thead><tr><th>Module</th><th>Permission d’accès (libellé à l’écran)</th></tr></thead>
+    <tbody>
+      <tr><td>Comptabilité</td><td>Accéder au module</td></tr>
+      <tr><td>Ventes</td><td>Accéder au module</td></tr>
+      <tr><td>Estimation</td><td>Accéder au module</td></tr>
+      <tr><td>Ordres de travail</td><td>Accéder au module</td></tr>
+      <tr><td>Expédition</td><td>Accéder au module</td></tr>
+      <tr><td>Align</td><td>Accéder (tout voir, mettre à jour ses priorités, écrire des notes et des suivis)</td></tr>
+      <tr><td>Gestion O365</td><td>Accéder au module (lecture)</td></tr>
+      <tr><td>RH / Conformité</td><td>Accéder au module ; Conformité : accéder</td></tr>
+      <tr><td>Function Fox</td><td>Utiliser (accès au module et à ses pages)</td></tr>
+      <tr><td>KPI</td><td>Outils : accéder au module ; utiliser l’outil KPI</td></tr>
+      <tr><td>Support TI</td><td>Accéder au support TI</td></tr>
+      <tr><td>Sandbox</td><td>Utiliser le Sandbox ; réviser et approuver</td></tr>
+      <tr><td>Administration</td><td>Accéder au portail</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment faire</h2>
+  <p><b>En tant qu’utilisateur</b>, vous ne gérez pas les accès. Si un bouton manque, demandez à un administrateur la permission exacte (par exemple « Créer / modifier des estimations »). Le message affiché sur une page vous donne souvent son nom.</p>
+  <p><b>En tant qu’administrateur</b> (<span class="chip">Gérer les groupes et permissions</span>) :</p>
+  <ol class="steps">
+    <li><b>Créer un groupe.</b> Allez dans <span class="ui menu">Administration</span>, onglet <span class="ui tab">Groupes d’accès</span>, puis cliquez <span class="ui primary">Groupe</span>. Saisissez le <span class="ui field">Nom</span> et la <span class="ui field">Description</span>, choisissez la <span class="ui field">Couleur</span>, cochez les permissions (ou <span class="ui">Tout le module</span>), puis <span class="ui">Enregistrer</span>.</li>
+    <li><b>Donner un droit à une seule personne.</b> Dans la même page, ouvrez l’onglet <span class="ui tab">Droits individuels</span>, cherchez la personne dans <span class="ui field">Rechercher un utilisateur…</span>, cochez les droits voulus, puis <span class="ui">Enregistrer</span>.</li>
+    <li><b>Créer un utilisateur.</b> Allez dans <span class="ui tab">Utilisateurs</span>, cliquez <span class="ui primary">Utilisateur</span>. Saisissez le <span class="ui field">Nom complet</span>, l’<span class="ui field">Identifiant</span> et le <span class="ui field">Courriel</span>. Cochez <span class="ui">Envoyer le courriel de bienvenue</span>, ou saisissez un mot de passe d’au moins 12 caractères. Cochez les groupes, puis <span class="ui">Enregistrer</span>.</li>
+    <li><b>Désactiver un compte sans le perdre.</b> Cliquez <span class="ui icon-btn">Modifier</span> sur la ligne, décochez <span class="ui field">Compte actif</span>, puis <span class="ui">Enregistrer</span>.</li>
+  </ol>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>Attention</b>
+    <ul>
+      <li>Supprimer un groupe le retire immédiatement de tous ses membres, <b>sans confirmation</b>. Pour un simple arrêt, préférez désactiver le compte.</li>
+      <li>Vous ne pouvez pas donner un droit que vous n’avez pas vous-même. Vous ne pouvez pas non plus désactiver votre propre compte.</li>
+      <li>Chaque changement d’accès est écrit dans le journal d’audit (chapitre 18).</li>
+    </ul>
+  </div>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <p>Pour vérifier ce qu’une personne voit, un administrateur peut utiliser <span class="ui">Voir le portail comme cette personne (lecture seule)</span>. La session dure 30 minutes, ne permet aucune modification et est journalisée.</p>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4><p>La gestion des accès demande <span class="chip">Gérer les groupes et permissions</span> pour les groupes et les droits individuels, et <span class="chip">Gérer les utilisateurs</span> pour les comptes. La liste des accès ne se consulte que dans l’administration.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch5">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-cart"/></svg>
+    <div class="chapter-num">Chapitre 5</div>
+    <h1>Ventes</h1>
+    <p class="lead">Du premier message du client jusqu’à l’envoi en production. Chaque demande suit un circuit clair, avec ses blocages et ses suivis.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Le module Ventes garde la trace de chaque demande d’emballage. Une demande peut arriver par le formulaire public, par courriel ou être saisie à la main. Elle passe ensuite par l’estimation, la révision, la soumission, puis la production. Le <b>Suivi</b> montre où en est chaque demande, et ce qui la retient.</p>
+
+  <h2>Le circuit d’une demande</h2>
+  <p>Le schéma ci-dessous montre le parcours normal, les changements demandés par le client, la sortie « Refusé » et les blocages possibles.</p>
+
+  <figure class="fig">
+    <div class="fig-box">
+      <svg class="diagram" viewBox="0 -50 880 416" role="img" aria-label="Circuit d’une demande de vente">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#121317"/></marker>
+          <marker id="arrRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b8321e"/></marker>
+          <marker id="arrGold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b86e00"/></marker>
+        </defs>
+        <!-- rangée 1 -->
+        <g>
+          <rect x="20" y="60" width="160" height="58" rx="10" fill="#121317"/>
+          <text x="100" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#ffce1a" class="t-title">1. Demande reçue</text>
+          <text x="100" y="104" text-anchor="middle" font-size="11" fill="#d8d9de">Ventes · formulaire, courriel</text>
+        </g>
+        <g>
+          <rect x="210" y="60" width="160" height="58" rx="10" fill="#121317"/>
+          <text x="290" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#ffce1a" class="t-title">2. Estimation / studio</text>
+          <text x="290" y="104" text-anchor="middle" font-size="11" fill="#d8d9de">Chiffrage, croquis, découpes</text>
+        </g>
+        <g>
+          <rect x="400" y="60" width="160" height="58" rx="10" fill="#121317"/>
+          <text x="480" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#ffce1a" class="t-title">3. Révision</text>
+          <text x="480" y="104" text-anchor="middle" font-size="11" fill="#d8d9de">Approbation de l’estimation</text>
+        </g>
+        <g>
+          <rect x="590" y="60" width="160" height="58" rx="10" fill="#121317"/>
+          <text x="670" y="84" text-anchor="middle" font-size="14" font-weight="700" fill="#ffce1a" class="t-title">4. Soumission prête</text>
+          <text x="670" y="104" text-anchor="middle" font-size="11" fill="#d8d9de">Envoi au client</text>
+        </g>
+        <!-- flèches rangée 1 -->
+        <line x1="180" y1="89" x2="206" y2="89" stroke="#121317" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="370" y1="89" x2="396" y2="89" stroke="#121317" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="560" y1="89" x2="586" y2="89" stroke="#121317" stroke-width="2" marker-end="url(#arr)"/>
+
+        <!-- rangée 2 (retour vers la gauche) -->
+        <g>
+          <rect x="590" y="200" width="160" height="58" rx="10" fill="#fff" stroke="#121317" stroke-width="2"/>
+          <text x="670" y="224" text-anchor="middle" font-size="14" font-weight="700" fill="#121317" class="t-title">5. Chez le client</text>
+          <text x="670" y="244" text-anchor="middle" font-size="11" fill="#55575e">Le client décide</text>
+        </g>
+        <g>
+          <rect x="400" y="200" width="160" height="58" rx="10" fill="#fff" stroke="#121317" stroke-width="2"/>
+          <text x="480" y="224" text-anchor="middle" font-size="14" font-weight="700" fill="#121317" class="t-title">6. Accepté</text>
+          <text x="480" y="244" text-anchor="middle" font-size="11" fill="#55575e">Soumission signée</text>
+        </g>
+        <g>
+          <rect x="210" y="200" width="160" height="58" rx="10" fill="#ffce1a" stroke="#121317" stroke-width="2"/>
+          <text x="290" y="224" text-anchor="middle" font-size="14" font-weight="700" fill="#121317" class="t-title">7. En production</text>
+          <text x="290" y="244" text-anchor="middle" font-size="11" fill="#121317">Un ordre de travail est créé</text>
+        </g>
+        <!-- flèches rangée 2 -->
+        <line x1="670" y1="150" x2="670" y2="196" stroke="#121317" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="590" y1="229" x2="564" y2="229" stroke="#121317" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="400" y1="229" x2="374" y2="229" stroke="#121317" stroke-width="2" marker-end="url(#arr)"/>
+
+        <!-- Changements demandés : boucle vers l’estimation -->
+        <path d="M750 229 C 850 229, 850 -12, 520 -12 C 400 -12, 290 -12, 290 56" fill="none" stroke="#b86e00" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrGold)"/>
+        <rect x="380" y="-42" width="290" height="22" rx="11" fill="#fff7d6" stroke="#b86e00"/>
+        <text x="525" y="-27" text-anchor="middle" font-size="11.5" font-weight="700" fill="#8a5300">Changements demandés : retour à l’estimation</text>
+
+        <!-- Refusé -->
+        <line x1="100" y1="118" x2="100" y2="196" stroke="#b8321e" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrRed)"/>
+        <g>
+          <rect x="20" y="200" width="160" height="58" rx="10" fill="#fdf3f1" stroke="#b8321e" stroke-width="2"/>
+          <text x="100" y="224" text-anchor="middle" font-size="14" font-weight="700" fill="#9a2b1d" class="t-title">Refusé</text>
+          <text x="100" y="244" text-anchor="middle" font-size="11" fill="#9a2b1d">Motif obligatoire</text>
+        </g>
+        <text x="108" y="168" font-size="11" fill="#9a2b1d" font-weight="600">à tout moment</text>
+
+        <!-- Blocage -->
+        <rect x="20" y="296" width="730" height="48" rx="10" fill="#f4f4f1" stroke="#55575e" stroke-dasharray="4 4"/>
+        <text x="385" y="316" text-anchor="middle" font-size="12" font-weight="700" fill="#121317">Blocage possible à chaque étape</text>
+        <text x="385" y="333" text-anchor="middle" font-size="11" fill="#33353b">Client, studio, information manquante, décision interne : la demande reste à son étape et apparaît dans « Demandes bloquées ».</text>
+      </svg>
+    </div>
+    <figcaption>Figure 4. Le circuit d’une demande de vente. Les flèches pleines suivent le parcours normal ; la flèche pointillée rouge mène au refus.</figcaption>
+  </figure>
+
+  <table class="t">
+    <thead><tr><th>Étape</th><th>Ce qui se passe</th><th>Qui peut la faire (permission)</th></tr></thead>
+    <tbody>
+      <tr><td>Demande reçue</td><td>La demande est créée par le formulaire, un courriel ou une saisie.</td><td>Créer et modifier les demandes</td></tr>
+      <tr><td>Estimation / studio</td><td>On chiffre l’emballage ; le studio prépare croquis ou découpes au besoin.</td><td>Créer et modifier les demandes ; Travail du studio</td></tr>
+      <tr><td>Révision</td><td>L’estimation est soumise à un approbateur.</td><td>Approbation : Soumettre et conclure</td></tr>
+      <tr><td>Soumission prête</td><td>L’estimation est approuvée ; la soumission peut partir.</td><td>Approbation, puis Envoyer les soumissions et passer en production</td></tr>
+      <tr><td>Chez le client</td><td>La soumission est envoyée. Le client la consulte par un lien sécurisé.</td><td>Envoyer les soumissions et passer en production</td></tr>
+      <tr><td>Accepté</td><td>Le client a approuvé la soumission, avec sa signature.</td><td>Envoyer les soumissions et passer en production</td></tr>
+      <tr><td>En production</td><td>Un ordre de travail est créé et suivi par la production.</td><td>Envoyer les soumissions et passer en production</td></tr>
+      <tr><td>Refusé</td><td>Le client refuse ou la demande est perdue. Une raison est demandée. On peut la rouvrir.</td><td>Créer et modifier les demandes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment faire</h2>
+  <h3>Créer une demande</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Ventes</span>, puis <span class="ui tab">Demandes</span>, et cliquez <span class="ui primary">Nouvelle demande</span>. (Le même bouton est au Suivi.)</li>
+    <li>Choisissez l’onglet : <span class="ui tab">Formulaire</span>, <span class="ui tab">Courriel</span> ou <span class="ui tab">Photo / dessin</span>.</li>
+    <li><b>Par courriel :</b> collez le <span class="ui field">De</span>, l’<span class="ui field">Objet</span> et le <span class="ui field">Texte du courriel</span>, joignez les images ou PDF utiles (4 Mo maximum chacun), puis cliquez <span class="ui">Créer la demande</span>.</li>
+    <li><b>Par photo ou dessin :</b> ajoutez le fichier et une courte description de ce que le client veut.</li>
+    <li>Pendant <span class="ui">Lecture par l’IA…</span>, restez sur la page : cela prend quelques secondes. L’IA prépare une première estimation, que vous devrez vérifier.</li>
+    <li>La demande apparaît dans le <span class="ui tab">Suivi</span>, à l’étape <i>Demande reçue</i>.</li>
+  </ol>
+
+  <h3>Faire avancer une demande</h3>
+  <ol class="steps">
+    <li><b>Prendre la demande.</b> Dans <span class="ui tab">Demandes</span>, cliquez <span class="ui">Prendre</span> dans la colonne <i>Responsable</i>.</li>
+    <li><b>Lancer l’estimation.</b> Ouvrez la demande (clic dans le Suivi ou la liste). Cliquez <span class="ui primary">Lancer l’estimation</span>.</li>
+    <li><b>Préparer l’estimation.</b> Chiffrez-la (chapitre 6), puis cliquez <span class="ui primary">Marquer prêt pour révision</span>.</li>
+    <li><b>Faire approuver.</b> L’approbateur ouvre l’estimation et clique <span class="ui">Approuver et renvoyer aux ventes</span>. La demande passe à <i>Soumission prête</i>. Pour la renvoyer au chiffrage, il clique <span class="ui">Renvoyer en révision (note requise)</span> et écrit la raison.</li>
+    <li><b>Envoyer la soumission.</b> À l’étape <i>Soumission prête</i>, cliquez <span class="ui primary">Envoyer la soumission</span>. Indiquez la validité en jours (30 par défaut, 180 au maximum), puis cliquez <span class="ui">Envoyer au client</span>. Le client reçoit un courriel avec un lien.</li>
+    <li><b>Suivre la réponse.</b> Quand le client répond, la demande change d’étape d’elle-même. Si le client ne répond pas, ajoutez un <span class="ui">Suivi</span> avec une date.</li>
+    <li><b>Traiter les demandes de changement.</b> Si le client demande des modifications, cliquez <span class="ui">Changements demandés</span> et écrivez la note : la demande revient à l’estimation, avec un numéro de révision de plus.</li>
+    <li><b>Passer en production.</b> À l’étape <i>Accepté</i>, cliquez <span class="ui primary">Envoyer en production</span>. Un ordre de travail est créé (chapitre 7).</li>
+  </ol>
+
+  <h3>Bloquer, noter, refuser</h3>
+  <ol class="steps">
+    <li><b>Bloquer une demande.</b> Dans la carte <span class="ui menu">Blocage</span>, choisissez la raison (client, studio, information, décision interne ou autre), ajoutez une précision, puis cliquez <span class="ui">Bloquer la demande</span>. Pour la débloquer : <span class="ui">Lever le blocage</span>.</li>
+    <li><b>Ajouter une note.</b> La section <span class="ui tab">Notes</span> garde l’historique. Tapez dans <span class="ui field">Ajouter une note…</span>, puis cliquez <span class="ui">Ajouter la note</span>.</li>
+    <li><b>Créer un suivi.</b> Dans <span class="ui tab">Suivis</span>, saisissez le texte et la date, puis cliquez <span class="ui">Ajouter le suivi</span>. Cochez-le quand il est fait.</li>
+    <li><b>Refuser.</b> Cliquez <span class="ui danger">Refuser / perdue</span>. La raison est obligatoire. La demande sort du circuit, mais reste consultable.</li>
+    <li><b>Consulter l’historique.</b> La section <span class="ui tab">Historique</span> liste chaque changement d’étape avec son auteur.</li>
+  </ol>
+
+  <h3>Le formulaire public et la boîte courriel</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Ventes</span>, puis <span class="ui tab">Formulaire public</span>.</li>
+    <li>Cliquez <span class="ui">Copier le lien</span> et envoyez l’adresse à vos clients. Ils n’ont pas besoin de compte. Chaque envoi crée une demande.</li>
+    <li>Dans la section <span class="ui field">Boîte courriel</span>, vérifiez que le badge <span class="ui">Lecture</span> indique <i>Activée</i>. Au besoin, cliquez <span class="ui">Synchroniser la boîte courriel</span>.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Les boutons changent selon l’étape. Si un bouton ne figure pas, la demande n’est peut-être pas à la bonne étape, ou votre permission ne suffit pas.</li>
+      <li>Une demande créée par l’IA ou par courriel doit être vérifiée. Les hypothèses de l’IA sont affichées dans l’estimation : relisez-les avant d’approuver.</li>
+      <li>Dans le Suivi, la légende explique les couleurs. <span class="ui">Bloquées seulement</span> ne montre que les demandes qui attendent quelque chose.</li>
+    </ul>
+  </div>
+
+  <h3>La page client</h3>
+  <p>Le client reçoit un lien sécurisé. Sur la page de soumission, il voit les prix en dollars canadiens, taxes en sus. Il peut :</p>
+  <ul>
+    <li><b>Approuver</b> : choisir la quantité, écrire son nom complet, signer à la souris ou au doigt, cocher <i>J’accepte cette soumission et ses conditions</i>, puis <span class="ui">Confirmer mon approbation</span> ;</li>
+    <li><b>Demander des modifications</b> : décrire ce qu’il veut changer, puis <span class="ui">Envoyer la demande</span> ;</li>
+    <li><b>Refuser</b> : indiquer la raison.</li>
+  </ul>
+  <p>Après la date <i>Valide jusqu’au</i>, la page indique que la soumission a expiré. Les prix ne figurent jamais avec les coûts ou les marges.</p>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module</span> pour voir le Suivi et les demandes. <span class="chip">Créer et modifier les demandes, notes et blocages</span> pour créer ou faire avancer une demande. <span class="chip">Envoyer les soumissions et passer en production</span> pour envoyer au client et lancer la production. <span class="chip">Travail du studio</span> pour les croquis et découpes. <span class="chip">Formulaire public et boîte courriel</span> pour les réglages du formulaire.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch6">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-calc"/></svg>
+    <div class="chapter-num">Chapitre 6</div>
+    <h1>Estimation</h1>
+    <p class="lead">Le prix d’un emballage sur mesure, pas à pas. Chaque chiffre a une explication, et chaque hypothèse peut être vérifiée.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Le module Estimation sert à chiffrer les emballages sur mesure : boîtes pliantes, caisses en carton ondulé, boîtes rigides, présentoirs et co-packing. Une estimation contient les <b>spécifications</b> de l’emballage, le <b>prix par quantité</b> et un <b>rapport</b> qui explique comment le prix a été obtenu.</p>
+
+  <h2>Les statuts d’une estimation</h2>
+  <table class="t">
+    <thead><tr><th>Statut</th><th>Signification</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill pill-grey">Brouillon</span></td><td>La fiche existe, mais le chiffrage n’a pas commencé.</td></tr>
+      <tr><td><span class="pill pill-gold">À chiffrer</span></td><td>Le chiffrage est en cours.</td></tr>
+      <tr><td><span class="pill pill-warn">À réviser</span></td><td>Le chiffrage est terminé ; un approbateur doit le revoir.</td></tr>
+      <tr><td><span class="pill pill-info">Approuvée</span></td><td>Approuvée, elle retourne aux ventes pour la soumission.</td></tr>
+      <tr><td><span class="pill pill-info">Soumise</span></td><td>La soumission a été envoyée au client.</td></tr>
+      <tr><td><span class="pill pill-ok">Acceptée</span> / <span class="pill pill-grey">Refusée</span></td><td>Le client a tranché. Une estimation acceptée, soumise ou refusée ne se modifie plus.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment un prix se construit</h2>
+  <p>Le calcul suit toujours le même chemin. Chaque étape ajoute un coût, et le prix final découle du coût total et de la marge choisie.</p>
+
+  <figure class="fig">
+    <div class="fig-box">
+      <div class="price-flow">
+        <div class="pf"><span>1</span><b>Spécifications</b><small>Type, dimensions, matériau</small></div>
+        <div class="pf"><span>2</span><b>Format du flan</b><small>Dimensions à plat, pièces par feuille</small></div>
+        <div class="pf"><span>3</span><b>Matériaux</b><small>Feuilles × prix au m², gâche</small></div>
+        <div class="pf"><span>4</span><b>Impression</b><small>Presse, mise en train, plaques, encre</small></div>
+        <div class="pf"><span>5</span><b>Outillage</b><small>Forme de découpe</small></div>
+        <div class="pf"><span>6</span><b>Finition</b><small>Vernis, pelliculage, gaufrage</small></div>
+        <div class="pf"><span>7</span><b>Transformation</b><small>Découpe, collage</small></div>
+        <div class="pf"><span>8</span><b>Main-d’œuvre</b><small>Assemblage et emballage</small></div>
+        <div class="pf"><span>9</span><b>Frais généraux</b><small>Puis le transport</small></div>
+        <div class="pf hi"><span>10</span><b>Marge et prix</b><small>Prix = coût ÷ (1 − marge)</small></div>
+      </div>
+      <div class="pf-formula">Coût total = matériaux + impression + outillage + finition + transformation + assemblage + frais généraux + transport.<br>Prix de vente = coût total ÷ (1 − marge %). Prix unitaire = prix de vente ÷ quantité.</div>
+    </div>
+    <figcaption>Figure 5. De la spécification au prix unitaire. L’onglet <i>Rapport</i> de chaque estimation détaille chaque étape.</figcaption>
+  </figure>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>Modèle de prix provisoire</b>
+    <p>Les taux, les vitesses de presse et les marges par défaut sont des valeurs de départ, pas des tarifs réels de Pubco. Tant qu’un groupe de coûts n’a pas été confirmé dans l’<span class="ui">Assistant de configuration</span>, chaque étape qui l’utilise est marquée <i>provisoire</i> dans le rapport. Ne soumettez pas de prix avant que les groupes utilisés soient confirmés.</p>
+  </div>
+
+  <h2>Comment faire</h2>
+  <h3>Créer et chiffrer une estimation</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Estimation</span>, puis cliquez <span class="ui primary">Nouvelle estimation</span>.</li>
+    <li>Renseignez le <span class="ui field">Client</span> et le <span class="ui field">Projet</span> (obligatoires), puis cliquez <span class="ui">Enregistrer</span>. La fiche reçoit son numéro.</li>
+    <li>Dans l’onglet <span class="ui tab">Spécifications</span>, décrivez l’emballage : type, dimensions (en mm), matériau, impression, couleurs, finitions. Vous pouvez aussi cliquer <span class="ui">Analyser la photo</span> si une photo de la boîte est disponible : l’IA propose des valeurs, que vous acceptez une à une.</li>
+    <li>Ajoutez les quantités (jusqu’à cinq) dans la section <span class="ui">Quantités et prix</span>, à l’onglet <span class="ui tab">Prix</span>.</li>
+    <li>Cliquez <span class="ui primary">Commencer le chiffrage</span>.</li>
+    <li>Vérifiez le <span class="ui tab">Rapport</span>, puis cliquez <span class="ui primary">Marquer prêt pour révision</span>.</li>
+  </ol>
+
+  <h3>Approuver ou renvoyer</h3>
+  <ol class="steps">
+    <li>L’approbateur ouvre l’estimation (statut <i>À réviser</i>) et vérifie les hypothèses et les marges.</li>
+    <li>Il clique <span class="ui primary">Approuver et renvoyer aux ventes</span> pour la rendre disponible à la soumission.</li>
+    <li>Pour la renvoyer au chiffrage, il clique <span class="ui">Renvoyer en révision (note requise)</span> et explique pourquoi.</li>
+    <li>Après l’envoi au client, cliquez <span class="ui">Marquer soumise au client</span>, puis <span class="ui">Acceptée</span> ou <span class="ui danger">Refusée</span> selon la réponse.</li>
+  </ol>
+
+  <h3>Demander l’avis du studio</h3>
+  <ol class="steps">
+    <li>Sur une estimation liée à une demande de vente, cliquez <span class="ui">Demander le studio</span>.</li>
+    <li>Décrivez le travail (croquis, découpe), puis cliquez <span class="ui">Envoyer la demande</span>.</li>
+  </ol>
+
+  <h3>Gérer les matériaux et les tarifs</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Matériaux et tarifs</span>. Le catalogue liste les cartons, ondulés, rigides et plastiques, avec leur coût indicatif au m².</li>
+    <li>Cliquez <span class="ui primary">Matériau</span>, saisissez le <span class="ui field">Code</span> et le <span class="ui field">Nom</span> (obligatoires), la catégorie et le coût par m², puis <span class="ui">Enregistrer</span>.</li>
+    <li>Les crayons et les corbeilles modifient ou suppriment une ligne.</li>
+  </ol>
+
+  <h3>Configurer les paramètres de chiffrage</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Paramètres</span>, puis cliquez <span class="ui primary">Assistant de configuration</span>.</li>
+    <li>Parcourez les huit groupes avec <span class="ui">Suivant</span> et <span class="ui">Précédent</span> : entreprise et devise, cartons et feuilles, impression, découpe et outillage, finitions, collage et emballage, frais généraux et transport, politique de marge.</li>
+    <li>Cliquez <span class="ui">Terminer</span>. Dans <span class="ui">État des groupes de coûts</span>, choisissez <span class="ui">Confirmé</span> pour chaque groupe validé, puis <span class="ui">Enregistrer</span>.</li>
+    <li>Pour voir tous les champs, ouvrez <span class="ui tab">Paramètres avancés</span>.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>La fiche affiche <span class="pill pill-grey">Non enregistrée</span> quand il reste des modifications. Pensez à enregistrer.</li>
+      <li>Le bouton <span class="ui">Soumission PDF</span> est désactivé : cette fonction n’est pas encore disponible.</li>
+      <li>Une estimation créée à partir d’une demande de vente affiche ses hypothèses. Vérifiez-les avant d’approuver.</li>
+      <li>Le bouton <span class="ui">Voir les révisions</span> du tableau de bord ouvre la liste des estimations à réviser.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module</span> pour voir les estimations. <span class="chip">Créer / modifier des estimations</span> pour chiffrer. <span class="chip">Voir les coûts et marges</span> pour voir les prix de revient et les marges : sans ce droit, ces chiffres sont masqués partout. <span class="chip">Soumettre et conclure</span> pour approuver. <span class="chip">Gérer les matériaux et tarifs</span> et <span class="chip">Gérer les paramètres de chiffrage</span> pour le catalogue et les réglages.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch7">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-kanban"/></svg>
+    <div class="chapter-num">Chapitre 7</div>
+    <h1>Ordres de travail</h1>
+    <p class="lead">Le suivi de la production des commandes acceptées : qui fait quoi, où en est-on, ce qui est en retard.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Un ordre de travail est créé automatiquement quand une soumission acceptée passe en production. Il regroupe les tâches de chaque service (prépresse, impression, découpe, finition, etc.), leur avancement et les notes de production. Le <b>Tableau</b> montre tous les ordres par statut ; la <b>Liste</b> les présente sous forme de tableau.</p>
+
+  <h2>Les statuts</h2>
+  <table class="t">
+    <thead><tr><th>Statut</th><th>Ce qu’il veut dire</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill pill-grey">Nouveau</span></td><td>L’ordre vient d’être créé.</td></tr>
+      <tr><td><span class="pill pill-info">Planifié</span></td><td>Les tâches sont réparties, la date de passage est prévue.</td></tr>
+      <tr><td><span class="pill pill-gold">En production</span></td><td>Le travail est commencé.</td></tr>
+      <tr><td><span class="pill pill-warn">En pause</span></td><td>Le travail est arrêté temporairement.</td></tr>
+      <tr><td><span class="pill pill-ok">Terminé</span></td><td>La production est terminée.</td></tr>
+      <tr><td><span class="pill pill-ink">Expédié</span></td><td>La marchandise est partie.</td></tr>
+    </tbody>
+  </table>
+  <p class="small">Les tâches ont quatre statuts : <i>À faire</i>, <i>En cours</i>, <i>Fait</i> et <i>Bloqué</i>.</p>
+
+  <h2>Comment faire</h2>
+  <ol class="steps">
+    <li><b>Voir le tableau.</b> Ouvrez <span class="ui menu">Ordres de travail</span>. Chaque colonne correspond à un statut. Une commande en retard apparaît en rouge.</li>
+    <li><b>Changer le statut.</b> Glissez la carte dans la colonne voulue, ou ouvrez la carte et choisissez le statut dans <span class="ui">Déplacer vers</span>.</li>
+    <li><b>Ouvrir un ordre.</b> Cliquez le nom du client sur la carte. La fiche s’ouvre.</li>
+    <li><b>Ajouter les tâches standard.</b> Dans la fiche, cliquez <span class="ui primary">Ajouter les tâches standard</span>. Neuf étapes types sont créées : approbation de la prépresse, plaques, impression, découpe, finition, collage et assemblage, contrôle qualité, emballage, expédition.</li>
+    <li><b>Ajouter une tâche.</b> Cliquez <span class="ui">Ajouter une tâche</span>, puis saisissez le nom, le service, la personne assignée et l’échéance.</li>
+    <li><b>Marquer une tâche.</b> Dans la tâche, changez le <span class="ui field">Statut</span> (À faire, En cours, Fait ou Bloqué). Le changement est enregistré aussitôt.</li>
+    <li><b>Noter une consigne.</b> Dans <span class="ui tab">Notes de production</span>, tapez dans <span class="ui field">Ajouter une note…</span> et validez.</li>
+    <li><b>Voir le dossier d’origine.</b> Les boutons <span class="ui">Voir la demande de vente</span> et <span class="ui">Voir l’estimation</span> ouvrent les dossiers liés.</li>
+    <li><b>Trouver un ordre.</b> Dans la <span class="ui tab">Liste</span>, filtrez par <i>Toutes</i>, <i>Ouvertes</i>, <i>En retard</i> ou un statut, ou tapez dans <span class="ui field">No, client, projet…</span>.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Si vous n’avez que <i>Travailler sur ses tâches</i>, vous ne modifiez que vos propres tâches (statut et notes).</li>
+      <li>Le statut de l’ordre ne se change qu’avec <i>Gérer les ordres</i>, même si vous êtes responsable d’une tâche.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module</span> pour voir les ordres. <span class="chip">Gérer les ordres (responsable, tâches, statuts)</span> pour changer les statuts, les responsables et les tâches. <span class="chip">Travailler sur ses tâches (statut, notes)</span> pour mettre à jour ses propres tâches.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch8">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-truck"/></svg>
+    <div class="chapter-num">Chapitre 8</div>
+    <h1>Expédition</h1>
+    <p class="lead">Des étiquettes 4 × 6 po, prêtes à imprimer, avec leur code-barres, pour la production et l’expédition.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Le module Expédition crée les étiquettes qui accompagnent les colis : destinataire, expéditeur, numéro de job, nombre de colis et code-barres Code128. Chaque étiquette suit son propre cheminement : <span class="pill pill-grey">Brouillon</span>, <span class="pill pill-gold">Prête</span>, <span class="pill pill-info">Imprimée</span>, <span class="pill pill-ok">Expédiée</span> ou <span class="pill pill-ink">Annulée</span>.</p>
+
+  <h2>Comment faire</h2>
+  <ol class="steps">
+    <li><b>Créer une étiquette.</b> Ouvrez <span class="ui menu">Expédition</span>, puis cliquez <span class="ui primary">Nouvelle étiquette</span>.</li>
+    <li><b>Remplir le destinataire.</b> Saisissez-le, ou choisissez une adresse dans <span class="ui field">Carnet d’adresses…</span>.</li>
+    <li><b>Saisir l’expédition.</b> Indiquez le <span class="ui field">No de job</span> et l’expéditeur. Si une origine par défaut est définie, elle est proposée.</li>
+    <li><b>Ajouter les colis.</b> Cliquez <span class="ui">Colis</span>. Le nouveau colis reprend les valeurs du précédent ; ajustez-les au besoin. Il faut au moins un colis.</li>
+    <li><b>Enregistrer, puis marquer prête.</b> Cliquez <span class="ui">Enregistrer</span>, puis <span class="ui primary">Marquer prête</span>. Si un champ manque, le message indique lesquels.</li>
+    <li><b>Imprimer.</b> Cliquez <span class="ui primary">Imprimer</span> : une étiquette est imprimée par colis. Le nombre de colis est indiqué entre parenthèses. Le bouton devient ensuite <span class="ui">Réimprimer</span>.</li>
+    <li><b>Confirmer l’expédition.</b> Cliquez <span class="ui">Expédiée</span>, saisissez le numéro de suivi si vous l’avez, puis <span class="ui">Confirmer</span>.</li>
+    <li><b>Annuler ou dupliquer.</b> <span class="ui danger">Annuler</span> passe l’étiquette à <i>Annulée</i>. <span class="ui">Dupliquer</span> crée une copie pour un autre envoi.</li>
+  </ol>
+
+  <h2>Le carnet d’adresses et les origines</h2>
+  <ol class="steps">
+    <li><b>Ajouter une adresse.</b> Ouvrez <span class="ui tab">Carnet d’adresses</span>, cliquez <span class="ui primary">Adresse</span>, saisissez le code client et le nom, puis <span class="ui">Enregistrer</span>.</li>
+    <li><b>Définir une origine par défaut.</b> Ouvrez <span class="ui tab">Paramètres</span>, ajoutez une <span class="ui">Origine</span> (usine, entrepôt), donnez-lui un <span class="ui field">Libellé</span>, cochez <span class="ui">Par défaut</span>, puis <span class="ui">Enregistrer</span>.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Une étiquette ne se modifie que tant qu’elle est <i>Brouillon</i> ou <i>Prête</i>.</li>
+      <li>Les indicateurs du haut comptent les brouillons, les étiquettes à imprimer, les expéditions du jour et les colis du mois.</li>
+      <li>La recherche accepte un numéro, un client, un job ou un numéro de suivi.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module</span> pour voir les étiquettes. <span class="chip">Créer / modifier des étiquettes</span> pour en créer. <span class="chip">Imprimer et expédier</span> pour imprimer et confirmer l’expédition. <span class="chip">Annuler des étiquettes</span>, <span class="chip">Gérer le carnet d’adresses</span> et <span class="chip">Gérer les paramètres</span> complètent le tout.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch9">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-calc"/></svg>
+    <div class="chapter-num">Chapitre 9</div>
+    <h1>Comptabilité</h1>
+    <p class="lead">Les factures fournisseurs et les bons de commande, rapprochés automatiquement avec Business Central (BC) avant d’être comptabilisés.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Les courriels qui arrivent à la boîte des factures sont lus. Chaque PDF est classé en <b>facture</b>, <b>bon de commande</b> ou <b>autre</b>. Une facture fournisseur est ensuite comparée à son bon de commande et à la réception : c’est le <b>rapprochement à trois</b>. Si tout concorde, elle peut être créée dans Business Central. Les écarts attendent une personne.</p>
+
+  <figure class="fig">
+    <div class="fig-box">
+      <div class="inv-flow">
+        <div class="inv-s"><b>Reçue</b><span>Le PDF arrive par courriel</span></div>
+        <div class="inv-a">→</div>
+        <div class="inv-s"><b>Extraite</b><span>Les données sont lues</span></div>
+        <div class="inv-a">→</div>
+        <div class="inv-s"><b>Validée BC</b><span>Rapprochée au bon et à la réception</span></div>
+        <div class="inv-a">→</div>
+        <div class="inv-s last"><b>Comptabilisée</b><span>Créée dans Business Central</span></div>
+      </div>
+      <div class="inv-ex">Une facture qui ne concorde pas reste en <b>exception</b>. Une personne la corrige, la rejette avec un motif, ou approuve malgré l’écart si elle a le droit de dérogation et une justification écrite.</div>
+    </div>
+    <figcaption>Figure 6. Le parcours d’une facture fournisseur, de la réception à la comptabilisation.</figcaption>
+  </figure>
+
+  <h2>Les sections du module</h2>
+  <table class="t">
+    <thead><tr><th>Section</th><th>Ce qu’on y trouve</th></tr></thead>
+    <tbody>
+      <tr><td>Aperçu</td><td>Les courriels à traiter, les exceptions, les factures prêtes et celles comptabilisées ce mois-ci. Le bouton <span class="ui">Ouvrir la boîte de réception</span> mène aux courriels.</td></tr>
+      <tr><td>Boîte de réception : Courriels</td><td>Les messages reçus, avec leurs PDF. Un badge <span class="pill pill-gold">Nouvelle</span> signale un courriel non encore importé.</td></tr>
+      <tr><td>Boîte de réception : Documents</td><td>Tous les PDF classés. Filtres <i>Tous</i>, <i>Factures</i> et <i>Bons de commande</i>.</td></tr>
+      <tr><td>Entrant : BC clients</td><td>Les bons de commande de vos clients, rapprochés aux commandes BC.</td></tr>
+      <tr><td>Entrant : Factures clients</td><td>Les factures de vente créées dans BC, avec leur statut.</td></tr>
+      <tr><td>Entrant : À recevoir</td><td>Les factures clients non encaissées, par échéance (<i>En retard</i>, <i>7 jours</i>, <i>30 jours</i>, <i>Plus tard</i>).</td></tr>
+      <tr><td>Sortant : BC fournisseurs</td><td>Les confirmations de nos commandes, rapprochées aux bons de commande BC.</td></tr>
+      <tr><td>Sortant : Factures fournisseurs</td><td>Les factures importées (onglet <i>À traiter</i>) et celles de BC (onglet <i>Business Central (synchronisées)</i>).</td></tr>
+      <tr><td>Sortant : À payer</td><td>Les factures fournisseurs non payées, par échéance.</td></tr>
+      <tr><td>Paramètres</td><td>Le mode d’approbation, la boîte surveillée et les tolérances de rapprochement.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment faire</h2>
+  <h3>Traiter une facture reçue par courriel</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Boîte de réception</span>, puis <span class="ui tab">Courriels</span>. Cliquez <span class="ui">Synchroniser</span> pour récupérer les nouveaux messages.</li>
+    <li>Sélectionnez le courriel, puis cliquez <span class="ui primary">Extraire et valider avec BC</span>.</li>
+    <li>Si rien n’est détecté, cliquez <span class="ui">Saisir la facture manuellement</span> et entrez les données à partir du PDF.</li>
+    <li>La facture s’ouvre. Vérifiez les lignes : la colonne <span class="ui tab">Écart</span> signale les différences.</li>
+    <li>Cliquez <span class="ui primary">Approuver et comptabiliser</span>, puis <span class="ui">Comptabiliser</span> dans la fenêtre de confirmation.</li>
+  </ol>
+
+  <h3>Corriger, rejeter, rouvrir</h3>
+  <ol class="steps">
+    <li><b>Corriger.</b> Dans la facture, cliquez <span class="ui">Corriger</span>, modifiez les champs ou les lignes, puis <span class="ui">Enregistrer et valider</span>. La facture est revalidée avec BC. <span class="ui">Annuler</span> abandonne les changements.</li>
+    <li><b>Rejeter.</b> Cliquez <span class="ui danger">Rejeter</span>, saisissez le motif (il est communiqué au fournisseur), puis confirmez.</li>
+    <li><b>Rouvrir.</b> Une facture rejetée se reprend avec <span class="ui">Réouvrir</span>.</li>
+    <li><b>Lire l’historique.</b> La section <span class="ui tab">Historique</span> garde la trace de chaque action.</li>
+  </ol>
+
+  <h3>Traiter un bon de commande</h3>
+  <ol class="steps">
+    <li>Dans <span class="ui menu">Documents</span>, ouvrez le document (badge <i>Bon de commande</i>) et cliquez <span class="ui">Traiter</span>. Le rapprochement avec BC s’exécute, puis le bon s’ouvre.</li>
+    <li>Ouvrez le bon, vérifiez le rapprochement, puis cliquez <span class="ui primary">Approuver et créer la facture</span> (bon client) ou <span class="ui primary">Confirmer</span> (bon fournisseur).</li>
+    <li>Si le rapprochement n’est pas fait ou qu’il reste des exceptions, le bouton est désactivé. Corrigez le bon, cliquez <span class="ui">Rapprocher</span> pour relancer la comparaison, ou demandez une dérogation.</li>
+  </ol>
+
+  <h3>Changer le mode d’approbation</h3>
+  <table class="t">
+    <thead><tr><th>Mode</th><th>Ce qui se passe</th></tr></thead>
+    <tbody>
+      <tr><td><b>Manuel</b></td><td>Une personne fait chaque étape.</td></tr>
+      <tr><td><b>Assisté</b> (recommandé)</td><td>Les courriels sont classés, lus et rapprochés automatiquement. Une personne approuve avant toute création dans BC.</td></tr>
+      <tr><td><b>Automatique</b></td><td>Comme Assisté, mais les rapprochements parfaits sont approuvés et créés dans BC sans intervention. Tout écart attend une personne. Un montant maximal peut être fixé (0 = sans limite).</td></tr>
+    </tbody>
+  </table>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Paramètres</span> du module. Choisissez le <span class="ui field">Mode d’approbation</span>.</li>
+    <li>Pour le mode <i>Automatique</i>, renseignez <span class="ui field">Montant maximum approuvé automatiquement</span>.</li>
+    <li>Cliquez <span class="ui primary">Enregistrer</span>. Pour lancer tout de suite le traitement, cliquez <span class="ui">Exécuter maintenant</span> (inactif en mode Manuel).</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Les listes <span class="ui tab">À payer</span> et <span class="ui tab">À recevoir</span> lisent une copie de Business Central. Un paiement saisi dans BC disparaît à la prochaine synchronisation (<span class="ui">Synchroniser BC</span>).</li>
+      <li>Une facture comptabilisée ou rejetée est verrouillée : elle ne se modifie plus.</li>
+      <li>Les actions automatiques sont inscrites au journal sous le nom <i>Automatisation</i>.</li>
+    </ul>
+  </div>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>À valider avant la mise en service complète</b>
+    <p>Les connexions à Business Central et à la boîte Microsoft Graph suivent les interfaces documentées, mais n’ont pas encore été validées sur un vrai locataire. Par défaut, la facture est créée en <i>brouillon</i> dans BC, sans être comptabilisée. Vérifiez avec votre partenaire BC avant de passer en mode de comptabilisation.</p>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module</span>, <span class="chip">Voir la boîte de réception</span> et <span class="chip">Voir À payer / À recevoir</span> pour consulter. <span class="chip">Importer des factures</span>, <span class="chip">Corriger les factures</span>, <span class="chip">Valider avec Business Central</span>, <span class="chip">Approuver / rejeter</span> et <span class="chip">Comptabiliser dans BC</span> pour agir sur les factures. <span class="chip">Traiter les bons de commande reçus</span> et <span class="chip">Approuver / rejeter les bons de commande</span> pour les bons. <span class="chip">Déroger aux exceptions</span> pour passer malgré un écart. <span class="chip">Gérer les paramètres</span> pour le mode d’approbation.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch10">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-target"/></svg>
+    <div class="chapter-num">Chapitre 10</div>
+    <h1>Align</h1>
+    <p class="lead">La stratégie de l’entreprise, ses objectifs trimestriels (les Rocks), ses priorités et ses réunions d’équipe, sur une même base.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Align aligne toute l’équipe sur les mêmes priorités. Le plan stratégique tient sur une page. Les <b>Rocks</b> sont les objectifs du trimestre ; chaque priorité appartient à un Rock. Les <b>huddles</b> sont des réunions d’équipe courtes et régulières, avec un ordre du jour fixe et un plan d’action pour la semaine.</p>
+
+  <h2>Les sections</h2>
+  <div class="cards">
+    <div class="card"><h4><span class="dot"></span>Tableau de bord</h4><p>La progression des Rocks et l’état des priorités du trimestre. Lecture seule.<span class="where">Tuiles : Mes priorités, bloquées, en retard</span></p></div>
+    <div class="card"><h4><span class="dot"></span>Stratégie</h4><p>Le plan stratégique sur une page, la liste de vérification d’alignement et la Vision 4D.<span class="where">Trois onglets</span></p></div>
+    <div class="card"><h4><span class="dot"></span>Rocks</h4><p>Les objectifs trimestriels, avec leur progression. Un Rock progresse selon ses priorités terminées.<span class="where">Mes Rocks · par trimestre</span></p></div>
+    <div class="card"><h4><span class="dot"></span>Huddles</h4><p>Les réunions récurrentes : fréquence, membres, lien vidéo.<span class="where">Une réunion par semaine</span></p></div>
+    <div class="card"><h4><span class="dot"></span>Tâches hebdo</h4><p>Les actions de la semaine de chacun, en vue « Mes tâches » ou « Toute l’équipe ».<span class="where">Une action non finie après 14 jours est signalée</span></p></div>
+    <div class="card"><h4><span class="dot"></span>Équipe</h4><p>Une carte par membre, avec son bilan : tâches, priorités, blocages, retards.<span class="where">Alt + flèche pour changer de personne</span></p></div>
+  </div>
+
+  <h2>Comment faire</h2>
+  <h3>Lire le plan et la Vision 4D</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Stratégie</span>. Choisissez l’onglet voulu : <span class="ui tab">Plan stratégique sur une page</span>, <span class="ui tab">Liste de vérification d’alignement</span> ou <span class="ui tab">Vision 4D</span>.</li>
+    <li>Pour imprimer le plan, cliquez <span class="ui">Imprimer</span>. Tout le monde peut l’imprimer.</li>
+  </ol>
+  <h3>Modifier la stratégie</h3>
+  <ol class="steps">
+    <li>Dans l’onglet voulu, cliquez <span class="ui primary">Modifier</span>, faites vos changements, puis <span class="ui">Enregistrer</span> (ou <span class="ui">Annuler</span>).</li>
+    <li>Les dates des cibles, des objectifs et du thème du trimestre doivent être au format <span class="mono">AAAA-MM-JJ</span>. Sinon, l’enregistrement est refusé.</li>
+    <li>Pour ajouter un point à la liste de vérification : <span class="ui tab">Liste de vérification d’alignement</span>, <span class="ui">Élément</span>, puis Catégorie, Élément et Note, et <span class="ui">Enregistrer</span>. Le bouton <span class="ui">Charger la liste Align (40 points)</span> n’apparaît que si la liste est vide.</li>
+  </ol>
+  <h3>Créer un Rock et ses priorités</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Rocks</span>, puis cliquez <span class="ui primary">+ Rock</span>.</li>
+    <li>Saisissez le <span class="ui field">Titre</span> (obligatoire), la <span class="ui field">Description</span>, le <span class="ui field">Responsable</span> (vous par défaut), le <span class="ui field">Trimestre</span>, et au besoin la priorité stratégique ou l’initiative clé liée. Cliquez <span class="ui">Enregistrer</span>.</li>
+    <li>Ouvrez le Rock, puis cliquez <span class="ui">Priorité</span>. Saisissez le titre, le responsable et l’échéance, puis <span class="ui">Ajouter</span>.</li>
+  </ol>
+  <h3>Préparer et tenir un huddle</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Huddles</span>, puis cliquez <span class="ui primary">Huddle</span>. Saisissez le <span class="ui field">Nom</span>, choisissez la <span class="ui field">Fréquence</span>, le <span class="ui field">Jour</span>, le <span class="ui field">Début</span>, la <span class="ui field">Fin</span> et les <span class="ui field">Membres</span>. Cliquez <span class="ui">Enregistrer</span>.</li>
+    <li>Ouvrez la réunion de la semaine. Elle suit l’ordre du jour : Rocks, plan d’action de la semaine, points de chaque membre.</li>
+    <li>Dans <span class="ui tab">Plan d’action de la semaine</span>, saisissez l’action dans <span class="ui field">Nouvelle action…</span>, choisissez <span class="ui field">Assigné à</span> et <span class="ui">Hebdo</span> ou <span class="ui">Rock</span>, puis validez avec le bouton d’ajout.</li>
+    <li>Cliquez <span class="ui">Reporter à cette semaine</span> pour reprendre les actions non terminées des semaines passées.</li>
+    <li>Le lien de la réunion en visioconférence s’ouvre par <span class="ui">Visioconférence</span>.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Une priorité est <i>terminée</i> à 100 %. La progression d’un Rock est le nombre de priorités terminées divisé par le nombre de priorités non archivées qui lui sont rattachées.</li>
+      <li>Le responsable d’une priorité ne modifie que le statut, la santé, l’avancement (%) et le blocage. Les gestionnaires modifient tous les champs.</li>
+      <li>« Quoi de neuf ? » dans une réunion s’enregistre au clic sur <span class="ui">Enregistrer</span> ou quand vous quittez le champ.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder</span> pour tout voir et mettre à jour ses propres priorités. <span class="chip">Gérer les Rocks</span>, <span class="chip">Gérer et assigner toutes les priorités</span>, <span class="chip">Modifier la stratégie</span> et <span class="chip">Gérer les huddles</span> pour les gestionnaires. <span class="chip">Importer les données depuis l’outil KPI</span> pour la reprise des données (chapitre 14).</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch11">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-users"/></svg>
+    <div class="chapter-num">Chapitre 11</div>
+    <h1>Gestion O365</h1>
+    <p class="lead">Gérer plusieurs locataires Microsoft 365 depuis un seul endroit : comptes, licences, contacts et groupes de distribution.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Le module s’adresse à l’équipe TI et aux personnes qui gèrent les comptes. Il permet de créer et de bloquer des comptes Microsoft 365, de réinitialiser un mot de passe, d’attribuer une licence, et d’ajouter des contacts ou des membres à un groupe de distribution. Les changements se font dans Microsoft 365 lui-même.</p>
+
+  <h2>Comment faire</h2>
+  <h3>Choisir le locataire</h3>
+  <ol class="steps">
+    <li>Dans la barre du haut, choisissez le locataire. Le choix est gardé dans ce navigateur et vaut pour toutes les pages du module.</li>
+    <li>Pour ajouter un locataire, ouvrez <span class="ui tab">Locataires</span>, cliquez <span class="ui primary">Locataire</span>, puis saisissez le <span class="ui field">Nom</span>, l’<span class="ui field">ID du locataire ou domaine .onmicrosoft.com</span> et les <span class="ui field">Notes</span>.</li>
+    <li><span class="ui danger">Retirer</span> supprime seulement l’enregistrement dans Imago. Rien n’est supprimé dans Microsoft 365.</li>
+  </ol>
+  <h3>Gérer les utilisateurs</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui tab">Utilisateurs</span>. Le filtre par défaut est <i>Actifs avec licence</i> ; choisissez <i>Utilisateurs actifs</i>, <i>Tous</i>, <i>Bloqués</i> ou <i>Sans licence</i> au besoin.</li>
+    <li><b>Créer un utilisateur.</b> Cliquez <span class="ui primary">Nouvel utilisateur</span>. Saisissez le prénom, le nom et le nom d’utilisateur (alias et domaine). Cliquez <span class="ui">Générer</span> pour le mot de passe temporaire (8 caractères minimum), cochez les licences, puis <span class="ui">Enregistrer</span>.</li>
+    <li><b>Noter le mot de passe.</b> Le mot de passe temporaire s’affiche en clair dans le message de réussite : notez-le tout de suite.</li>
+    <li><b>Réinitialiser un mot de passe.</b> Cliquez l’icône <span class="ui icon-btn">Réinitialiser le mot de passe</span> de la ligne, puis <span class="ui">Réinitialiser</span>. <i>Exiger un changement à la prochaine connexion</i> est coché par défaut.</li>
+    <li><b>Bloquer ou autoriser la connexion.</b> Cliquez <span class="ui danger">Bloquer la connexion</span> ou <span class="ui">Autoriser la connexion</span>. Ces actions ne demandent pas de confirmation.</li>
+    <li><b>Supprimer.</b> Cliquez <span class="ui danger">Supprimer</span> et confirmez. Le compte reste récupérable pendant 30 jours dans Microsoft 365.</li>
+  </ol>
+  <h3>Contacts, groupes et licences</h3>
+  <ol class="steps">
+    <li><b>Ajouter un contact.</b> Ouvrez <span class="ui tab">Contacts</span>, cliquez <span class="ui primary">Contact</span>, saisissez le prénom, le nom, le <span class="ui field">Courriel externe</span> et l’<span class="ui field">Entreprise</span>, puis <span class="ui">Ajouter</span>.</li>
+    <li><b>Ajouter un membre à un groupe.</b> Dans <span class="ui tab">Groupes de distribution</span>, choisissez le groupe à gauche, saisissez le courriel dans <span class="ui field">Courriel d’un utilisateur ou d’un contact</span>, puis cliquez <span class="ui">Ajouter</span>. Retirer un membre demande une confirmation.</li>
+    <li><b>Attribuer une licence.</b> Dans <span class="ui tab">Licences</span>, cliquez la licence, choisissez la personne dans <span class="ui field">Attribuer à un utilisateur…</span>, puis cliquez <span class="ui">Attribuer</span>. Le bouton est désactivé s’il ne reste plus de place libre. La personne doit avoir un pays d’utilisation.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Supprimer un contact le retire aussi des groupes de distribution, après confirmation.</li>
+      <li>Chaque modification est écrite dans le journal d’audit.</li>
+      <li>En mode démonstration du navigateur, deux locataires fictifs sont chargés pour s’exercer.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module</span> pour lire les comptes, les licences et les groupes. <span class="chip">Gérer les utilisateurs et leurs licences</span> pour créer, modifier, bloquer, supprimer et attribuer. <span class="chip">Ajouter / modifier / supprimer des contacts</span> et <span class="chip">Gérer les membres des groupes de distribution</span> pour le carnet et les groupes. <span class="chip">Ajouter / retirer des locataires</span> pour en ajouter ou en retirer, et <span class="chip">Voir la section Locataires</span> pour les consulter.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch12">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-shield"/></svg>
+    <div class="chapter-num">Chapitre 12</div>
+    <h1>RH et conformité</h1>
+    <p class="lead">Le module RH regroupe les ressources humaines de Pubco. Pour l’instant, sa section <i>Conformité</i> est en service : normes suivies, exigences, audits et politiques.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>La conformité permet de savoir où en est Pubco face aux normes et aux certifications qu’elle suit (par exemple ISO 9001, ISO 27001, la Loi 25, FSC ou la SST). Pour chaque norme, on tient la liste des exigences, leur statut, leurs preuves, les audits et les non-conformités, ainsi que les politiques et procédures.</p>
+
+  <h2>Les pages de la conformité</h2>
+  <table class="t">
+    <thead><tr><th>Page</th><th>Ce que vous y faites</th></tr></thead>
+    <tbody>
+      <tr><td>Aperçu</td><td>Le score global, les non-conformités ouvertes, les risques élevés, les échéances des 45 prochains jours et la liste des normes suivies. Les dates dépassées s’affichent en rouge.</td></tr>
+      <tr><td>Certifications et normes</td><td>Ajouter une norme vide, ou <span class="ui">Depuis un modèle</span>. Le modèle crée toutes les exigences, toutes à faire.</td></tr>
+      <tr><td>Audits et NC</td><td>Planifier et saisir des audits (interne, externe ou de certification), leurs constats et les non-conformités.</td></tr>
+      <tr><td>Politiques et procédures</td><td>Le registre des documents : version, statut (Brouillon, Approuvé, Obsolète), responsable, dates et lien vers le document.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment faire</h2>
+  <h3>Suivre une norme</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">RH</span>, puis <span class="ui tab">Conformité</span>, puis <span class="ui tab">Certifications et normes</span>.</li>
+    <li>Cliquez <span class="ui primary">Depuis un modèle</span>, choisissez le <span class="ui field">Modèle</span>, puis <span class="ui">Ajouter</span>. Une norme déjà ajoutée est désactivée (« déjà ajouté »).</li>
+    <li>Cliquez la ligne pour ouvrir la norme. Dans la liste des exigences, changez le <span class="ui field">Statut</span> directement dans la colonne : À faire, En cours, Mise en place, Vérifiée ou Non applicable. Le <span class="ui field">Risque</span> (Faible, Moyen, Élevé) et le responsable se règlent dans la fiche.</li>
+    <li>Pour ajouter une preuve, ouvrez l’exigence, saisissez dans <span class="ui field">Preuves</span>, cliquez <span class="ui">Ajouter</span>, puis <span class="ui">Enregistrer</span>.</li>
+  </ol>
+  <h3>Créer un audit et un constat</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui tab">Audits et NC</span>, puis cliquez <span class="ui primary">Audit</span>.</li>
+    <li>Saisissez le <span class="ui field">Titre</span>, la <span class="ui field">Certification / norme</span>, le <span class="ui field">Type</span> (Interne, Externe, Certification), la <span class="ui field">Date</span>, le <span class="ui field">Statut</span> (Planifié, Réalisé) et l’<span class="ui field">Auditeur</span>. Cliquez <span class="ui">Enregistrer</span>.</li>
+    <li>Ouvrez l’audit, cliquez <span class="ui">Constat</span>, puis saisissez la description, la gravité (NC majeure, NC mineure ou Observation), le responsable et l’échéance.</li>
+    <li>Pour fermer une non-conformité, cochez son rond dans la liste.</li>
+  </ol>
+  <h3>Tenir le registre des politiques</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui tab">Politiques et procédures</span>, puis cliquez <span class="ui primary">Document</span>.</li>
+    <li>Saisissez le <span class="ui field">Titre</span>, la <span class="ui field">Version</span>, le <span class="ui field">Statut</span>, le <span class="ui field">Responsable</span> et le <span class="ui field">Lien</span> (SharePoint, Drive…), puis <span class="ui">Enregistrer</span>.</li>
+  </ol>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>Les modèles sont des points de départ</b>
+    <p>Les normes proposées sont des modèles pour une entreprise québécoise. Elles doivent être validées auprès de l’organisme certificateur ou d’un conseiller juridique avant d’être considérées comme complètes.</p>
+  </div>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Score global : la part des exigences actives. Les exigences « Non applicable » sont exclues. Mise en place compte pour 0,75, Vérifiée pour 1, En cours pour 0,3 et À faire pour 0.</li>
+      <li>Pour archiver une norme sans la perdre, décochez <i>Actif</i>. Supprimer une norme supprime aussi toutes ses exigences.</li>
+      <li>L’icône corbeille de l’éditeur d’audit ou de document supprime immédiatement, sans confirmation. Réfléchissez avant.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module RH</span> et <span class="chip">Conformité : accéder</span> pour voir la section. <span class="chip">Conformité : gérer les exigences et preuves</span>, <span class="chip">créer / modifier les certifications et normes</span>, <span class="chip">gérer les audits et non-conformités</span> et <span class="chip">gérer les politiques et procédures</span> pour agir dans chaque page.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch13">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-gantt"/></svg>
+    <div class="chapter-num">Chapitre 13</div>
+    <h1>Function Fox</h1>
+    <p class="lead">La gestion de projet du studio : clients, projets, tâches, feuilles de temps, budgets et rentabilité. Inspirée de FunctionFox.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Function Fox suit le travail par <b>client</b>, puis par <b>projet</b>, puis par <b>tâche</b>. Chaque personne inscrit son temps sur les tâches. Le temps est ensuite approuvé, comparé au budget et intégré aux rapports de rentabilité.</p>
+
+  <h2>Les pages</h2>
+  <div class="cards">
+    <div class="card"><h4><span class="dot"></span>Tableau de bord</h4><p>Vos heures et tâches de la semaine, le temps à approuver et les projets à surveiller.</p></div>
+    <div class="card"><h4><span class="dot"></span>Projets</h4><p>Heures, montant facturable et statut. Une barre passe en alerte à 80 % du budget, par défaut.</p></div>
+    <div class="card"><h4><span class="dot"></span>Tâches</h4><p>En liste ou en tableau par statut (À faire, En cours, En revue, Terminée).</p></div>
+    <div class="card"><h4><span class="dot"></span>Feuille de temps</h4><p>Votre semaine, par projet et par tâche, avec chronomètre et soumission.</p></div>
+    <div class="card"><h4><span class="dot"></span>Approbations</h4><p>Le temps soumis par l’équipe, à approuver ou à rejeter.</p></div>
+    <div class="card"><h4><span class="dot"></span>Échéancier</h4><p>Diagramme de Gantt des projets et des tâches, filtrable par client, projet ou personne.</p></div>
+    <div class="card"><h4><span class="dot"></span>Disponibilités</h4><p>La charge prévue et réelle de chacun sur 8 semaines, et les absences.</p></div>
+    <div class="card"><h4><span class="dot"></span>Clients, Rapports, Équipe et taux</h4><p>Les clients, six rapports exportables en CSV, et les taux de coût (confidentiels).</p></div>
+  </div>
+
+  <h2>Comment faire</h2>
+  <h3>Saisir son temps</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Feuille de temps</span>, puis cliquez <span class="ui">Ajouter une ligne</span>.</li>
+    <li>Choisissez le <span class="ui field">Projet</span> et la <span class="ui field">Tâche</span> (ou <i>Sans tâche</i>).</li>
+    <li>Tapez les heures dans les cases du jour. Vous pouvez écrire <span class="mono">1,5</span>, <span class="mono">1.5</span> ou <span class="mono">1:30</span>. Appuyez sur Entrée pour enregistrer, Échap pour annuler. Une case vide ou 0 supprime l’entrée.</li>
+    <li>Pour chronométrer, cliquez <span class="ui">Démarrer</span>, puis <span class="ui">Arrêter et saisir X h</span>. Le temps est arrondi au quart d’heure supérieur.</li>
+    <li>Quand la semaine est complète, cliquez <span class="ui primary">Soumettre la semaine</span>, puis confirmez. Le temps est alors verrouillé jusqu’à son approbation.</li>
+    <li>Si une ligne est <i>Rejetée</i>, lisez le motif affiché, corrigez la ligne, puis soumettez à nouveau. Pour reprendre une semaine soumise, cliquez <span class="ui">Reprendre pour modifier</span>.</li>
+  </ol>
+
+  <h3>Créer un projet et une tâche</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Projets</span>, puis cliquez <span class="ui primary">Nouveau projet</span>. Saisissez le <span class="ui field">Code</span> et le <span class="ui field">Nom</span> (obligatoires), le <span class="ui field">Client</span>, le <span class="ui field">Responsable</span>, le <span class="ui field">Statut</span> et la <span class="ui field">Facturation</span>.</li>
+    <li>Au besoin, indiquez le <span class="ui field">Budget (heures)</span>, le <span class="ui field">Budget ($)</span> et le <span class="ui field">Seuil d’alerte (%)</span>. Cochez les <span class="ui field">Membres (peuvent saisir du temps)</span>, puis <span class="ui">Enregistrer</span>.</li>
+    <li>Dans <span class="ui menu">Tâches</span>, cliquez <span class="ui primary">Nouvelle tâche</span>, choisissez le projet, puis saisissez le nom, les personnes assignées, le statut, la priorité et l’échéance.</li>
+  </ol>
+
+  <h3>Approuver le temps</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Approbations</span>. Les onglets <span class="ui tab">À approuver (n)</span> et <span class="ui tab">Approuvés</span> séparent les semaines.</li>
+    <li>Sur la carte d’une personne, cliquez <span class="ui primary">Approuver tout</span>, ou <span class="ui">Approuver</span> sur une seule ligne.</li>
+    <li>Pour rejeter, cliquez <span class="ui danger">Rejeter</span> et saisissez le motif : il est visible par la personne, 500 caractères maximum.</li>
+  </ol>
+
+  <h3>Sortir un rapport</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Rapports</span>, puis choisissez l’onglet : <span class="ui tab">Temps par projet</span>, <span class="ui tab">Temps par personne</span>, <span class="ui tab">Budget vs réel</span>, <span class="ui tab">Rentabilité</span>, <span class="ui tab">Dépenses</span> ou <span class="ui tab">Détail du temps</span>.</li>
+    <li>Choisissez la période (<i>Cette semaine</i>, <i>Ce mois</i>, <i>Ce trimestre</i>, <i>Cette année</i>, ou <i>Du</i> et <i>Au</i>), puis cliquez <span class="ui">Exporter CSV</span>. Le fichier utilise le point-virgule et l’UTF-8.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Vous ne pouvez pas approuver votre propre temps : les boutons n’apparaissent pas.</li>
+      <li>Un projet ou une tâche qui a du temps saisi ne se supprime pas : archivez-le ou marquez la tâche <i>Terminée</i>.</li>
+      <li>Une personne sans taux de coût compte pour 0 $ dans la rentabilité, et un avertissement le signale.</li>
+      <li>Le revenu d’un projet est le total des honoraires facturables et des dépenses facturables. Le coût est calculé à partir des heures et des taux de coût.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Utiliser (voir les projets, saisir son temps, ses tâches)</span> pour la feuille de temps et les tâches. <span class="chip">Gérer (clients, projets, dépenses, taux de facturation, équipe)</span> pour créer et modifier. <span class="chip">Approuver les feuilles de temps</span> pour les approbations. <span class="chip">Rapports, rentabilité et coûts</span> pour les rapports et les coûts. Le taux de coût n’est visible que sur la page Équipe et taux.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch14">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-target"/></svg>
+    <div class="chapter-num">Chapitre 14</div>
+    <h1>KPI</h1>
+    <p class="lead">Les indicateurs de chaque équipe, leurs priorités et leurs réunions hebdomadaires. Le module est dans la section <i>Archive temporaire</i>.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>L’outil KPI suit les chiffres qui comptent pour chaque équipe. Chaque indicateur a une cible et un sens (plus haut ou plus bas est mieux). Les priorités trimestrielles suivent leur progression. Les huddles sont les réunions d’équipe où l’on regarde les chiffres ensemble, chaque semaine.</p>
+
+  <h2>Les pages</h2>
+  <table class="t">
+    <thead><tr><th>Page</th><th>Ce qu’on y voit</th></tr></thead>
+    <tbody>
+      <tr><td>Tableau de bord</td><td>Les nombres critiques (vert : atteint ; jaune : proche ; rouge : loin de la cible), les saisies en retard, vos priorités et vos actions. Le bouton <span class="ui">Visite guidée</span> explique la page.</td></tr>
+      <tr><td>Indicateurs</td><td>Deux tableaux : hebdomadaire (8 semaines) et mensuel (6 mois). La couleur indique l’écart à la cible.</td></tr>
+      <tr><td>Priorités</td><td>Les priorités de l’entreprise et des équipes, avec leurs sous-priorités et leurs tâches.</td></tr>
+      <tr><td>Huddles</td><td>Les réunions d’équipe récurrentes, avec leurs membres, leur fréquence et leur lien vidéo.</td></tr>
+      <tr><td>Équipes</td><td>Les équipes : nom, responsable, couleur et membres.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment faire</h2>
+  <h3>Saisir les chiffres</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Indicateurs</span>. Cliquez la cellule de la période voulue.</li>
+    <li>Saisissez la <span class="ui field">Valeur</span> (et une <span class="ui field">Note</span> si besoin), puis <span class="ui">Enregistrer</span>. La touche Entrée enregistre aussi. Une valeur vide signifie « non applicable ».</li>
+    <li>Pour créer un indicateur, cliquez <span class="ui primary">Indicateur</span>. Saisissez le <span class="ui field">Nom</span> (obligatoire), la <span class="ui field">Cible</span>, la <span class="ui field">Fréquence</span> et le <span class="ui field">Sens</span>, puis <span class="ui">Enregistrer</span>.</li>
+  </ol>
+
+  <h3>Mettre à jour les priorités</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Priorités</span>, puis cliquez <span class="ui primary">Mise à jour de la semaine</span>.</li>
+    <li>Changez la <span class="ui field">Progression (%)</span>, le <span class="ui field">Statut</span> ou la <span class="ui field">Note de la semaine</span>, puis <span class="ui">Enregistrer</span>. Le bouton reste désactivé tant que rien n’a changé.</li>
+    <li>Pour ajouter une priorité, cliquez <span class="ui">Priorité</span> et saisissez le titre, le responsable, le statut et la progression.</li>
+  </ol>
+
+  <h3>Tenir une réunion de huddle</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui menu">Huddles</span>, puis cliquez <span class="ui">Ouvrir la réunion</span> sur la carte du huddle. Pour en créer un, cliquez <span class="ui primary">Huddle</span> : <span class="ui field">Nom</span>, <span class="ui field">Équipe</span>, <span class="ui field">Fréquence</span>, <span class="ui field">Jour</span>, <span class="ui field">Début</span>, <span class="ui field">Fin</span> et <span class="ui field">Membres</span>.</li>
+    <li>Changez de semaine avec <span class="ui">Semaine précédente</span>, <span class="ui">Cette semaine</span> ou <span class="ui">Semaine suivante</span>.</li>
+    <li>Dans la section <i>Qui - Quoi - Quand</i>, saisissez le <span class="ui field">Quoi ?</span>, le <span class="ui field">Qui</span> et le <span class="ui field">Quand</span>, puis cliquez <span class="ui">Ajouter</span>. Cochez <span class="ui">Fait</span> quand c’est terminé.</li>
+    <li>Au tour de table, chacun remplit sa carte personnelle. Seule la personne concernée, ou le responsable du huddle, peut la modifier.</li>
+    <li>À la fin, cliquez <span class="ui">Copier le résumé</span> pour obtenir le compte rendu.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Supprimer un indicateur, une priorité ou un huddle est irréversible : une confirmation est demandée, et tout ce qui s’y rattache disparaît avec.</li>
+      <li>Le lien vidéo doit commencer par <span class="mono">https://</span> ou <span class="mono">http://</span>.</li>
+      <li>Une valeur saisie se garde à la semaine : corrigez-la dans la même cellule plutôt que de créer un doublon.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Outils : accéder au module</span> et <span class="chip">Outils : utiliser l’outil KPI (indicateurs, priorités, huddles)</span> pour l’ensemble des pages. <span class="chip">Outils : gérer les données KPI</span> pour l’importation, les instantanés et les réglages (chapitre 18).</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch15">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-help"/></svg>
+    <div class="chapter-num">Chapitre 15</div>
+    <h1>Support TI</h1>
+    <p class="lead">Le portail du support informatique AKAB, affiché directement dans Imago, sans quitter l’application.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Pour un problème informatique, le Support TI vous donne accès au portail d’AKAB. Il s’ouvre dans Imago et occupe tout l’écran. Le module reste épinglé en bas du menu.</p>
+
+  <h2>Comment faire</h2>
+  <ol class="steps">
+    <li><b>Ouvrir le support.</b> Cliquez <span class="ui menu">Support TI</span>, tout en bas du menu. Le message <i>Chargement du support…</i> s’affiche pendant le chargement.</li>
+    <li><b>Changer de module.</b> La barre du haut reste disponible pour passer à un autre module.</li>
+    <li><b>Changer l’adresse du portail</b> (personnes autorisées seulement). Cliquez l’icône de réglage dans la barre du haut, saisissez l’adresse qui commence par <span class="mono">https://</span>, puis <span class="ui">Enregistrer</span>. <span class="ui">Par défaut</span> rétablit l’adresse AKAB.</li>
+  </ol>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <p>Si la page reste vide, le site du support refuse peut-être l’affichage intégré. Ouvrez le portail dans votre navigateur, ou demandez à un administrateur de vérifier l’adresse.</p>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au support TI</span> pour ouvrir le portail. <span class="chip">Changer l’adresse du support</span> pour modifier l’adresse affichée.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch16">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-layers"/></svg>
+    <div class="chapter-num">Chapitre 16</div>
+    <h1>Sandbox</h1>
+    <p class="lead">Décrivez un changement à l’application en langage simple. Claude le réalise dans une copie privée, vous en voyez l’aperçu, et rien n’atteint l’application réelle sans approbation.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Le Sandbox permet de proposer une amélioration sans savoir programmer. Vous choisissez le module, donnez un titre, puis décrivez le changement dans la conversation. Le résultat est un aperçu qui utilise des données de démonstration. Quand vous êtes satisfait, vous le soumettez : un approbateur le révise et, s’il est accepté, il est fusionné par l’équipe technique.</p>
+
+  <figure class="fig">
+    <div class="fig-box">
+      <div class="sb-flow">
+        <div class="sb-s"><b>1. Décrire</b><span>Module, titre, description</span></div>
+        <div class="sb-a">→</div>
+        <div class="sb-s"><b>2. Aperçu</b><span>Copie privée, données de démonstration</span></div>
+        <div class="sb-a">→</div>
+        <div class="sb-s"><b>3. Soumettre</b><span>Résumé pour l’approbateur</span></div>
+        <div class="sb-a">→</div>
+        <div class="sb-s ok"><b>4. Approuver</b><span>Révision, fusion, puis mise en service</span></div>
+      </div>
+    </div>
+    <figcaption>Figure 7. Le parcours d’une demande du Sandbox.</figcaption>
+  </figure>
+
+  <h2>Comment faire</h2>
+  <h3>Proposer un changement</h3>
+  <ol class="steps">
+    <li>Dans le menu utilisateur, en haut à droite, cliquez <span class="ui menu">Sandbox</span>.</li>
+    <li>Cliquez <span class="ui primary">Nouvelle demande</span>, choisissez le module, écrivez un titre, puis cliquez <span class="ui">Commencer</span>.</li>
+    <li>Décrivez le changement précisément : où, quoi et pour qui. Tapez dans la zone de message, puis cliquez <span class="ui">Envoyer</span> ou appuyez sur <span class="ui">Ctrl</span> + <span class="ui">Entrée</span>.</li>
+    <li>Quand Claude a fini, l’aperçu se charge. Rafraîchissez-le avec son icône, ou ouvrez-le à part avec <span class="ui">Ouvrir dans un onglet</span>.</li>
+    <li>Pour corriger, reprenez la conversation. Pour interrompre Claude pendant qu’il travaille, cliquez <span class="ui danger">Arrêter</span>.</li>
+  </ol>
+  <h3>Soumettre ou abandonner</h3>
+  <ol class="steps">
+    <li>Quand l’aperçu vous convient, ouvrez la demande et cliquez <span class="ui primary">Soumettre</span>.</li>
+    <li>Rédigez le <span class="ui field">Résumé pour l’approbateur</span>, puis cliquez <span class="ui">Soumettre</span>.</li>
+    <li>Pour effacer la copie privée et ses changements, cliquez <span class="ui danger">Abandonner</span>.</li>
+  </ol>
+  <h3>Réviser une demande (approbateurs)</h3>
+  <ol class="steps">
+    <li>Dans le menu utilisateur, cliquez <span class="ui menu">Sandbox</span>, puis <span class="ui tab">À réviser</span>.</li>
+    <li>Ouvrez la demande pour lire la conversation et voir l’aperçu.</li>
+    <li>Pour approuver, cliquez <span class="ui primary">Approuver</span>. La fusion se fait ensuite sur GitHub.</li>
+    <li>Pour refuser, cliquez <span class="ui danger">Refuser</span> et indiquez la raison : la personne la voit.</li>
+  </ol>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>Limites</b>
+    <ul>
+      <li>Vous ne proposez des changements que pour les modules auxquels vous avez accès.</li>
+      <li>Le Sandbox ne fonctionne qu’avec le serveur Imago. Il n’est pas disponible dans la démonstration du navigateur.</li>
+      <li>L’aperçu utilise des données de démonstration : les fonctions qui dépendent de Business Central, de Microsoft 365 ou du courriel n’y montrent que leur comportement de démonstration.</li>
+      <li>Un budget mensuel par personne limite les dépenses, et le nombre de demandes ouvertes est plafonné.</li>
+    </ul>
+  </div>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <p>Décrivez un résultat plutôt qu’une méthode : « Le bouton Imprimer doit aussi apparaître sur la liste des étiquettes » est plus utile que « ajoute un composant ». Chaque action (création, soumission, approbation) est inscrite au journal d’audit.</p>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Utiliser le Sandbox (proposer des changements sur les modules permis)</span> pour proposer. <span class="chip">Réviser et approuver les demandes du Sandbox</span> pour réviser, approuver et refuser.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch17">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-spark"/></svg>
+    <div class="chapter-num">Chapitre 17</div>
+    <h1>Développement</h1>
+    <p class="lead">Un espace réservé pour les outils en préparation.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>Le module Développement accueille les nouveaux outils pendant leur conception. Pour l’instant, il ne contient qu’une page <b>Punch card</b> encore vide : elle affiche un espace réservé, en attendant ses fonctionnalités. Il n’y a rien à faire dans ce module pour le moment.</p>
+
+  <h2>Comment faire</h2>
+  <ol class="steps">
+    <li>Si le module est visible, cliquez <span class="ui menu">Développement</span> puis <span class="ui menu">Punch card</span>.</li>
+    <li>Si vous attendez une fonctionnalité précise, décrivez-la à l’administrateur ou proposez-la dans le <span class="ui menu">Sandbox</span> (chapitre 16).</li>
+  </ol>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au module</span> et <span class="chip">Punch card</span>, à donner dans les groupes d’accès.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="ch18">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-cog"/></svg>
+    <div class="chapter-num">Chapitre 18</div>
+    <h1>Administration</h1>
+    <p class="lead">Le portail réservé aux administrateurs : les comptes, les accès, les courriels, le menu, l’image de marque, les quotas d’IA et le système.</p>
+  </div>
+
+  <h2>À quoi ça sert</h2>
+  <p>L’administration n’est pas dans le menu latéral. Elle s’ouvre depuis le menu utilisateur, en haut à droite, par <span class="ui menu">Paramètres d’administration</span>. Chaque onglet n’apparaît que si vous avez la permission correspondante.</p>
+
+  <h2>Les onglets</h2>
+  <table class="t">
+    <thead><tr><th>Onglet</th><th>Ce que vous y faites</th></tr></thead>
+    <tbody>
+      <tr><td>Aperçu</td><td>Le nombre d’utilisateurs actifs, de groupes et de connexions de la semaine, avec les dernières entrées du journal. Cette page ne modifie rien.</td></tr>
+      <tr><td>Utilisateurs</td><td>Créer, modifier, désactiver et supprimer les comptes, choisir leurs groupes. Chapitre 4.</td></tr>
+      <tr><td>Groupes d’accès</td><td>Définir les groupes et les permissions, et les droits individuels. Chapitre 4.</td></tr>
+      <tr><td>Journal d’audit</td><td>Qui a fait quoi, quand. Filtres par personne, par dates et par texte. Au maximum 500 lignes affichées.</td></tr>
+      <tr><td>Modules</td><td>Une carte par module, qui ouvre ses paramètres (par exemple les données KPI).</td></tr>
+      <tr><td>Courriels</td><td>Modifier les courriels automatiques (bienvenue, réinitialisation, changement de mot de passe) et envoyer un test.</td></tr>
+      <tr><td>Menu</td><td>Changer les noms, l’ordre des modules et les sections, pour tous les utilisateurs.</td></tr>
+      <tr><td>Image de marque</td><td>Nom de l’application, logo, icône de l’onglet et couleurs principales.</td></tr>
+      <tr><td>IA et quotas</td><td>Limites mensuelles d’utilisation de l’IA, par organisation et par personne.</td></tr>
+      <tr><td>Système</td><td>État des intégrations, tests de connexion, export des données et mise à jour de l’application.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Comment faire</h2>
+  <h3>Consulter le journal d’audit</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui tab">Journal d’audit</span>.</li>
+    <li>Pour voir ce qu’une personne a fait, choisissez-la dans <span class="ui field">Tous les utilisateurs</span>, puis renseignez <span class="ui field">Du</span> et <span class="ui field">Au</span>.</li>
+    <li>Pour resserrer la liste, tapez dans <span class="ui field">Filtrer…</span>. <span class="ui">Réinitialiser</span> efface les filtres.</li>
+  </ol>
+  <h3>Modifier le menu</h3>
+  <ol class="steps">
+    <li>Ouvrez l’onglet <span class="ui tab">Menu</span>. Les changements restent un brouillon jusqu’à <span class="ui primary">Enregistrer</span>.</li>
+    <li>Pour déplacer un module, utilisez <span class="ui">Déplacer vers…</span> sur sa carte et choisissez la section.</li>
+    <li>Pour ajouter une section, cliquez <span class="ui">Ajouter une section</span> et saisissez le <span class="ui field">Nom FR</span> et le <span class="ui field">Nom EN</span>.</li>
+    <li><span class="ui danger">Rétablir le menu par défaut</span> remet les sections d’origine et efface aussi les noms personnalisés, après confirmation.</li>
+  </ol>
+  <h3>Régler les quotas d’IA</h3>
+  <ol class="steps">
+    <li>Ouvrez l’onglet <span class="ui tab">IA et quotas</span>.</li>
+    <li>Sous <span class="ui field">Par utilisateur (défaut)</span>, saisissez les <span class="ui field">Jetons par mois</span> et les <span class="ui field">Demandes par mois</span>, puis <span class="ui">Enregistrer</span>.</li>
+    <li>Pour une personne précise, saisissez ses valeurs dans <span class="ui field">Jetons (perso)</span> ou <span class="ui field">Demandes (perso)</span>, dans <span class="ui tab">Utilisation par personne</span>. Pour revenir à la valeur par défaut, cliquez <span class="ui">Réinitialiser</span>, puis <span class="ui">Enregistrer</span>.</li>
+    <li>La valeur <span class="mono">0</span> signifie illimité. Un champ vide hérite de la valeur par défaut. Les compteurs repartent à zéro le 1er du mois.</li>
+  </ol>
+  <h3>Personnaliser l’image de marque</h3>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui tab">Image de marque</span>. Modifiez le <span class="ui field">Nom de l’application</span> ou la <span class="ui field">Couleur principale</span>.</li>
+    <li>L’aperçu reste local jusqu’à <span class="ui primary">Enregistrer</span>. Le bouton <span class="ui">Par défaut</span> rétablit l’identité d’origine, après confirmation.</li>
+    <li>Le logo est redimensionné à 512 px et l’icône à 64 px. Une image trop lourde est refusée.</li>
+  </ol>
+  <h3>Vérifier le système</h3>
+  <ol class="steps">
+    <li>Ouvrez l’onglet <span class="ui tab">Système</span>. Chaque intégration affiche <i>Configuré</i> ou <i>Non configuré</i>. Les clés se règlent dans le fichier de configuration du serveur (annexe B).</li>
+    <li>Cliquez <span class="ui">Tester la connexion</span> sur la carte Business Central ou sur la carte <i>Boîte de factures (Microsoft Graph)</i>.</li>
+    <li>Pour une copie des données, cliquez <span class="ui">Exporter (JSON)</span>.</li>
+    <li>Pour mettre à jour l’application, cliquez <span class="ui">Vérifier sur GitHub</span>, puis <span class="ui primary">Mettre à jour maintenant</span>. Tapez <span class="mono">METTRE À JOUR</span> et confirmez.</li>
+  </ol>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>Mise à jour : prévoyez l’arrêt</b>
+    <p>La mise à jour sauvegarde la base de données, puis redémarre l’application. Tous les utilisateurs perdent l’accès pendant 1 à 3 minutes. En cas d’échec, l’application revient à la version précédente. Planifiez-la en dehors des heures de travail.</p>
+  </div>
+
+  <div class="tip"><svg class="i"><use href="#i-bulb"/></svg><b>Bon à savoir</b>
+    <ul>
+      <li>Un compte ne se supprime pas à la légère : décochez <i>Compte actif</i> pour bloquer l’accès sans perdre l’historique.</li>
+      <li>Hors serveur (démonstration du navigateur), <span class="ui danger">Réinitialiser les données de démo</span> efface toutes les données de ce navigateur et vous déconnecte.</li>
+      <li>Les données d’archive de l’outil KPI et leurs instantanés ne sont jamais effacés par « Effacer tout ».</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4>
+      <p><span class="chip">Accéder au portail</span> pour ouvrir l’administration. Chaque onglet suit sa propre permission : <span class="chip">Gérer les utilisateurs</span>, <span class="chip">Gérer les groupes et permissions</span>, <span class="chip">Consulter le journal d’audit</span>, <span class="chip">Courriels : serveur d’envoi et modèles</span>, <span class="chip">Modifier le menu</span>, <span class="chip">Image de marque</span>, <span class="chip">Gérer les quotas d’IA</span>, <span class="chip">Paramètres système</span>. <span class="chip">Voir le portail comme un autre utilisateur</span> permet la lecture seule d’un autre compte.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="annexeB">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-cog"/></svg>
+    <div class="chapter-num">Annexe B</div>
+    <h1>Pour les administrateurs</h1>
+    <p class="lead">Où se règlent les intégrations et les clés. Cette annexe ne contient aucune valeur secrète : les vraies valeurs restent dans le fichier de configuration du serveur, et nulle part ailleurs.</p>
+  </div>
+
+  <h2>Le fichier de configuration</h2>
+  <p>Sur le serveur, le fichier <span class="mono">.env</span> contient tous les réglages. Il est créé à partir du modèle <span class="mono">.env.example</span>. Ce fichier contient des secrets : limitez son accès, ne le copiez pas dans un courriel ni dans un clavardage, et ne l’envoyez jamais à l’extérieur. Après toute modification, l’équipe technique redémarre l’application.</p>
+
+  <h2>Les réglages à connaître</h2>
+  <table class="t">
+    <thead><tr><th>Variable</th><th>À quoi elle sert</th></tr></thead>
+    <tbody>
+      <tr><td colspan="2" style="background:#efeee8;font-family:var(--ff-disp);font-size:8pt;letter-spacing:.1em;text-transform:uppercase">Intelligence artificielle</td></tr>
+      <tr><td><span class="mono">AI_PROVIDER</span></td><td>Le fournisseur d’IA : <i>anthropic</i>, <i>openai</i> ou <i>gemini</i>. Vide : la première clé trouvée est utilisée.</td></tr>
+      <tr><td><span class="mono">OPENAI_API_KEY</span>, <span class="mono">OPENAI_MODEL</span></td><td>La clé du service OpenAI et le modèle à utiliser (par défaut, <span class="mono">gpt-4.1</span> dans le modèle).</td></tr>
+      <tr><td><span class="mono">ANTHROPIC_API_KEY</span>, <span class="mono">ANTHROPIC_MODEL</span></td><td>La clé Anthropic (Claude) et le modèle. Sert aussi à lire les PDF et au Sandbox.</td></tr>
+      <tr><td><span class="mono">GEMINI_API_KEY</span>, <span class="mono">GEMINI_MODEL</span></td><td>Les mêmes réglages pour le service Gemini.</td></tr>
+      <tr><td colspan="2" style="background:#efeee8;font-family:var(--ff-disp);font-size:8pt;letter-spacing:.1em;text-transform:uppercase">Boîtes courriel (Microsoft Graph)</td></tr>
+      <tr><td><span class="mono">GRAPH_SALES_MAILBOX</span></td><td>La boîte courriel des ventes : ses messages deviennent des demandes.</td></tr>
+      <tr><td><span class="mono">GRAPH_SALES_FOLDER</span></td><td>Le dossier lu dans cette boîte (<i>inbox</i> par défaut).</td></tr>
+      <tr><td><span class="mono">GRAPH_SALES_SYNC_MINUTES</span></td><td>La fréquence de lecture, en minutes (5 par défaut).</td></tr>
+      <tr><td><span class="mono">GRAPH_MAILBOX</span>, <span class="mono">GRAPH_FOLDER</span>, <span class="mono">GRAPH_SYNC_MINUTES</span></td><td>La boîte des factures fournisseurs, son dossier et sa fréquence de lecture.</td></tr>
+      <tr><td colspan="2" style="background:#efeee8;font-family:var(--ff-disp);font-size:8pt;letter-spacing:.1em;text-transform:uppercase">Business Central et Microsoft 365</td></tr>
+      <tr><td><span class="mono">BC_ENVIRONMENT</span>, <span class="mono">BC_COMPANY_ID</span>, <span class="mono">BC_LOCAL_CURRENCY</span></td><td>L’environnement et la société Business Central, et la devise locale.</td></tr>
+      <tr><td><span class="mono">BC_POST_MODE</span>, <span class="mono">BC_SYNC_MINUTES</span></td><td>Le mode de création des factures (<i>draft</i> par défaut : brouillon, non comptabilisé), et la fréquence de synchronisation.</td></tr>
+      <tr><td><span class="mono">MS_TENANT_ID</span>, <span class="mono">MS_CLIENT_ID</span>, <span class="mono">MS_CLIENT_SECRET</span></td><td>L’inscription d’application Microsoft utilisée par Gestion O365 et les connexions Microsoft. Le secret est une valeur sensible.</td></tr>
+      <tr><td colspan="2" style="background:#efeee8;font-family:var(--ff-disp);font-size:8pt;letter-spacing:.1em;text-transform:uppercase">Courriels sortants et accès</td></tr>
+      <tr><td><span class="mono">SMTP_HOST</span>, <span class="mono">SMTP_PORT</span>, <span class="mono">SMTP_SECURE</span></td><td>Le serveur d’envoi des courriels automatiques (bienvenue, mot de passe, soumissions).</td></tr>
+      <tr><td><span class="mono">SMTP_USER</span>, <span class="mono">SMTP_PASSWORD</span>, <span class="mono">SMTP_FROM</span>, <span class="mono">SMTP_FROM_NAME</span></td><td>Le compte d’envoi, l’adresse et le nom affichés.</td></tr>
+      <tr><td><span class="mono">APP_URL</span>, <span class="mono">COOKIE_SECURE</span>, <span class="mono">SESSION_HOURS</span></td><td>L’adresse publique d’Imago (elle sert dans les liens des courriels), la sécurité des témoins de session (<i>true</i> en production), et la durée d’une session.</td></tr>
+      <tr><td><span class="mono">ADMIN_USERNAME</span>, <span class="mono">ADMIN_PASSWORD</span>, <span class="mono">ADMIN_EMAIL</span>, <span class="mono">ADMIN_DISPLAY_NAME</span></td><td>Le premier administrateur, créé au premier démarrage. Changez son mot de passe ensuite et ne laissez pas ces valeurs dans le fichier.</td></tr>
+      <tr><td><span class="mono">POSTGRES_DB</span>, <span class="mono">POSTGRES_USER</span>, <span class="mono">POSTGRES_PASSWORD</span></td><td>La base de données PostgreSQL, qui garde toutes les données.</td></tr>
+      <tr><td colspan="2" style="background:#efeee8;font-family:var(--ff-disp);font-size:8pt;letter-spacing:.1em;text-transform:uppercase">Sandbox</td></tr>
+      <tr><td><span class="mono">SANDBOX_GITHUB_REPO</span>, <span class="mono">SANDBOX_GITHUB_TOKEN</span>, <span class="mono">SANDBOX_GITHUB_BASE</span></td><td>Le dépôt où vont les demandes, le jeton GitHub (à portée restreinte au dépôt) et la branche de base.</td></tr>
+      <tr><td><span class="mono">SANDBOX_RUNNER_SECRET</span>, <span class="mono">SANDBOX_MODEL</span></td><td>Le secret partagé entre l’application et le service d’exécution, et le modèle utilisé.</td></tr>
+      <tr><td><span class="mono">SANDBOX_USER_MONTHLY_USD</span>, <span class="mono">SANDBOX_MAX_OPEN</span>, <span class="mono">SANDBOX_TEST_MODE</span></td><td>Le plafond mensuel par personne, le nombre de demandes ouvertes, et le mode d’essai sans appel à Claude.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Tâches courantes</h2>
+  <ol class="steps">
+    <li><b>Quotas d’IA.</b> Dans <span class="ui menu">Administration</span>, onglet <span class="ui tab">IA et quotas</span> : limite par défaut et limites individuelles (chapitre 18). Les compteurs repartent le 1er du mois.</li>
+    <li><b>Tester les connexions.</b> Dans <span class="ui tab">Système</span>, cliquez <span class="ui">Tester la connexion</span> pour Business Central et pour la boîte de factures.</li>
+    <li><b>Sauvegarder la base.</b> Depuis le serveur, exécutez une copie de la base de données (commande <span class="mono">pg_dump</span> du service <i>db</i>, vers un fichier daté). Conservez les copies hors du serveur.</li>
+    <li><b>Charger l’archive KPI.</b> Une fois seulement, selon la procédure du dépôt (<span class="mono">load-kpi-archive</span>). Les personnes sont ensuite associées aux comptes Imago dans <span class="ui tab">Paramètres - données KPI</span>.</li>
+    <li><b>Préparer le Sandbox.</b> Suivez <span class="mono">SANDBOX.md</span> au dépôt : clé Anthropic avec plafond de dépenses, jeton GitHub à portée restreinte, puis droits <span class="chip">Utiliser le Sandbox</span> et <span class="chip">Réviser et approuver</span>.</li>
+  </ol>
+
+  <div class="warn"><svg class="i"><use href="#i-warn"/></svg><b>Règles de prudence</b>
+    <ul>
+      <li>Une clé d’API se régénère chez le fournisseur si elle a pu être exposée. Ne la collez jamais dans un tableau partagé.</li>
+      <li>Derrière un proxy HTTPS, gardez <span class="mono">COOKIE_SECURE=true</span> et n’exposez le port de l’application qu’au proxy.</li>
+      <li>Le journal d’audit distingue les actions du navigateur (marque <span class="mono">·ui</span>) de celles confirmées par le serveur. Pour une preuve, retenez en priorité les entrées confirmées par le serveur.</li>
+    </ul>
+  </div>
+
+  <div class="access"><div class="access-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+    <div><h4>Qui y a accès</h4><p>Ces réglages relèvent de l’équipe TI et de l’administrateur principal. Les pages du portail se contrôlent par les permissions du chapitre 18.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="annexeC">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-book"/></svg>
+    <div class="chapter-num">Annexe C</div>
+    <h1>Glossaire</h1>
+    <p class="lead">Les mots qui reviennent dans l’application, expliqués une seule fois.</p>
+  </div>
+  <dl class="gloss">
+    <div><dt>Align</dt><dd>Module de stratégie et d’alignement : plan, Rocks, priorités, huddles.</dd></div>
+    <div><dt>Approbation (mode)</dt><dd>Façon dont les factures sont validées : Manuel, Assisté ou Automatique.</dd></div>
+    <div><dt>Blocage</dt><dd>Raison pour laquelle une demande de vente attend (client, studio, information, décision, autre).</dd></div>
+    <div><dt>Bon de commande (BC)</dt><dd>Document par lequel on commande. <i>Client</i> : le client nous commande. <i>Fournisseur</i> : nous commandons.</dd></div>
+    <div><dt>Business Central (BC)</dt><dd>Le logiciel comptable de Pubco, avec lequel Imago échange les factures et les commandes.</dd></div>
+    <div><dt>Carnet d’adresses</dt><dd>Liste des destinataires enregistrés, pour remplir une étiquette en un clic.</dd></div>
+    <div><dt>Clé d’API</dt><dd>Mot de passe technique d’un service externe (IA, Microsoft). Réservée à l’administration.</dd></div>
+    <div><dt>Code-barres Code128</dt><dd>Code imprimé sur les étiquettes d’expédition pour être lu par un lecteur.</dd></div>
+    <div><dt>Co-packing</dt><dd>Travail de mise en boîte ou d’assemblage, sans fabrication du carton.</dd></div>
+    <div><dt>Conformité</dt><dd>Suivi des normes et des certifications, de leurs exigences, de leurs audits et de leurs politiques.</dd></div>
+    <div><dt>Constat</dt><dd>Résultat d’un audit : observation, non-conformité mineure ou majeure.</dd></div>
+    <div><dt>Dérogation</dt><dd>Approbation malgré un écart, avec une justification écrite. Réservée à certaines personnes.</dd></div>
+    <div><dt>Droit individuel</dt><dd>Permission donnée à une seule personne, en plus de ses groupes.</dd></div>
+    <div><dt>Estimation</dt><dd>Chiffrage du prix d’un emballage, avant la soumission au client.</dd></div>
+    <div><dt>Exception</dt><dd>Écart entre une facture, son bon de commande et la réception, qui empêche l’approbation automatique.</dd></div>
+    <div><dt>Feuille de temps</dt><dd>Grille hebdomadaire où l’on inscrit les heures par projet et par tâche.</dd></div>
+    <div><dt>Flan</dt><dd>La pièce de carton à plat, avant le pliage et le collage.</dd></div>
+    <div><dt>Frais généraux</dt><dd>Coûts indirects (loyer, administration) répartis sur chaque travail, en pourcentage.</dd></div>
+    <div><dt>Gâche</dt><dd>Matière perdue pendant la production : mise en train, ajustements, rebuts.</dd></div>
+    <div><dt>Groupe d’accès</dt><dd>Ensemble de permissions donné à plusieurs personnes à la fois.</dd></div>
+    <div><dt>Groupe de distribution</dt><dd>Liste d’adresses courriel qui reçoit le même message (Microsoft 365).</dd></div>
+    <div><dt>Huddle</dt><dd>Réunion d’équipe courte et régulière, avec un ordre du jour fixe.</dd></div>
+    <div><dt>Instantané</dt><dd>Copie des données prise à un moment donné, pour pouvoir y revenir.</dd></div>
+    <div><dt>IA</dt><dd>Intelligence artificielle. Dans Imago : l’assistant, la lecture des courriels et des PDF, l’aide à l’estimation.</dd></div>
+    <div><dt>Journal d’audit</dt><dd>Historique des actions : qui a fait quoi, et quand.</dd></div>
+    <div><dt>Jeton</dt><dd>Unité de mesure de l’IA (une portion de texte lu ou écrit). Les quotas se comptent en jetons et en demandes.</dd></div>
+    <div><dt>Licence</dt><dd>Droit d’utiliser un service Microsoft 365, attribué à une personne.</dd></div>
+    <div><dt>Locataire</dt><dd>Un environnement Microsoft 365 géré par Imago.</dd></div>
+    <div><dt>Marge</dt><dd>Pourcentage du prix de vente qui reste après les coûts. Prix = coût ÷ (1 − marge).</dd></div>
+    <div><dt>Mise en train</dt><dd>Feuilles d’essai imprimées avant la production, pour régler la presse.</dd></div>
+    <div><dt>Module</dt><dd>Une grande fonction de l’application (Ventes, Comptabilité…), avec ses pages.</dd></div>
+    <div><dt>Permission</dt><dd>Droit précis : voir une page, créer, approuver, etc. Les permissions se regroupent dans les groupes.</dd></div>
+    <div><dt>Pince</dt><dd>Marge de la feuille que la presse saisit : cette zone n’est pas imprimée.</dd></div>
+    <div><dt>Quota</dt><dd>Limite mensuelle d’utilisation de l’IA, par organisation ou par personne.</dd></div>
+    <div><dt>Rapprochement à trois</dt><dd>Comparaison de la facture, du bon de commande et de la réception.</dd></div>
+    <div><dt>Rock</dt><dd>Objectif trimestriel de l’entreprise. Ses priorités déterminent sa progression.</dd></div>
+    <div><dt>Sandbox</dt><dd>Espace où l’on propose un changement à l’application, dans une copie privée.</dd></div>
+    <div><dt>Soumission</dt><dd>Offre de prix envoyée au client, avec sa validité, que le client peut approuver en ligne.</dd></div>
+    <div><dt>Tolérance</dt><dd>Écart accepté entre les documents sans bloquer le traitement (en %, en quantité ou en $).</dd></div>
+    <div><dt>Vision 4D</dt><dd>Page de vision de l’entreprise dans Align, qui relie les orientations aux Rocks et aux initiatives.</dd></div>
+    <div><dt>Widget</dt><dd>Carte ou bloc du tableau de bord, qui affiche un chiffre ou une liste.</dd></div>
+  </dl>
+</section>
+
+<section class="chapter" id="annexeD">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-help"/></svg>
+    <div class="chapter-num">Annexe D</div>
+    <h1>Foire aux questions</h1>
+    <p class="lead">Les questions qui reviennent le plus souvent, et la réponse courte.</p>
+  </div>
+  <div class="faq">
+    <div><h4>Je ne vois pas un module dans le menu. Pourquoi ?</h4><p>Un module n’apparaît que si votre groupe d’accès permet d’y entrer. Demandez à un administrateur de vous donner l’accès au module.</p></div>
+    <div><h4>Je ne vois pas le bouton « Enregistrer » ou « Nouvelle … ».</h4><p>Votre permission ne couvre pas cette action. Le nom de la permission manquante est indiqué dans le chapitre du module. Demandez-la à un administrateur.</p></div>
+    <div><h4>Je ne vois pas les coûts ni les marges d’une estimation.</h4><p>Il faut la permission <span class="chip">Voir les coûts et marges</span>. Sans elle, ces chiffres sont masqués partout, y compris dans l’assistant.</p></div>
+    <div><h4>J’ai oublié mon mot de passe.</h4><p>Utilisez le lien de réinitialisation reçu par courriel, ou demandez à un administrateur de le changer. Le mot de passe doit contenir au moins 12 caractères.</p></div>
+    <div><h4>Une facture reçue par courriel n’apparaît pas.</h4><p>Cliquez <span class="ui">Synchroniser</span> dans la <i>Boîte de réception</i>. Si rien n’arrive, vérifiez avec un administrateur que la boîte est configurée (chapitre 18, onglet <i>Système</i>).</p></div>
+    <div><h4>Un paiement saisi dans Business Central a disparu de « À payer ».</h4><p>C’est normal : la liste lit une copie de BC, mise à jour à la synchronisation. La facture est bien payée dans BC.</p></div>
+    <div><h4>Le lien de soumission du client est expiré.</h4><p>Une soumission expire à sa date <i>Valide jusqu’au</i>. Renvoyez une nouvelle soumission depuis la demande : la précédente est remplacée.</p></div>
+    <div><h4>Une demande a été refusée par erreur. Peut-on la rouvrir ?</h4><p>Oui. Une demande <i>Refusée</i> peut être reprise à l’estimation depuis sa fiche.</p></div>
+    <div><h4>L’assistant ne répond pas à ma question.</h4><p>Il ne répond qu’à partir d’Imago et de ce que vous pouvez voir. Posez la question sur une page précise, ou demandez à la personne qui gère le module.</p></div>
+    <div><h4>J’ai atteint ma limite d’IA du mois.</h4><p>Le compteur repart le 1er du mois. Une demande d’augmentation de quota se fait auprès d’un administrateur.</p></div>
+    <div><h4>Puis-je changer l’ordre des modules ?</h4><p>Oui. Glissez la poignée du module dans le menu. Pour revenir à l’ordre d’origine : menu utilisateur, <span class="ui menu">Rétablir l’ordre du menu</span>.</p></div>
+    <div><h4>Mon tableau de bord ne ressemble pas à celui de mon collègue.</h4><p>Chacun peut organiser sa page. Un administrateur peut aussi définir une disposition pour tout le monde.</p></div>
+  </div>
+</section>
+
+<section class="chapter" id="annexeE">
+  <div class="chapter-band">
+    <svg class="i band-icon"><use href="#i-flag"/></svg>
+    <div class="chapter-num">Annexe E</div>
+    <h1>Ce qui s’en vient</h1>
+    <p class="lead">Ce qui est encore provisoire, selon le code et la documentation du projet. Rien de plus n’est promis ici.</p>
+  </div>
+  <table class="t">
+    <thead><tr><th>Sujet</th><th>Où en est-on</th></tr></thead>
+    <tbody>
+      <tr><td>Modèle de prix (Estimation)</td><td><span class="pill pill-warn">Provisoire</span> Les taux et marges par défaut ne sont pas de vrais tarifs. Ils seront remplacés par les règles de l’équipe d’estimation, une fois validés dans l’Assistant de configuration.</td></tr>
+      <tr><td>Soumission PDF (Estimation)</td><td><span class="pill pill-grey">Non disponible</span> Le bouton est désactivé pour l’instant.</td></tr>
+      <tr><td>Analyse de la photo de boîte</td><td><span class="pill pill-warn">À valider</span> La fonction est proposée en mode serveur, mais la documentation du projet la présente encore comme une étape à venir. Vérifiez toujours les valeurs proposées.</td></tr>
+      <tr><td>Connexions Business Central et Microsoft Graph</td><td><span class="pill pill-warn">À valider</span> Elles suivent les interfaces documentées, mais n’ont pas encore été testées sur un vrai locataire. La création des factures reste en brouillon par défaut.</td></tr>
+      <tr><td>Gestion de projet (Function Fox)</td><td><span class="pill pill-grey">Phases suivantes</span> Factures et estimations, retenues, saisies récurrentes, notifications et intégrations sont prévues plus tard.</td></tr>
+      <tr><td>Module Développement</td><td><span class="pill pill-grey">Espace réservé</span> La page Punch card ne contient pour l’instant qu’un espace réservé.</td></tr>
+      <tr><td>Nom « KPI »</td><td><span class="pill pill-grey">Provisoire</span> Le nom de l’outil est un nom de travail.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="plain-page backcover">
+  <div class="bc-inner">
+    <img src="assets/logo-akab.png" alt="AKAB">
+    <p class="bc-title">Imago · Pubco Hub 2.0</p>
+    <p class="small">Guide de l’utilisateur, version du 26 novembre 2026.<br>Préparé par AKAB Informatique pour Pubco. Services TI et soutien informatique en Lanaudière.</p>
+  </div>
+</section>
+
+</div>
+</body>
+</html>

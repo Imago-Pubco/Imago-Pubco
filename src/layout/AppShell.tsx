@@ -13,6 +13,8 @@ import { Avatar } from '@/modules/admin/pages/Users';
 import { Home } from '@/pages/Home';
 import { WingTransition } from './WingTransition';
 import { SideModules } from './SideModules';
+import { HowItWorks } from '@/assistant/HowItWorks';
+import { FloatingHelper } from '@/assistant/FloatingHelper';
 import { menuModules, pinnedBottomModules, resolveSections, saveMenuLayout, useMenuLayout } from './menuLayout';
 import { applyTheme, useTheme } from './theme';
 import './shell.css';
@@ -166,9 +168,11 @@ export function AppShell() {
           </nav>
           <span className="spacer" />
           {ModuleActions && <ModuleActions />}
+          <HowItWorks />
           <UserMenu compact />
         </header>
         {workspace}
+        <FloatingHelper />
       </div>
     );
   }
@@ -258,6 +262,7 @@ export function AppShell() {
           </div>
           <span className="spacer" />
           {ModuleActions && <ModuleActions />}
+          <HowItWorks />
           <button
             className="btn btn-ghost btn-sm lang-toggle"
             onClick={() => {
@@ -276,6 +281,7 @@ export function AppShell() {
         </header>
         {workspace}
       </div>
+      <FloatingHelper />
     </div>
   );
 }

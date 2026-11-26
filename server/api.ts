@@ -51,6 +51,7 @@ import { sandboxPreviewRoute, sandboxRoutes } from './sandbox.ts';
 import { updateRoutes } from './updates.ts';
 import { registerSalesRoutes, salesPublicRouter } from './sales.ts';
 import { registerAiUsageRoutes, runAsUser } from './aiUsage.ts';
+import { registerAssistantRoutes } from './assistant.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
 const now = () => new Date().toISOString();
@@ -386,6 +387,7 @@ export function apiRouter() {
   r.use((req, _res, next) => runAsUser(me(req).user.id, next));
   registerSalesRoutes(r, { wrap, me, forbid, baseUrl });
   registerAiUsageRoutes(r, { wrap, me, forbid, audit });
+  registerAssistantRoutes(r, { wrap, me, forbid, audit });
 
 
   /* ---------- "view as": an administrator sees the portal exactly as another user does (read-only) ---------- */
