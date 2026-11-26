@@ -1,0 +1,313 @@
+/* Work orders module. Uses the global tokens (--accent, --bg-elev, --border, --err, --warn, --ok...). */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wo-avatar {
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.wo-clamp {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.wo-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+}
+
+/* Due dates */
+.wo-due.is-late {
+  color: var(--err);
+  font-weight: 600;
+}
+.wo-due.is-soon {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+/* Progress */
+.wo-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wo-progress-bar {
+  flex: 1;
+  height: 6px;
+  min-width: 60px;
+  background: var(--bg-sunken);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.wo-progress-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.25s ease;
+}
+
+/* Board */
+.wo-board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(240px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+}
+.wo-col {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  scroll-snap-align: start;
+  transition: outline-color 0.15s ease;
+}
+.wo-col.is-over {
+  outline: 2px dashed var(--accent);
+  outline-offset: -4px;
+}
+.wo-col-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+.wo-col-head h2 {
+  font-size: 14px;
+  margin: 0;
+}
+.wo-col-body {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.wo-col-empty {
+  color: var(--text-3);
+  font-size: 13px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.wo-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  cursor: default;
+}
+.wo-card[draggable='true'] {
+  cursor: grab;
+}
+.wo-card[draggable='true']:active {
+  cursor: grabbing;
+}
+.wo-card.is-overdue {
+  border-color: var(--err);
+}
+.wo-card-top,
+.wo-card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.wo-card-title {
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wo-card-title:hover {
+  text-decoration: underline;
+}
+.wo-move {
+  display: grid;
+  gap: 4px;
+}
+.wo-select {
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+/* Detail layout */
+.wo-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+  align-items: start;
+}
+.wo-main {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.wo-side {
+  display: grid;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+}
+.wo-spec-text {
+  white-space: pre-wrap;
+  margin: 0;
+}
+.wo-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 14px 0 0;
+  font-size: 14px;
+}
+.wo-dl dt {
+  color: var(--text-3);
+}
+.wo-dl dd {
+  margin: 0;
+  text-align: right;
+}
+.wo-state {
+  display: grid;
+  gap: 14px;
+}
+.wo-field {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 150px;
+  min-width: 0;
+}
+.wo-field > span {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.wo-field.is-wide {
+  flex: 2 1 260px;
+}
+
+/* Tasks */
+.wo-dept {
+  margin-bottom: 18px;
+}
+.wo-dept:last-child {
+  margin-bottom: 0;
+}
+.wo-dept-h {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  margin: 0 0 8px;
+}
+.wo-tasks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.wo-task {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+}
+.wo-task.is-done {
+  opacity: 0.7;
+}
+.wo-task.is-blocked {
+  border-color: var(--err);
+}
+.wo-task-title {
+  flex: 2 1 260px;
+  min-width: 0;
+}
+.wo-task-actions {
+  display: flex;
+  align-self: flex-end;
+}
+
+/* Notes, history */
+.wo-composer {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+.wo-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.wo-timeline li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 10px;
+}
+.wo-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 6px;
+}
+.wo-history-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1000px) {
+  .wo-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wo-side {
+    order: -1;
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .wo-dl {
+    grid-template-columns: 1fr;
+  }
+  .wo-dl dd {
+    text-align: left;
+    margin-bottom: 6px;
+  }
+}

@@ -17,6 +17,7 @@ import { seedMail, seedPurchaseOrders, seedVendors } from '@/modules/accounting/
 import { addressBook, labels, shipFroms } from '@/modules/shipping/stores';
 import { seedAddresses, seedLabels, seedShipFroms } from '@/modules/shipping/seed';
 import { ensureEstimatingSeeded } from '@/modules/estimating/stores';
+import { ensureSalesSeeded } from '@/modules/sales/stores';
 import { ensureComplianceSeeded } from '@/modules/compliance/stores';
 
 const SEED_VERSION = '1';
@@ -55,6 +56,7 @@ export async function ensureSeeded() {
   await labels.replaceAll(seedLabels);
 
   await ensureEstimatingSeeded(true);
+  await ensureSalesSeeded(true);
   await ensureComplianceSeeded(true);
   localStorage.setItem(SEED_KEY, SEED_VERSION);
 }

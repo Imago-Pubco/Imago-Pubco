@@ -49,6 +49,8 @@ import { HttpError } from './ms.ts';
 import { getBranding, inspectSite, resetBranding, saveBranding } from './branding.ts';
 import { sandboxPreviewRoute, sandboxRoutes } from './sandbox.ts';
 import { updateRoutes } from './updates.ts';
+import { registerSalesRoutes, salesPublicRouter } from './sales.ts';
+import { registerAiUsageRoutes, runAsUser } from './aiUsage.ts';
 
 const uid = (prefix: string) => prefix + randomBytes(8).toString('hex');
 const now = () => new Date().toISOString();
@@ -86,6 +88,11 @@ const RULES: Record<string, Rule> = {
   'est.estimates': { read: any('estimating.access'), write: any('estimating.edit', 'estimating.approve') },
   'est.materials': { read: any('estimating.access'), write: any('estimating.catalog') },
   'est.settings': { read: any('estimating.access'), write: any('estimating.settings') },
+
+  // Sales. Stage, links and history change only through the server routes (SERVER_OWNED below).
+  'sales.requests': { read: any('sales.access', 'estimating.access', 'workorders.access'), write: any('sales.edit', 'sales.studio', 'estimating.edit') },
+  'sales.quotes': { read: any('sales.access'), write: () => false },
+  'wo.orders': { read: any('workorders.access', 'sales.access'), write: any('workorders.manage', 'workorders.work') },
 
   'ship.labels': { read: any('shipping.access'), write: any('shipping.labels.create', 'shipping.labels.print', 'shipping.labels.void') },
   'ship.addresses': { read: any('shipping.access'), write: any('shipping.addresses.manage', 'shipping.labels.create') },
@@ -131,6 +138,8 @@ const MIN_PASSWORD = 12;
 
 /** Fields only the server may write, per collection (the generic API drops them from browser requests). */
 const SERVER_OWNED: Record<string, string[]> = {
+  'sales.requests': ['stage', 'revision', 'history', 'estimateId', 'quoteId', 'workOrderId', 'createdAt', 'createdBy', 'no', 'source', 'analysis', 'studio'],
+  'wo.orders': ['no', 'requestId', 'quoteId', 'estimateId', 'createdAt'],
   'acc.pos': ['mailId', 'attIndex', 'fileId', 'direction', 'stage', 'match', 'bcOrderId', 'bcOrderNo', 'bcInvoiceId', 'bcInvoiceNo', 'approvedBy', 'approvedAt', 'overrideNote', 'automated', 'history', 'partyNo', 'createdAt'],
   'acc.invoices': ['approvedBy', 'approvedAt', 'overrideNote', 'bcInvoiceNo', 'postedAt'],
 };
@@ -233,6 +242,9 @@ async function audit(userId: string, action: string, detail = '', ip = '') {
 
 export function apiRouter() {
   const r = express.Router();
+  // Uploads carry base64 files: a larger body limit on those two paths only.
+  r.use('/sales/upload', express.json({ limit: '12mb' }));
+  r.use('/public/upload', express.json({ limit: '6mb' }));
   r.use(express.json({ limit: '5mb' }));
 
   // CSRF protection: state-changing requests must carry a custom header, which a
@@ -365,8 +377,15 @@ export function apiRouter() {
   }));
 
   /* Everything below needs a signed-in user. */
+  // Customer pages (request form, quote link): no sign-in, CSRF header already enforced above.
+  r.use('/public', salesPublicRouter());
+
   r.use(requireAuth);
   const me = (req: Request) => req.auth!;
+  // From here on, AI calls made while handling a request are charged to the signed-in user (monthly quotas).
+  r.use((req, _res, next) => runAsUser(me(req).user.id, next));
+  registerSalesRoutes(r, { wrap, me, forbid, baseUrl });
+  registerAiUsageRoutes(r, { wrap, me, forbid, audit });
 
 
   /* ---------- "view as": an administrator sees the portal exactly as another user does (read-only) ---------- */

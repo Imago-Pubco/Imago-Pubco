@@ -1,7 +1,9 @@
 import { collection } from '@/data/db';
 import type { Estimate, EstimatingSettings, Material } from './types';
-import { DEFAULT_EST_SETTINGS } from './defaults';
+import { DEFAULT_EST_SETTINGS, resolveSettings } from './defaults';
+import { validationStatus } from './setup/validation';
 import { seedEstimates, seedMaterials } from './seed';
+import type { ValidationState } from './types';
 
 export { DEFAULT_EST_SETTINGS };
 
@@ -9,8 +11,14 @@ export const estimates = collection<Estimate>('est.estimates');
 export const materials = collection<Material>('est.materials');
 export const estSettings = collection<EstimatingSettings>('est.settings');
 
-export async function getEstSettings() {
-  return (await estSettings.get('settings')) ?? DEFAULT_EST_SETTINGS;
+/** Stored settings merged over the defaults, so documents saved before a field existed keep working. */
+export async function getEstSettings(): Promise<EstimatingSettings> {
+  return resolveSettings((await estSettings.get('settings')) ?? null);
+}
+
+/** State ('confirmed' | 'estimate') of each settings group, for the banner and the settings page. */
+export async function getSettingsValidation(): Promise<Record<string, ValidationState>> {
+  return validationStatus(await getEstSettings());
 }
 
 export async function nextEstimateNo() {

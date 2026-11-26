@@ -66,3 +66,48 @@ export const PRINT_PROCESSES: { key: 'offset' | 'flexo' | 'digital' | 'none'; la
   { key: 'digital', label: { fr: 'Numérique', en: 'Digital' } },
   { key: 'none', label: { fr: 'Sans impression', en: 'No print' } },
 ];
+
+/* ---------- Style families (drive the parametric blueprint in Dieline.tsx) ---------- */
+
+export type StyleFamily = 'tuck' | 'tray' | 'sleeve' | 'rsc' | 'telescope' | 'rigid' | 'display' | 'generic';
+
+/** Which drawing family a style code belongs to. Unknown codes fall back to a generic flat blank. */
+export function styleFamily(code: string): StyleFamily {
+  switch (code) {
+    case 'ECMA A20.20.03.01': // reverse tuck end
+    case 'ECMA A20.20.01.01': // straight tuck end
+    case 'ECMA A60.20.00.01': // auto-lock bottom
+      return 'tuck';
+    case 'ECMA F42': // tray
+      return 'tray';
+    case 'ECMA C10': // sleeve
+      return 'sleeve';
+    case 'FEFCO 0201': // RSC
+    case 'FEFCO 0427': // mailer
+    case 'FEFCO 0711': // crash-lock bottom
+      return 'rsc';
+    case 'FEFCO 0300': // telescope (lid + tray)
+      return 'telescope';
+    case 'RIG-LID':
+    case 'RIG-MAG':
+    case 'RIG-DRAW':
+      return 'rigid';
+    case 'DSP-CTR':
+    case 'DSP-FLR':
+    case 'DSP-PDQ':
+      return 'display';
+    default:
+      return 'generic';
+  }
+}
+
+export const FAMILY_LABEL: Record<StyleFamily, L> = {
+  tuck: { fr: 'Boîte à rabat (plan de découpe)', en: 'Tuck-end carton (cutting plan)' },
+  tray: { fr: 'Plateau (plan de découpe)', en: 'Tray (cutting plan)' },
+  sleeve: { fr: 'Manchon (plan de découpe)', en: 'Sleeve (cutting plan)' },
+  rsc: { fr: 'Caisse ondulée (plan de découpe)', en: 'Corrugated box (cutting plan)' },
+  telescope: { fr: 'Boîte à couvercle (plan de découpe)', en: 'Telescope box (cutting plan)' },
+  rigid: { fr: 'Boîte rigide (habillage)', en: 'Rigid box (wrap)' },
+  display: { fr: 'Présentoir (plan de découpe)', en: 'Display (cutting plan)' },
+  generic: { fr: 'Gabarit générique — à valider', en: 'Generic blank — to validate' },
+};

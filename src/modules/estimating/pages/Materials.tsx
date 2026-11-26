@@ -63,6 +63,8 @@ export function Materials() {
                     <th>{t('Description', 'Description')}</th>
                     <th>{t('Épaisseur', 'Caliper')}</th>
                     <th className="num">{t('Coût / m²', 'Cost / m²')}</th>
+                    <th>{t('Feuille (mm)', 'Sheet (mm)')}</th>
+                    <th>{t('Fournisseur', 'Supplier')}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -73,6 +75,13 @@ export function Materials() {
                       <td>{m.name}</td>
                       <td className="muted">{m.caliper}</td>
                       <td className="num">{fmtMoney(m.costPerM2)}</td>
+                      <td className="muted small">
+                        {m.sheetWidthMm && m.sheetHeightMm ? `${m.sheetWidthMm} × ${m.sheetHeightMm}` : t('Réglage par défaut', 'Default setting')}
+                      </td>
+                      <td className="muted small">
+                        {m.supplier ?? '—'}
+                        {m.leadTimeDays ? <span className="faint"> · {m.leadTimeDays} {t('j', 'd')}</span> : null}
+                      </td>
                       <td className="num">
                         {manage && (
                           <div className="row" style={{ justifyContent: 'flex-end', gap: 4 }}>
@@ -133,6 +142,48 @@ export function Materials() {
             <label className="field">
               <span>{t('Coût / m² ($)', 'Cost / m² ($)')}</span>
               <input className="input num" type="number" step="0.01" value={edit.costPerM2} onChange={(e) => setEdit({ ...edit, costPerM2: +e.target.value })} />
+            </label>
+            <label className="field">
+              <span>{t('Largeur de feuille (mm)', 'Sheet width (mm)')}</span>
+              <input
+                className="input num"
+                type="number"
+                placeholder={t('Réglage par défaut', 'Default setting')}
+                value={edit.sheetWidthMm ?? ''}
+                onChange={(e) => setEdit({ ...edit, sheetWidthMm: e.target.value === '' ? undefined : +e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>{t('Hauteur de feuille (mm)', 'Sheet height (mm)')}</span>
+              <input
+                className="input num"
+                type="number"
+                placeholder={t('Réglage par défaut', 'Default setting')}
+                value={edit.sheetHeightMm ?? ''}
+                onChange={(e) => setEdit({ ...edit, sheetHeightMm: e.target.value === '' ? undefined : +e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>{t('Fournisseur', 'Supplier')}</span>
+              <input className="input" value={edit.supplier ?? ''} onChange={(e) => setEdit({ ...edit, supplier: e.target.value || undefined })} />
+            </label>
+            <label className="field">
+              <span>{t('Délai (jours)', 'Lead time (days)')}</span>
+              <input
+                className="input num"
+                type="number"
+                value={edit.leadTimeDays ?? ''}
+                onChange={(e) => setEdit({ ...edit, leadTimeDays: e.target.value === '' ? undefined : +e.target.value })}
+              />
+            </label>
+            <label className="field">
+              <span>{t('Commande minimale', 'Minimum order')}</span>
+              <input
+                className="input num"
+                type="number"
+                value={edit.minOrder ?? ''}
+                onChange={(e) => setEdit({ ...edit, minOrder: e.target.value === '' ? undefined : +e.target.value })}
+              />
             </label>
           </div>
         )}

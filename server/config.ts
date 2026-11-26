@@ -19,8 +19,9 @@ function bool(name: string, fallback: boolean): boolean {
 
 const anthropicKey = str('ANTHROPIC_API_KEY');
 const geminiKey = str('GEMINI_API_KEY');
-/** AI_PROVIDER wins; otherwise whichever key is present (Anthropic first). */
-const aiProvider = (str('AI_PROVIDER').toLowerCase() || (anthropicKey ? 'anthropic' : geminiKey ? 'gemini' : '')) as 'anthropic' | 'gemini' | '';
+const openaiKey = str('OPENAI_API_KEY');
+/** AI_PROVIDER wins; otherwise whichever key is present (Anthropic, then OpenAI, then Gemini). */
+const aiProvider = (str('AI_PROVIDER').toLowerCase() || (anthropicKey ? 'anthropic' : openaiKey ? 'openai' : geminiKey ? 'gemini' : '')) as 'anthropic' | 'openai' | 'gemini' | '';
 
 const msTenant = str('MS_TENANT_ID');
 const msClientId = str('MS_CLIENT_ID');
@@ -85,6 +86,12 @@ export const config = {
     lookbackDays: int('GRAPH_LOOKBACK_DAYS', 30),
     /** Automatic sync interval in minutes (0 = only when someone clicks "Sync"). */
     syncMinutes: Number(str('GRAPH_SYNC_MINUTES', '0')) || 0,
+    /** Sales intake mailbox (customer requests), same Entra app. */
+    salesMailbox: str('GRAPH_SALES_MAILBOX'),
+    salesFolder: str('GRAPH_SALES_FOLDER', 'inbox'),
+    /** Automatic sales sync interval in minutes (0 = only when someone clicks "Sync"). */
+    salesSyncMinutes: Number(str('GRAPH_SALES_SYNC_MINUTES', '0')) || 0,
+    salesEnabled: !!(msTenant && msClientId && msClientSecret && str('GRAPH_SALES_MAILBOX')),
   },
 
   /**
@@ -101,9 +108,11 @@ export const config = {
 
   ai: {
     provider: aiProvider,
-    enabled: aiProvider === 'anthropic' ? !!anthropicKey : aiProvider === 'gemini' ? !!geminiKey : false,
-    model: aiProvider === 'gemini' ? str('GEMINI_MODEL', 'gemini-flash-latest') : str('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+    enabled: aiProvider === 'anthropic' ? !!anthropicKey : aiProvider === 'openai' ? !!openaiKey : aiProvider === 'gemini' ? !!geminiKey : false,
+    model: aiProvider === 'gemini' ? str('GEMINI_MODEL', 'gemini-flash-latest') : aiProvider === 'openai' ? str('OPENAI_MODEL', 'gpt-4.1') : str('ANTHROPIC_MODEL', 'claude-opus-5-5'),
     geminiKey,
+    openaiKey,
+    openaiBaseUrl: str('OPENAI_BASE_URL', 'https://api.openai.com/v1').replace(/\/+$/, ''),
   },
 };
 

@@ -9,7 +9,7 @@ import type { L } from '@/i18n';
 export const DEFAULT_SECTIONS: { id: string; label: L | null; moduleIds: string[] }[] = [
   { id: 'admin', label: { fr: 'Outils administratifs', en: 'Administrative tools' }, moduleIds: ['align', 'o365', 'rh'] },
   { id: 'accounting', label: { fr: 'Comptabilité', en: 'Accounting' }, moduleIds: ['accounting'] },
-  { id: 'production', label: { fr: 'Outils de production', en: 'Production tools' }, moduleIds: ['estimating', 'shipping'] },
+  { id: 'production', label: { fr: 'Outils de production', en: 'Production tools' }, moduleIds: ['sales', 'estimating', 'workorders', 'shipping'] },
   { id: 'studio', label: { fr: 'Outils studio', en: 'Studio tools' }, moduleIds: ['tools.pm'] },
   { id: 'dev', label: { fr: 'Développement', en: 'Development' }, moduleIds: ['dev'] },
   { id: 'archive', label: { fr: 'Archive temporaire', en: 'Archive (temporary)' }, moduleIds: ['tools'] },

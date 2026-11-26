@@ -21,9 +21,10 @@ const ready = !BROWSER_BACKEND
       import('./modules/o365/connector'),
       import('./modules/rh/migrate'),
       import('./modules/align/devSeed'),
-    ]).then(async ([seed, est, cmp, it, o365, rh, align]) => {
+      import('./modules/sales/stores'),
+    ]).then(async ([seed, est, cmp, it, o365, rh, align, sales]) => {
       await seed.ensureSeeded();
-      await Promise.all([est.ensureEstimatingSeeded(), cmp.ensureComplianceSeeded(), it.ensureItAccess(), o365.ensureO365Seeded(), align.ensureAlignSeeded()]);
+      await Promise.all([est.ensureEstimatingSeeded(), cmp.ensureComplianceSeeded(), it.ensureItAccess(), o365.ensureO365Seeded(), align.ensureAlignSeeded(), sales.ensureSalesSeeded()]);
       await rh.ensureRhAccess();
     });
 

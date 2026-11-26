@@ -7,6 +7,8 @@ import { BrandingProvider } from '@/branding/BrandingContext';
 import { AppShell } from '@/layout/AppShell';
 import { Login } from '@/pages/Login';
 import { ResetPassword } from '@/pages/ResetPassword';
+import { QuotePage } from '@/pages/public/QuotePage';
+import { RequestFormPage } from '@/pages/public/RequestFormPage';
 import { ImpersonationBanner } from '@/layout/ImpersonationBanner';
 
 function Gate() {
@@ -14,6 +16,10 @@ function Gate() {
   const { pathname } = useLocation();
   // The link in the welcome / password-reset e-mail works whether or not someone is signed in.
   if (pathname === '/reset-password') return <ResetPassword />;
+  // Customer-facing pages: reached by link, no sign-in.
+  const quote = /^\/q\/([A-Za-z0-9_-]{20,128})\/?$/.exec(pathname);
+  if (quote) return <QuotePage token={quote[1]} />;
+  if (/^\/request\/?$/.test(pathname)) return <RequestFormPage />;
   if (!ready) return null;
   return (
     <AnimatePresence mode="wait">

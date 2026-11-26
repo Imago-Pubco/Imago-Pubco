@@ -1,26 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FileCheck, Send, Sparkles } from 'lucide-react';
 import { METAMORPHOSIS, type StageDef } from '@/components/Stages';
 import { useCollection } from '@/data/db';
 import { useI18n, type L } from '@/i18n';
 import { estSettings, DEFAULT_EST_SETTINGS, materials } from './stores';
+import { resolveSettings } from './defaults';
 import { priceBreaks } from './pricing';
 import type { Estimate, EstimateStatus, EstimatingSettings } from './types';
 
+/** Metamorphosis of an estimate: request -> costing -> review -> approved (back to sales) -> sent -> won. */
 export const EST_STAGES: StageDef[] = [
   { ...METAMORPHOSIS[0], key: 'draft', label: { fr: 'Demande', en: 'Request' } },
   { ...METAMORPHOSIS[1], key: 'costing', label: { fr: 'Chiffrage', en: 'Costing' } },
-  { ...METAMORPHOSIS[2], key: 'sent', label: { fr: 'Soumise', en: 'Sent' } },
+  { ...METAMORPHOSIS[2], key: 'review', label: { fr: 'Révision', en: 'Review' } },
+  { key: 'approved', icon: FileCheck, label: { fr: 'Approuvée', en: 'Approved' } },
+  { key: 'sent', icon: Send, label: { fr: 'Soumise', en: 'Sent' } },
   { ...METAMORPHOSIS[3], key: 'won', label: { fr: 'Acceptée', en: 'Won' } },
 ];
-export const estStageIndex = (s: EstimateStatus) => ({ draft: 0, costing: 1, sent: 2, won: 3, lost: 2 })[s];
+
+export const estStageIndex = (s: EstimateStatus): number =>
+  ({ draft: 0, costing: 1, review: 2, approved: 3, sent: 4, lost: 4, won: 5 })[s];
 
 export const EST_STATUS: Record<EstimateStatus, [L, string]> = {
   draft: [{ fr: 'Demande', en: 'Request' }, ''],
   costing: [{ fr: 'En chiffrage', en: 'Costing' }, 'badge-warn'],
+  review: [{ fr: 'À réviser', en: 'To review' }, 'badge-accent'],
+  approved: [{ fr: 'Approuvée — renvoyée aux ventes', en: 'Approved — back to sales' }, 'badge-info'],
   sent: [{ fr: 'Soumise au client', en: 'Sent to customer' }, 'badge-info'],
   won: [{ fr: 'Acceptée', en: 'Won' }, 'badge-ok'],
   lost: [{ fr: 'Refusée', en: 'Lost' }, 'badge-err'],
 };
+
+/** Statuses in which the estimate content may still be changed (by estimating.edit). */
+export const isEditable = (s: EstimateStatus) => s === 'draft' || s === 'costing' || s === 'review';
 
 export function EstStatusBadge({ status }: { status: EstimateStatus }) {
   const { t } = useI18n();
@@ -28,10 +40,24 @@ export function EstStatusBadge({ status }: { status: EstimateStatus }) {
   return <span className={`badge ${cls}`}>{t(l)}</span>;
 }
 
+/** Marks an estimate built automatically from a sales request (to be checked before approval). */
+export function AutoBadge({ show }: { show?: boolean }) {
+  const { t } = useI18n();
+  if (!show) return null;
+  return (
+    <span
+      className="badge badge-accent est-auto"
+      title={t('Construite automatiquement à partir de la demande — à vérifier', 'Built automatically from the request — check before approving')}
+    >
+      <Sparkles size={11} /> Auto
+    </span>
+  );
+}
+
 export function useEstSettings(): EstimatingSettings {
-  const [s, setS] = useState(DEFAULT_EST_SETTINGS);
+  const [s, setS] = useState(() => resolveSettings(DEFAULT_EST_SETTINGS));
   useEffect(() => {
-    const load = () => estSettings.get('settings').then((x) => setS(x ?? DEFAULT_EST_SETTINGS));
+    const load = () => estSettings.get('settings').then((x) => setS(resolveSettings(x)));
     load();
     return estSettings.subscribe(load);
   }, []);

@@ -40,7 +40,18 @@ export function normalizeMenu(saved: MenuLayout | null | undefined): MenuLayout 
     }))
     // An untitled section emptied this way (e.g. the old Support TI one, now pinned) is dropped; titled ones are kept.
     .filter((s) => s.label || s.moduleIds.length);
-  const missing = [...known].filter((id) => !seen.has(id));
+  // A module added since the layout was saved joins the section it belongs to by default, if that section still exists.
+  const missing: string[] = [];
+  for (const id of [...known].filter((k) => !seen.has(k))) {
+    const home = DEFAULT_SECTIONS.find((d) => d.moduleIds.includes(id));
+    const target = home && sections.find((s) => s.id === home.id);
+    if (!home || !target) {
+      missing.push(id);
+      continue;
+    }
+    const before = home.moduleIds.slice(0, home.moduleIds.indexOf(id)).reverse().find((m) => target.moduleIds.includes(m));
+    target.moduleIds.splice(before ? target.moduleIds.indexOf(before) + 1 : 0, 0, id);
+  }
   if (missing.length) {
     const at = Math.max(0, sections.length - 1);
     sections.splice(at, 0, { id: 'other', label: { fr: 'Autres', en: 'Other' }, moduleIds: missing });

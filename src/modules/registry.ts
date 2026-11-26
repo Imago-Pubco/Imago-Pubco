@@ -7,6 +7,8 @@ import type { ModuleDef, NavItem } from './types';
 import { accountingModule } from './accounting';
 import { shippingModule } from './shipping';
 import { estimatingModule } from './estimating';
+import { salesModule } from './sales';
+import { workOrdersModule } from './workorders';
 import { itModule } from './it';
 import { rhModule } from './rh';
 import { o365Module } from './o365';
@@ -17,7 +19,7 @@ import { adminModule } from './admin';
 import { devModule } from './dev';
 import { sandboxModule } from './sandbox';
 
-export const modules: ModuleDef[] = [alignModule, o365Module, rhModule, accountingModule, estimatingModule, shippingModule, pmModule, devModule, toolsModule, itModule, sandboxModule, adminModule];
+export const modules: ModuleDef[] = [alignModule, o365Module, rhModule, accountingModule, salesModule, estimatingModule, workOrdersModule, shippingModule, pmModule, devModule, toolsModule, itModule, sandboxModule, adminModule];
 
 /** Nav items with nested sections expanded (parents first). */
 export function flatNav(nav: NavItem[]): NavItem[] {

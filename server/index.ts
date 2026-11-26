@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { apiRouter } from './api.ts';
+import { startSalesMailboxTimer } from './sales.ts';
 import { loadSession, purgeExpiredSessions } from './auth.ts';
 import { syncBc } from './pipeline.ts';
 import { runAutomation } from './automation.ts';
@@ -83,6 +84,8 @@ async function start() {
         .catch((e) => console.error('[mailbox] sync failed:', e.message));
     }, config.graph.syncMinutes * 60_000);
   }
+
+  startSalesMailboxTimer();
 
   const server = app.listen(config.port, () => {
     console.log(`[imago] listening on :${config.port}`);

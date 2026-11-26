@@ -348,3 +348,58 @@
     transform: rotate(360deg);
   }
 }
+
+/* ---------- AI usage and quotas (pages/AiQuotas.tsx) ---------- */
+.ai-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.ai-two > * {
+  min-width: 0;
+}
+.ai-hint {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.ai-unsaved {
+  font-size: 13px;
+  color: var(--warn);
+  font-weight: 500;
+}
+.ai-bar {
+  height: 8px;
+  margin-top: 8px;
+  min-width: 80px;
+  border-radius: 999px;
+  background: var(--bg-sunken);
+  overflow: hidden;
+}
+.ai-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ok);
+  transition: width 0.3s ease;
+}
+.ai-bar.warn > span {
+  background: var(--warn);
+}
+.ai-bar.err > span {
+  background: var(--err);
+}
+.ai-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.ai-chart-label {
+  font-size: 11px;
+  fill: var(--text-3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-bar > span {
+    transition: none;
+  }
+}

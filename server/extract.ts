@@ -6,7 +6,9 @@ import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod';
 import type { ExtractedInvoice } from '../src/modules/accounting/types.ts';
+import { assertAiQuota, recordAiUsage } from './aiUsage.ts';
 import { config } from './config.ts';
+import { openaiStructured } from './openai.ts';
 
 const InvoiceSchema = z.object({
   docType: z.enum(['invoice', 'po', 'other']),
@@ -49,7 +51,15 @@ let client: Anthropic | undefined;
 
 export async function extractInvoice(pdf: Buffer, fromEmail: string): Promise<ExtractedInvoice | undefined> {
   if (!config.ai.enabled) return undefined;
-  const out = config.ai.provider === 'gemini' ? await extractWithGemini(pdf) : await extractWithClaude(pdf);
+  try {
+    await assertAiQuota();
+  } catch (e) {
+    // Over the AI allowance: the invoice is simply read by hand instead.
+    console.warn('[extract] skipped:', e instanceof Error ? e.message : e);
+    return undefined;
+  }
+  const out =
+    config.ai.provider === 'gemini' ? await extractWithGemini(pdf) : config.ai.provider === 'openai' ? await extractWithOpenAi(pdf) : await extractWithClaude(pdf);
   return out ? { ...out, vendorEmail: out.vendorEmail || fromEmail } : undefined;
 }
 
@@ -70,7 +80,9 @@ async function extractWithGemini(pdf: Buffer): Promise<z.infer<typeof InvoiceSch
       console.error(`[extract] Gemini error ${res.status}: ${body.slice(0, 300)}`);
       return undefined;
     }
-    const text = (JSON.parse(body) as { candidates?: { content?: { parts?: { text?: string }[] } }[] }).candidates?.[0]?.content?.parts?.[0]?.text;
+    const json = JSON.parse(body) as { candidates?: { content?: { parts?: { text?: string }[] } }[]; usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number } };
+    await recordAiUsage('accounting.invoice', json.usageMetadata?.promptTokenCount, json.usageMetadata?.candidatesTokenCount);
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
     const parsed = InvoiceSchema.safeParse(text ? JSON.parse(text) : undefined);
     if (!parsed.success) {
       console.warn('[extract] Gemini returned no valid result');
@@ -81,6 +93,10 @@ async function extractWithGemini(pdf: Buffer): Promise<z.infer<typeof InvoiceSch
     console.error('[extract] Gemini failed', e);
     return undefined;
   }
+}
+
+function extractWithOpenAi(pdf: Buffer) {
+  return openaiStructured({ schema: InvoiceSchema, name: 'invoice', text: PROMPT, files: [{ mediaType: 'application/pdf', base64: pdf.toString('base64'), name: 'document.pdf' }], tag: 'extract', feature: 'accounting.invoice' });
 }
 
 async function extractWithClaude(pdf: Buffer): Promise<z.infer<typeof InvoiceSchema> | undefined> {
@@ -100,6 +116,7 @@ async function extractWithClaude(pdf: Buffer): Promise<z.infer<typeof InvoiceSch
         },
       ],
     });
+    await recordAiUsage('accounting.invoice', response.usage.input_tokens, response.usage.output_tokens);
     if (response.stop_reason === 'refusal' || !response.parsed_output) {
       console.warn(`[extract] no result (stop_reason=${response.stop_reason})`);
       return undefined;

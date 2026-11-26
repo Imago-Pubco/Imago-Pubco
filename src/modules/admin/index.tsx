@@ -1,5 +1,5 @@
 import { Link, NavLink, Route, Routes } from 'react-router-dom';
-import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Palette, Server, Mail as MailIcon, LayoutGrid, PanelsTopLeft } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Users as UsersIcon, KeyRound, ScrollText, Palette, Server, Mail as MailIcon, LayoutGrid, PanelsTopLeft, Sparkles } from 'lucide-react';
 import { useCollection } from '@/data/db';
 import { groups, users } from '@/data/stores';
 import { useAuth } from '@/auth/AuthContext';
@@ -13,6 +13,7 @@ import { Groups } from './pages/Groups';
 import { Audit, AuditTable } from './pages/Audit';
 import { System } from './pages/System';
 import { Mail } from './pages/Mail';
+import { AiQuotas } from './pages/AiQuotas';
 import { ModuleSettings, Modules } from './pages/Modules';
 import { MenuEditor } from './pages/MenuEditor';
 import { Branding } from './pages/Branding';
@@ -85,6 +86,7 @@ function AdminRoutes() {
       <Route path="mail" element={<RequirePermission permission="admin.mail"><Mail /></RequirePermission>} />
       <Route path="menu" element={<RequirePermission permission="admin.menu"><MenuEditor /></RequirePermission>} />
       <Route path="branding" element={<RequirePermission permission="admin.branding"><Branding /></RequirePermission>} />
+      <Route path="ai" element={<RequirePermission permission="admin.ai"><AiQuotas /></RequirePermission>} />
       <Route path="system" element={<RequirePermission permission="admin.system"><System /></RequirePermission>} />
     </Routes>
     </>
@@ -111,6 +113,7 @@ export const adminModule: ModuleDef = {
     { key: 'admin.menu', label: { fr: 'Modifier le menu (noms, ordre, sections)', en: 'Edit the menu (names, order, sections)' } },
     { key: 'admin.branding', label: { fr: 'Image de marque (nom, logo, couleurs)', en: 'Branding (name, logo, colours)' } },
     { key: 'admin.system', label: { fr: 'Paramètres système', en: 'System settings' } },
+    { key: 'admin.ai', label: { fr: 'Gérer les quotas d’IA', en: 'Manage AI quotas' } },
   ],
   nav: [
     { path: '', label: { fr: 'Aperçu', en: 'Overview' }, icon: LayoutDashboard },
@@ -121,6 +124,7 @@ export const adminModule: ModuleDef = {
     { path: 'mail', label: { fr: 'Courriels', en: 'E-mail' }, icon: MailIcon, permission: 'admin.mail' },
     { path: 'menu', label: { fr: 'Menu', en: 'Menu' }, icon: PanelsTopLeft, permission: 'admin.menu' },
     { path: 'branding', label: { fr: 'Image de marque', en: 'Branding' }, icon: Palette, permission: 'admin.branding' },
+    { path: 'ai', label: { fr: 'IA et quotas', en: 'AI & quotas' }, icon: Sparkles, permission: 'admin.ai' },
     { path: 'system', label: { fr: 'Système', en: 'System' }, icon: Server, permission: 'admin.system' },
   ],
   component: AdminRoutes,
