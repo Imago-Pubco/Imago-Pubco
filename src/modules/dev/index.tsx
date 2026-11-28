@@ -1,21 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Clock, Code2 } from 'lucide-react';
-import { useI18n } from '@/i18n';
-import { Page } from '@/components/Page';
-import { PageHeader, RequirePermission } from '@/components/ui';
+import { RequirePermission } from '@/components/ui';
 import type { ModuleDef } from '../types';
-
-/** Punch card: placeholder until its features are specified. */
-function PunchCardPage() {
-  const { t } = useI18n();
-  return (
-    <div style={{ background: '#dc2626', minHeight: 'calc(100vh - 60px)', color: '#fff' }}>
-      <Page>
-        <PageHeader title={t('Punch card', 'Punch card')} />
-      </Page>
-    </div>
-  );
-}
+import { FollowUp } from './punch/FollowUp';
 
 function DevRoutes() {
   return (
@@ -25,7 +12,7 @@ function DevRoutes() {
         path="punch-card"
         element={
           <RequirePermission permission="dev.punchcard">
-            <PunchCardPage />
+            <FollowUp />
           </RequirePermission>
         }
       />

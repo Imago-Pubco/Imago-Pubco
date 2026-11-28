@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc -p server",
-    "start": "node server/index.ts"
+    "start": "node server/index.ts",
+    "pointage": "vite build --config vite.pointage.config.ts && node --env-file-if-exists=.env.punch server/punch/index.ts",
+    "pointage:serveur": "node --env-file-if-exists=.env.punch server/punch/index.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
@@ -21,6 +23,7 @@
     "@tiptap/pm": "3.32.2",
     "@tiptap/react": "3.32.2",
     "@tiptap/starter-kit": "3.32.2",
+    "@vladmandic/face-api": "1.7.15",
     "dompurify": "3.4.17",
     "express": "^5.2.1",
     "framer-motion": "^13.4.4",
@@ -32,6 +35,7 @@
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
     "sanitize-html": "2.18.1",
+    "selfsigned": "5.5.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

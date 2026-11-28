@@ -4,8 +4,21 @@
     {
       "name": "imago-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "pointage",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "pointage"
+      ],
+      "port": 8443,
+      "url": "https://localhost:8443"
     }
   ]
 }

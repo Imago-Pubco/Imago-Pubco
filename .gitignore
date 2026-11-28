@@ -14,3 +14,7 @@ Thumbs.db
 # Updater (deploy/imago-update.sh) and database backups
 .update/
 backups/
+
+# Punch card: kiosk build and server data (SQLite, certificate)
+dist-pointage/
+/data/
